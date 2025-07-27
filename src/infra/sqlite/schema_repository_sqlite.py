@@ -9,42 +9,42 @@ class SchemasRepositorySQLite(SchemasRepository):
         self.db_path = base_dir / "db.sqlite"
         self.conn_provider = conn_provider
 
-    def criar_tabelas(self):
+    def create_tables(self):
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
 
             cursor.execute("""
-                           CREATE TABLE IF NOT EXISTS usuarios (
+                           CREATE TABLE IF NOT EXISTS users (
                                                                    discord_id TEXT PRIMARY KEY,
-                                                                   nome TEXT,
-                                                                   aba TEXT,
-                                                                   coluna TEXT
+                                                                   name TEXT,
+                                                                   tab TEXT,
+                                                                   column TEXT
                            )""")
 
             cursor.execute("""
-                           CREATE TABLE IF NOT EXISTS filmes (
+                           CREATE TABLE IF NOT EXISTS movies (
                                                                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                                                 titulo TEXT,
-                                                                 id_responsavel TEXT,
-                                                                 linha_planilha INTEGER,
-                                                                 genero TEXT,
-                                                                 ano INTEGER,
+                                                                 title TEXT,
+                                                                 responsible_id TEXT,
+                                                                 spreadsheet_row INTEGER,
+                                                                 genre TEXT,
+                                                                 year INTEGER,
                                                                  tmdb_id INTEGER,
-                                                                 data_adicionado TEXT,
-                                                                 FOREIGN KEY(id_responsavel) REFERENCES usuarios(discord_id)
+                                                                 date_added TEXT,
+                                                                 FOREIGN KEY(responsible_id) REFERENCES users(discord_id)
                                )""")
 
             cursor.execute("""
-                           CREATE TABLE IF NOT EXISTS votos (
+                           CREATE TABLE IF NOT EXISTS votes (
                                                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                                                id_filme INTEGER,
-                                                                id_responsavel TEXT,
-                                                                id_votante TEXT,
-                                                                voto TEXT,
-                                                                FOREIGN KEY(id_filme) REFERENCES filmes(id),
-                               FOREIGN KEY(id_responsavel) REFERENCES usuarios(discord_id),
-                               FOREIGN KEY(id_votante) REFERENCES usuarios(discord_id),
-                               UNIQUE(id_filme, id_votante)
+                                                                movie_id INTEGER,
+                                                                responsible_id TEXT,
+                                                                voter_id TEXT,
+                                                                vote TEXT,
+                                                                FOREIGN KEY(movie_id) REFERENCES movies(id),
+                               FOREIGN KEY(responsible_id) REFERENCES users(discord_id),
+                               FOREIGN KEY(voter_id) REFERENCES users(discord_id),
+                               UNIQUE(movie_id, voter_id)
                                )""")
 
             conn.commit()

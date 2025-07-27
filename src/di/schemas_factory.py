@@ -10,7 +10,7 @@ SCHEMAS = {
     "sqlite": SchemasRepositorySQLite,
 }
 
-def get_schemas_repository(conn_provider) -> SchemasRepository:
+def create_schemas_repository(conn_provider) -> SchemasRepository:
     backend = os.getenv("DB_BACKEND").lower()
 
     try:

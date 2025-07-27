@@ -10,7 +10,7 @@ REPOSITORIOS_MAINTENANCE = {
     "sqlite": MaintenanceRepositorySQLite,
 }
 
-def criar_maintenance_repository(conn_provider)-> MaintenanceRepository:
+def create_maintenance_repository(conn_provider)-> MaintenanceRepository:
     backend = os.getenv("DB_BACKEND").lower()
 
     try:

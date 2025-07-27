@@ -1,18 +1,18 @@
 from flask import Blueprint, request, jsonify
-from services.tmdb_service import buscar_detalhes_filme
+from services.tmdb_service import fetch_movie_details
 
 tmdb_bp = Blueprint("tmdb", __name__)
 
-@tmdb_bp.route("/enriquecer-filme", methods=["POST"])
+@tmdb_bp.route("/movie-details", methods=["POST"])
 def enriquecer_filme():
     data = request.get_json()
-    titulo = data.get("titulo")
-    ano = data.get("ano")
+    title = data.get("title")
+    year = data.get("year")
 
-    if not titulo:
-        return jsonify({"erro": "Campo 'titulo' é obrigatórios"}), 400
+    if not title:
+        return jsonify({"erro": "Campo 'title' é obrigatórios"}), 400
 
-    filme = buscar_detalhes_filme(titulo, ano)
+    filme = fetch_movie_details(title, year)
     if not filme:
         return jsonify({"erro": "Filme não encontrado"}), 404
 

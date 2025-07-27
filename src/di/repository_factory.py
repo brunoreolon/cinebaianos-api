@@ -1,59 +1,59 @@
 import os
 from dotenv import load_dotenv
 
-from src.domain.repositories.usuarios_repository import UsuariosRepository
-from src.domain.repositories.filmes_repository import FilmesRepository
-from src.domain.repositories.votos_repository import VotosRepository
-from src.domain.repositories.generos_repository import GenerosRepository
+from src.domain.repositories.users_repository import UsersRepository
+from src.domain.repositories.movies_repository import MoviesRepository
+from src.domain.repositories.votes_repository import VotesRepository
+from src.domain.repositories.genres_repository import GenresRepository
 
-from src.infra.sqlite.usuarios_repository_sqlite import UsuarioRepositorySQLite
-from src.infra.sqlite.filmes_repository_sqlite import FilmesRepositorySQLite
-from src.infra.sqlite.votos_repository_sqlite import VotosRepositorySQLite
-from src.infra.sqlite.generos_repository_sqlite import GenerosRepositorySQLite
+from src.infra.sqlite.users_repository_sqlite import UserRepositorySQLite
+from src.infra.sqlite.movies_repository_sqlite import MovieRepositorySQLite
+from src.infra.sqlite.votes_repository_sqlite import VoteRepositorySQLite
+from src.infra.sqlite.genres_repository_sqlite import GenresRepositorySQLite
 
 load_dotenv()
 
 # Registrando os backends suportados
-_REPOSITORIOS_USUARIOS = {
-    "sqlite": UsuarioRepositorySQLite,
+_USERS_REPOSITORIES = {
+    "sqlite": UserRepositorySQLite,
 }
 
-_REPOSITORIOS_FILMES = {
-    "sqlite": FilmesRepositorySQLite,
+_MOVIES_REPOSITORIES = {
+    "sqlite": MovieRepositorySQLite,
 }
 
-_REPOSITORIOS_VOTOS = {
-    "sqlite": VotosRepositorySQLite,
+_VOTES_REPOSITORIES = {
+    "sqlite": VoteRepositorySQLite,
 }
 
-_REPOSITORIOS_GENEROS = {
-    "sqlite": GenerosRepositorySQLite,
+_GENRES_REPOSITORIES = {
+    "sqlite": GenresRepositorySQLite,
 }
 
-def criar_usuarios_repository(conn_provider) -> UsuariosRepository:
+def create_users_repository(conn_provider) -> UsersRepository:
     backend = os.getenv("DB_BACKEND").lower()
     try:
-        return _REPOSITORIOS_USUARIOS[backend](conn_provider)
+        return _USERS_REPOSITORIES[backend](conn_provider)
     except KeyError:
         raise ValueError(f"Backend '{backend}' não suportado para UsuariosRepository.")
 
-def criar_filmes_repository(conn_provider) -> FilmesRepository:
+def create_movies_repository(conn_provider) -> MoviesRepository:
     backend = os.getenv("DB_BACKEND").lower()
     try:
-        return _REPOSITORIOS_FILMES[backend](conn_provider)
+        return _MOVIES_REPOSITORIES[backend](conn_provider)
     except KeyError:
         raise ValueError(f"Backend '{backend}' não suportado para FilmesRepository.")
 
-def criar_votos_repository(conn_provider) -> VotosRepository:
+def create_votes_repository(conn_provider) -> VotesRepository:
     backend = os.getenv("DB_BACKEND").lower()
     try:
-        return _REPOSITORIOS_VOTOS[backend](conn_provider)
+        return _VOTES_REPOSITORIES[backend](conn_provider)
     except KeyError:
         raise ValueError(f"Backend '{backend}' não suportado para VotosRepository.")
 
-def criar_generos_repository(conn_provider) -> GenerosRepository:
+def create_genres_repository(conn_provider) -> GenresRepository:
     backend = os.getenv("DB_BACKEND").lower()
     try:
-        return _REPOSITORIOS_GENEROS[backend](conn_provider)
+        return _GENRES_REPOSITORIES[backend](conn_provider)
     except KeyError:
         raise ValueError(f"Backend '{backend}' não suportado para GenerosRepository.")

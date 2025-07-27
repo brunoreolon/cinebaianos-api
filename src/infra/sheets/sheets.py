@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from google.oauth2 import service_account
 from gspread_formatting import format_cell_range, CellFormat, TextFormat
 
-from src.di.repository_factory import criar_usuarios_repository
+from src.di.repository_factory import create_users_repository
 
 load_dotenv()
 
@@ -29,195 +29,195 @@ else:
 
 sheet = gc.open_by_key(SHEET_ID)
 
-def get_planilha():
+def get_sheet():
     return sheet
 
-def adicionar_filme_na_planilha(titulo, aba, coluna, voto=None):
-    aba_obj = sheet.worksheet(aba)
+def add_movie_to_spreadsheet(title, tab, column, vote=None):
+    tab_obj = sheet.worksheet(tab)
 
     # Obtem todas as células da coluna B (títulos)
-    col_b = aba_obj.col_values(2)  # coluna B
+    col_b = tab_obj.col_values(2)  # coluna B
 
-    # Acha a próxima linha disponível após os filmes já adicionados
-    # Começa na linha 2 para ignorar o cabeçalho
-    linha = len(col_b) + 1 if len(col_b) >= 2 else 2
+    # Acha a próxima row disponível após os filmes já adicionados
+    # Começa na row 2 para ignorar o cabeçalho
+    row = len(col_b) + 1 if len(col_b) >= 2 else 2
 
-    logging.info(f"Inserindo filme na aba: {aba}, linha {linha}: {titulo}")
+    logging.info(f"Inserindo filme na aba: {tab}, row {row}: {title}")
 
     # Escreve o título na coluna B
-    aba_obj.update_cell(linha, 2, titulo)
+    tab_obj.update_cell(row, 2, title)
 
     # Aplica a formatação (Arial 11 Negrito)
     fmt = CellFormat(textFormat=TextFormat(fontFamily="Arial", fontSize=11, bold=True))
-    format_cell_range(aba_obj, f"B{linha}", fmt)
+    format_cell_range(tab_obj, f"B{row}", fmt)
 
     # Escreve o voto na coluna correta
-    cabecalho = aba_obj.row_values(4)
-    colunas_limpas = [c.strip().upper() for c in cabecalho]
-    coluna_alvo = coluna.strip().upper()
+    header = tab_obj.row_values(4)
+    clean_columns = [c.strip().upper() for c in header]
+    target_column = column.strip().upper()
 
-    if voto and coluna_alvo in colunas_limpas:
-        index_coluna = colunas_limpas.index(coluna_alvo) + 1
-        aba_obj.update_cell(linha, index_coluna, voto)
-    elif not voto:
+    if vote and target_column in clean_columns:
+        column_index = clean_columns.index(target_column) + 1
+        tab_obj.update_cell(row, column_index, vote)
+    elif not vote:
         logging.info("📝 Nenhum voto informado. Apenas adicionando o filme.")
     else:
-        logging.info(f"⚠️ Coluna '{coluna}' não encontrada no cabeçalho: {cabecalho}")
+        logging.info(f"⚠️ Coluna '{column}' não encontrada no cabeçalho: {header}")
 
-    return linha
+    return row
 
-def escrever_voto_na_planilha(aba, linha, coluna, voto):
+def add_vote_to_spreadsheet(tab, row, column, vote):
     try:
-        aba_obj = sheet.worksheet(aba)
-        cabecalho = aba_obj.row_values(4)  # ← linha do cabeçalho
-        colunas_upper = [c.upper() for c in cabecalho]
+        tab_obj = sheet.worksheet(tab)
+        header = tab_obj.row_values(4)  # ← linha do cabeçalho
+        columns_upper = [c.upper() for c in header]
 
-        if coluna.upper() in colunas_upper:
-            index_coluna = colunas_upper.index(coluna.upper()) + 1
-            aba_obj.update_cell(linha, index_coluna, voto)
-            logging.info(f"✅ Voto '{voto}' salvo na célula {linha}, {index_coluna} (coluna {coluna})")
+        if column.upper() in columns_upper:
+            column_index = columns_upper.index(column.upper()) + 1
+            tab_obj.update_cell(row, column_index, vote)
+            logging.info(f"✅ Voto '{vote}' salvo na célula {row}, {column_index} (coluna {column})")
             return True
         else:
-            logging.info(f"⚠️ Coluna '{coluna}' não encontrada no cabeçalho da aba '{aba}'. Cabeçalho: {cabecalho}")
+            logging.info(f"⚠️ Coluna '{column}' não encontrada no cabeçalho da aba '{tab}'. Cabeçalho: {header}")
             return False
     except Exception as e:
         logging.info(f"❌ Erro ao escrever voto na planilha: {e}")
         return False
 
-def ler_todos_os_filmes(conn_provider):
-    usuario_repo = criar_usuarios_repository(conn_provider)
+def read_all_movies(conn_provider):
+    user_repo = create_users_repository(conn_provider)
 
-    planilha = get_planilha()
-    usuarios = usuario_repo.buscar_todos_os_usuarios()  # Deve retornar lista de tuplas: (id, nome, aba, coluna)
-    logging.info(f"Usuários encontrados: {usuarios}\n")
+    sheett = get_sheet()
+    users = user_repo.get_all_users()
+    logging.info(f"Usuários encontrados: {users}\n")
 
-    filmes_encontrados = []
+    found_movies = []
 
-    for usuario in usuarios:
-        logging.info(f"Processando usuário: {usuario}")
-        discord_id, nome, aba, coluna = usuario
+    for user in users:
+        logging.info(f"Processando usuário: {user}")
+        discord_id, name, tab, column = user
 
         try:
-            aba_sheet = planilha.worksheet(aba)
-            dados = aba_sheet.get_all_values()
+            tab_sheet = sheett.worksheet(tab)
+            data = tab_sheet.get_all_values()
 
-            for i, linha in enumerate(dados[4:], start=5): # Pula o cabeçalho, começa na linha 2
-                logging.info(f"Linha: {linha}")
+            for i, row in enumerate(data[4:], start=5): # Pula o cabeçalho, começa na row 2
+                logging.info(f"Linha: {row}")
 
-                titulo_raw = linha[1].strip()
+                raw_title= row[1].strip()
 
-                if not titulo_raw:
+                if not raw_title:
                     continue
 
-                nome_com_ano = titulo_raw.strip()
+                name_with_year = raw_title.strip()
 
-                if "(" in nome_com_ano and ")" in nome_com_ano:
-                    titulo = nome_com_ano[:nome_com_ano.rfind("(")].strip()
-                    ano = nome_com_ano[nome_com_ano.rfind("(") + 1:nome_com_ano.rfind(")")].strip()
+                if "(" in name_with_year and ")" in name_with_year:
+                    title = name_with_year[:name_with_year.rfind("(")].strip()
+                    year = name_with_year[name_with_year.rfind("(") + 1:name_with_year.rfind(")")].strip()
                 else:
-                    titulo = nome_com_ano
-                    ano = None
+                    title = name_with_year
+                    year = None
 
-                filmes_encontrados.append({
-                    "titulo": titulo,
-                    "id_responsavel": discord_id,
-                    "ano": ano,
+                found_movies.append({
+                    "title": title,
+                    "responsible_id": discord_id,
+                    "year": year,
                     "id_linha": i
                 })
 
         except Exception as e:
-            logging.info(f"Erro ao processar aba {aba}: {e}")
+            logging.info(f"Erro ao processar tab {tab}: {e}")
 
-    return filmes_encontrados
+    return found_movies
 
-def ler_votos_da_planilha(conn_provider):
-    usuario_repo = criar_usuarios_repository(conn_provider)
+def read_votes_from_spreadsheet(conn_provider):
+    user_repo = create_users_repository(conn_provider)
 
-    planilha = get_planilha()
-    usuarios = usuario_repo.buscar_todos_os_usuarios()
-    votos = []
+    sheett = get_sheet()
+    users = user_repo.get_all_users()
+    votes = []
 
-    # Mapa COLUNA -> {id, nome}
-    mapa_coluna_para_usuario = {
-        coluna.upper(): {
+    # Mapa COLUNA -> {id, name}
+    column_to_user_map = {
+        column.upper(): {
             "id": discord_id,
-            "nome": nome
+            "name": name
         }
-        for discord_id, nome, _, coluna in usuarios
+        for discord_id, name, _, column in users
     }
 
-    # Mapa ID → nome do usuário (para descobrir nome do responsável pela aba)
-    mapa_id_para_nome = {
-        discord_id: nome
-        for discord_id, nome, _, _ in usuarios
+    # Mapa ID → name do usuário (para descobrir name do responsável pela tab)
+    id_to_name_map = {
+        discord_id: name
+        for discord_id, name, _, _ in users
     }
 
-    logging.info(f"Usuários mapeados: {mapa_coluna_para_usuario}\n")
+    logging.info(f"Usuários mapeados: {column_to_user_map}\n")
 
-    abas = planilha.worksheets()
-    for aba in abas:
-        nome_aba = aba.title.strip()
+    tabs = sheett.worksheets()
+    for tab in tabs:
+        sheet_name = tab.title.strip()
 
-        if nome_aba.upper() == "DASHBOARD":
-            logging.info(f"⏭️ Ignorando aba {nome_aba}\n")
+        if sheet_name.upper() == "DASHBOARD":
+            logging.info(f"⏭️ Ignorando tab {sheet_name}\n")
             continue
 
-        logging.info(f"📄 Processando aba: {nome_aba}")
-        dados = aba.get_all_values()
+        logging.info(f"📄 Processando tab: {sheet_name}")
+        dados = tab.get_all_values()
 
         if len(dados) < 4:
-            logging.info(f"⚠️ Cabeçalho ausente ou muito curto na aba {nome_aba}")
+            logging.info(f"⚠️ Cabeçalho ausente ou muito curto na tab {sheet_name}")
             continue
 
-        cabecalho = dados[3]
+        header = dados[3]
 
-        # Descobrir dono da aba
-        id_responsavel = None
-        for usuario in usuarios:
-            if usuario[2].strip().upper() == nome_aba.upper():
-                id_responsavel = usuario[0]
+        # Descobrir dono da tab
+        responsible_id = None
+        for user in users:
+            if user[2].strip().upper() == sheet_name.upper():
+                responsible_id = user[0]
                 break
 
-        if not id_responsavel:
-            logging.info(f"⚠️ Usuário responsável pela aba '{nome_aba}' não encontrado. Pulando.")
+        if not responsible_id:
+            logging.info(f"⚠️ Usuário responsável pela tab '{sheet_name}' não encontrado. Pulando.")
             continue
 
-        nome_responsavel = mapa_id_para_nome.get(id_responsavel, "Desconhecido")
+        responsible_name = id_to_name_map.get(responsible_id, "Desconhecido")
 
-        for col_idx in range(2, len(cabecalho)):
-            nome_coluna = cabecalho[col_idx].strip().upper()
-            logging.info(f"🔍 Verificando coluna: {nome_coluna}")
+        for col_idx in range(2, len(header)):
+            column_name = header[col_idx].strip().upper()
+            logging.info(f"🔍 Verificando column: {column_name}")
 
-            usuario_votante = mapa_coluna_para_usuario.get(nome_coluna)
+            user_voter = column_to_user_map.get(column_name)
 
-            if not usuario_votante:
-                logging.info(f"⚠️ Coluna '{nome_coluna}' ignorada (usuário não cadastrado).")
+            if not user_voter:
+                logging.info(f"⚠️ Coluna '{column_name}' ignorada (usuário não cadastrado).")
                 continue
 
-            id_votante = usuario_votante["id"]
-            nome_votante = usuario_votante["nome"]
-            logging.info(f"ID do votante: {id_votante} ({nome_votante})\n")
+            voter_id = user_voter["id"]
+            voter_name = user_voter["name"]
+            logging.info(f"ID do votante: {voter_id} ({voter_name})\n")
 
-            for i, linha in enumerate(dados[4:], start=5):
-                if len(linha) <= col_idx:
+            for i, row in enumerate(dados[4:], start=5):
+                if len(row) <= col_idx:
                     continue
 
-                titulo = linha[1].strip() if len(linha) > 1 else ""
-                voto = linha[col_idx].strip().upper()
+                title = row[1].strip() if len(row) > 1 else ""
+                vote = row[col_idx].strip().upper()
 
-                if titulo and voto in ["DA HORA", "LIXO", "NÃO ASSISTI"]:
-                    logging.info(f"✅ Voto válido: '{voto}' por {nome_votante} no filme '{titulo}' (linha {i}) da aba '{nome_aba}' (Filme de: {nome_responsavel})")
-                    votos.append({
-                        "id_responsavel": id_responsavel,
-                        "nome_responsavel": nome_responsavel,
-                        "id_votante": id_votante,
-                        "nome_votante": nome_votante,
-                        "id_linha": i,
-                        "aba": nome_aba,
-                        "voto": voto
+                if title and vote in ["DA HORA", "LIXO", "NÃO ASSISTI"]:
+                    logging.info(f"✅ Voto válido: '{vote}' por {voter_name} no filme '{title}' (row {i}) da tab '{sheet_name}' (Filme de: {responsible_name})")
+                    votes.append({
+                        "responsible_id": responsible_id,
+                        "responsible_name": responsible_name,
+                        "voter_id": voter_id,
+                        "voter_name": voter_name,
+                        "row_id": i,
+                        "tab": sheet_name,
+                        "vote": vote
                     })
-                    logging.info(f"Voto adicionado: {votos[-1]}\n")
+                    logging.info(f"Voto adicionado: {votes[-1]}\n")
 
-    return votos
+    return votes
 
 

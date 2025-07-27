@@ -5,7 +5,7 @@ class MaintenanceRepositorySQLite(MaintenanceRepository):
     def __init__(self, conn_provider):
         self.conn_provider = conn_provider
 
-    def limpar_banco_filmes(self):
+    def clear_movie_bank(self):
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM votos")

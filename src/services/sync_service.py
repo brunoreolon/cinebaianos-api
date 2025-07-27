@@ -1,98 +1,95 @@
 import logging
 import time
 
-from flask import Blueprint, request, jsonify
-from services.tmdb_service import buscar_detalhes_filme
-from src.di.repository_factory import criar_filmes_repository, criar_votos_repository
-from src.di.maintenance_factory import criar_maintenance_repository
-from src.infra.sheets.sheets import ler_todos_os_filmes, ler_votos_da_planilha
+from services.tmdb_service import fetch_movie_details
+from src.di.repository_factory import create_movies_repository, create_votes_repository
+from src.di.maintenance_factory import create_maintenance_repository
+from src.infra.sheets.sheets import read_all_movies, read_votes_from_spreadsheet
 
-sync_bp = Blueprint("sync", __name__)
-
-def sincronizar_filmes_com_planilha(conn_provider):
-    filme_repo = criar_filmes_repository(conn_provider)
-    maintenance_repo = criar_maintenance_repository(conn_provider)
+def synchronize_movies_with_spreadsheet(conn_provider):
+    movie_repo = create_movies_repository(conn_provider)
+    maintenance_repo = create_maintenance_repository(conn_provider)
 
     logging.info("🔄 Sincronizando filmes com a planilha...\n")
 
     logging.info("Limpando o banco...")
-    maintenance_repo.limpar_banco_filmes()
+    maintenance_repo.clear_movie_bank()
 
     logging.info("Lendo filmes da planiha...\n")
-    filmes_planilha = ler_todos_os_filmes(conn_provider)
-    total_filmes = 0
+    movies_spreadsheet = read_all_movies(conn_provider)
+    total_movies = 0
 
     # 3. Adicionar no banco com dados enriquecidos
-    for filme in filmes_planilha:
-        titulo = filme['titulo']
-        ano = filme['ano']
-        id_responsavel = filme['id_responsavel']
-        id_linha = filme['id_linha']
+    for movie in movies_spreadsheet:
+        title = movie['titulo']
+        year = movie['ano']
+        id_responsavel = movie['id_responsavel']
+        id_linha = movie['id_linha']
 
-        logging.info(f"🔍 Buscando: {titulo}")
-        detalhes = buscar_detalhes_filme(titulo, ano)
-        logging.info(f"Detalhes encontrados:\n{detalhes}")
+        logging.info(f"🔍 Buscando: {title}")
+        details = fetch_movie_details(title, year)
+        logging.info(f"Detalhes encontrados:\n{details}")
 
-        if detalhes:
-            filme_repo.adicionar_filme(
-                tmdb_id=detalhes.id,
-                titulo=detalhes.title,
+        if details:
+            movie_repo.add_movie(
+                tmdb_id=details.id,
+                titulo=details.title,
                 id_responsavel=id_responsavel,
                 linha_planilha=id_linha,
-                ano=detalhes.ano,
-                genero=detalhes.genres[0]["name"] if detalhes.genres else "Indefinido"
+                year=details.year,
+                genero=details.genres[0]["name"] if details.genres else "Indefinido"
             )
 
-            logging.info(f"✅ {detalhes.title} ({detalhes.ano}) adicionado.\n")
-            total_filmes += 1
+            logging.info(f"✅ {details.title} ({details.year}) adicionado.\n")
+            total_movies += 1
         else:
-            logging.info(f"⚠️ Detalhes não encontrados: {detalhes} ({detalhes})")
+            logging.info(f"⚠️ Detalhes não encontrados: {details} ({details})")
 
-    return total_filmes
+    return total_movies
 
 
-def sincronizar_votos_com_planilha(conn_provider):
-    filme_repo = criar_filmes_repository(conn_provider)
-    voto_repo = criar_votos_repository(conn_provider)
+def synchronize_votes_with_spreadsheet(conn_provider):
+    movie_repo = create_movies_repository(conn_provider)
+    vote_repo = create_votes_repository(conn_provider)
 
-    logging.info("🔄 Sincronizando votos com a planilha...\n")
+    logging.info("🔄 Sincronizando votes com a planilha...\n")
 
-    # 2. Carregar os votos da planilha
-    votos = ler_votos_da_planilha(conn_provider)  # Cada item deve conter: id_linha, id_votante, id_responsavel, voto
-    logging.info(f"📌 Total de votos encontrados: {len(votos)}\n")
-    total_votos = 0
+    # 2. Carregar os votes da planilha
+    votes = read_votes_from_spreadsheet(conn_provider)  # Cada item deve conter: row_id, voter_id, responsible_id, vote
+    logging.info(f"📌 Total de votes encontrados: {len(votes)}\n")
+    total_votes = 0
 
-    for voto in votos:
-        id_responsavel = voto["id_responsavel"]
-        nome_responsavel = voto["nome_responsavel"]
-        id_votante = voto["id_votante"]
-        nome_votante = voto["nome_votante"]
-        id_linha = voto["id_linha"]
-        aba = voto["aba"]
-        valor_voto = voto["voto"]
+    for vote in votes:
+        responsible_id = vote["responsible_id"]
+        responsible_name = vote["responsible_name"]
+        voter_id = vote["voter_id"]
+        voter_name = vote["voter_name"]
+        row_id = vote["row_id"]
+        tab = vote["tab"]
+        vote_value = vote["vote"]
 
-        logging.info(f"🔍 Processando voto: Aba={aba}, linha={id_linha}, votante={nome_votante}, responsavel={nome_responsavel}, voto={valor_voto}")
+        logging.info(f"🔍 Processando vote: Aba={tab}, linha={row_id}, votante={voter_name}, responsavel={responsible_name}, vote={vote_value}")
 
-        filme_info = filme_repo.buscar_filme_por_linha_e_usuario(id_responsavel, id_linha)
-        if not filme_info:
-            logging.info(f"❌ Filme não encontrado para responsavel={nome_responsavel}, linha={id_linha}")
+        movie_info = movie_repo.find_movie_by_row_and_user(responsible_id, row_id)
+        if not movie_info:
+            logging.info(f"❌ Filme não encontrado para responsavel={responsible_name}, linha={row_id}")
             continue
 
-        id_filme, titulo_filme = filme_info
-        voto_repo.registrar_voto(id_filme, id_responsavel, id_votante, valor_voto)
-        logging.info(f"🗳️ Voto registrado: {nome_votante} votou '{valor_voto}' no filme '{titulo_filme}' (Aba={aba}, Responsável={nome_responsavel}, linha {id_linha})\n")
-        total_votos += 1
+        movie_id, movie_title = movie_info
+        vote_repo.register_vote(movie_id, responsible_id, voter_id, vote_value)
+        logging.info(f"🗳️ Voto registrado: {voter_name} votou '{vote_value}' no filme '{movie_title}' (Aba={tab}, Responsável={responsible_name}, linha {row_id})\n")
+        total_votes += 1
 
-    logging.info("✅ Sincronização de votos concluída.")
-    return total_votos
+    logging.info("✅ Sincronização de votes concluída.")
+    return total_votes
 
 
-def sincronizar_filmes_e_votos(conn_provider):
+def sync_movies_and_votes(conn_provider):
     start_time = time.time()
 
-    total_filmes = sincronizar_filmes_com_planilha(conn_provider)
-    total_votos = sincronizar_votos_com_planilha(conn_provider)
+    total_movies = synchronize_movies_with_spreadsheet(conn_provider)
+    total_votes = synchronize_votes_with_spreadsheet(conn_provider)
 
     elapsed = time.time() - start_time
 
-    return total_filmes, total_votos, elapsed
+    return total_movies, total_votes, elapsed
