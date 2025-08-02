@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
+from models.user import User
+
+
 class VotesRepository(ABC):
 
     @abstractmethod
@@ -8,9 +11,21 @@ class VotesRepository(ABC):
         pass
 
     @abstractmethod
-    def count_votes_received_from_all_users(self, discord_id: str, vote: int) -> int:
+    def count_all_votes_per_user(self) -> List[Tuple[User, int, int]]:
         pass
 
     @abstractmethod
-    def count_all_votes_by_user(self) -> List[Tuple[str, int, int]]:
+    def count_da_hora_votes_per_user(self) -> List[Tuple[User, int]]:
+        pass
+
+    @abstractmethod
+    def count_da_hora_votes_for_user(self, discord_id: str) -> int:
+        pass
+
+    @abstractmethod
+    def count_lixo_votes_per_user(self) -> List[Tuple[User, int]]:
+        pass
+
+    @abstractmethod
+    def count_lixo_votes_for_user(self, discord_id: str) -> int:
         pass
