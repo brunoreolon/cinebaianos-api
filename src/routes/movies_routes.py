@@ -7,10 +7,12 @@ from exception.user_not_found_error import UserNotFoundError
 from services.movies_service import add_movie, get_all_movies_grouped_by_user, get_all_user_movies
 from services.users_service import get_user
 from util.exception_util import error_response, ERROR_CODES
+from auth.auth import require_auth
 
 movies_bp = Blueprint("movies", __name__)
 
 @movies_bp.route("/movies", methods=["POST"])
+@require_auth
 def add_movie_route():
     conn_provider = current_app.config["CONN_PROVIDER"]
 
@@ -63,6 +65,7 @@ def add_movie_route():
         return error_response(str(e), code, status)
 
 @movies_bp.route("/movies", methods=["GET"])
+@require_auth
 def list_movies_route():
     conn_provider = current_app.config["CONN_PROVIDER"]
 

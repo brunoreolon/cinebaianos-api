@@ -1,28 +1,27 @@
-from exception.user_not_found_error import UserNotFoundError
-from exception.user_voter_not_found_error import UserVoterNotFoundError
+from di.repository_factory import create_votes_repository
 from exception.vote_registration_error import VoteRegistrationError
-from services.movies_service import get_movie_by_id
+from models.vote_type import VoteType
 from services.sheet_service import add_vote_to_spreadsheet
 from services.users_service import get_user
 
 
-def register_vote(conn_provider, voter_id, movie_id, vote_enum):
+def register_vote_db(conn_provider, movie_id, responsible_id, voter_id, vote):
+    vote_repo = create_votes_repository(conn_provider)
+    vote_enum = VoteType(vote)
+    vote_repo.register_vote(movie_id, responsible_id, voter_id, vote_enum.label())
+
+    return True
+
+def register_vote_spreadsheet(conn_provider, voter, movie, vote_enum):
     vote = vote_enum.label()
 
-    movie = get_movie_by_id(conn_provider, movie_id)
     row = movie.spreadsheet_row
     responsible_id = movie.responsible_id
 
     user_responsable = get_user(conn_provider, responsible_id)
     tab = user_responsable.tab
 
-    try:
-        user_voter = get_user(conn_provider, voter_id)
-        column = user_voter.column
-    except UserNotFoundError:
-        raise UserVoterNotFoundError(f"Usuário votante com ID '{voter_id}' não encontrado.")
-
-    success = add_vote_to_spreadsheet(tab, row, column, vote)
+    success = add_vote_to_spreadsheet(tab, row, voter.column, vote)
 
     if not success:
         raise VoteRegistrationError("Não foi possível registrar o voto")

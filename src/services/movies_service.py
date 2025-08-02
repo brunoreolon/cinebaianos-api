@@ -12,7 +12,7 @@ from services.users_service import get_user
 def add_movie(conn_provider, title, year, responsible_id, spreadsheet_row, vote):
     movie_repo = create_movies_repository(conn_provider)
 
-    user = get_user(responsible_id)
+    user = get_user(conn_provider, responsible_id)
     if not user:
         raise UserNotFoundError(f"usuário {responsible_id} não encontrado")
 
@@ -50,8 +50,8 @@ def add_movie(conn_provider, title, year, responsible_id, spreadsheet_row, vote)
     )
 
     if vote_enum is not None:
-        from services.votes_service import register_vote
-        register_vote(movie.id, movie.responsible_id, movie.responsible_id, vote_value)
+        from services.votes_service import register_vote_db
+        register_vote_db(conn_provider, movie.id, movie.responsible_id, movie.responsible_id, vote_value)
 
     return {
         "movie": movie,
@@ -80,7 +80,7 @@ def get_all_movies_grouped_by_user(conn_provider):
 def get_all_user_movies(conn_provider, user_id):
     movie_repo = create_movies_repository(conn_provider)
 
-    user = get_user(user_id)
+    user = get_user(conn_provider, user_id)
 
     if not user:
         raise UserNotFoundError(f"Usuário {user_id} não encontrado")
