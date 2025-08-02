@@ -1,6 +1,6 @@
 [project]
 name = "cinebaianos-api"
-version = "1.2.1"
+version = "1.3.0"
 description = ""
 authors = [ { name = "Bruno Reolon", email = "bruno.reolonn@email.com" } ]
 readme = "README.md"
