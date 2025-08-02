@@ -29,6 +29,7 @@ def da_hora_total(discord_id):
 
     try:
         user, total = get_da_hora_total(conn_provider, discord_id)
+
         return jsonify({
             "user": user.to_dict(),
             "total_da_hora": total
@@ -50,6 +51,7 @@ def lixos_total(discord_id):
 
     try:
         user, total = get_lixo_total(conn_provider, discord_id)
+
         return jsonify({
             "user": user.to_dict(),
             "total_lixo": total

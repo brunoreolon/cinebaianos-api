@@ -8,6 +8,8 @@ from exception.user_not_found_error import UserNotFoundError
 from exception.user_voter_not_found_error import UserVoterNotFoundError
 from exception.vote_registration_error import VoteRegistrationError
 from models.vote_type import VoteType
+from services.movies_service import get_movie_by_id
+from services.users_service import get_user
 from services.votes_service import register_vote
 from util.exception_util import ERROR_CODES, error_response
 
@@ -41,13 +43,21 @@ def register_vote_route():
 
     try:
         register_vote(conn_provider, voter_id, movie_id, vote_enum)
+        voter = get_user(conn_provider, voter_id)
+        movie = get_movie_by_id(conn_provider, movie_id)
+        responsible = get_user(conn_provider, movie.responsible_id)
+
+        movie_dict = movie.to_dict()
+        movie_dict["responsible"] = responsible.to_dict()
+
         return jsonify({
-            "ok": True,
-            "voto": {
-                "voter_id": voter_id,
-                "movie_id": movie_id,
-                "vote": vote_enum.label()
-            }
+            "vote": {
+                "vote": vote_enum.label(),
+                "voter_id": voter.discord_id,
+                "movie_id": movie_id
+            },
+            "voter": voter.to_dict(),
+            "movie": movie_dict
         }), 201
     except (UserNotFoundError, UserVoterNotFoundError, MovieNotFoundError, ColumnNotFoundError) as e:
         code, status = ERROR_CODES.get(type(e), ("unknown_error", 400))

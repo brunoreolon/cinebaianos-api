@@ -14,6 +14,7 @@ def sync_route():
 
     try:
         total_movies, total_votes, elapsed = sync_movies_and_votes(conn_provider)
+
         return jsonify({
             "message": "Sincronização concluída com sucesso",
             "total_movie": total_movies,
