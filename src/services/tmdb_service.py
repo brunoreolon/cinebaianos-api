@@ -1,4 +1,5 @@
 import requests
+
 from config import Config
 from exception.movie_details_fetch_error import MovieDetailsFetchError
 from exception.movie_not_found_error import MovieNotFoundError
@@ -33,7 +34,7 @@ def fetch_movie_details(title, year):
     details_resp = requests.get(details_url, params=details_params)
 
     if details_resp.status_code != 200:
-        raise MovieDetailsFetchError(f"Failed to fetch details for movie ID {movie_id}")
+        raise MovieDetailsFetchError(f"Falha ao buscar detalhes para o ID do filme {movie_id}")
 
     data = details_resp.json()
 

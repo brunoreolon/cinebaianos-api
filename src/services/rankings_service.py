@@ -13,9 +13,9 @@ def get_ranking(conn_provider) -> list[dict]:
         result.append({
             "user": {
                 "discord_id": user.discord_id,
-                "nome": user.name,
-                "aba": user.tab,
-                "coluna": user.column
+                "name": user.name,
+                "tab": user.tab,
+                "column": user.column
             },
             "total_da_hora": total_da_hora,
             "total_lixo": total_lixo
@@ -25,6 +25,7 @@ def get_ranking(conn_provider) -> list[dict]:
 
 def get_da_hora_ranking(conn_provider) -> list[dict]:
     vote_repo = create_votes_repository(conn_provider)
+
     ranking_data = vote_repo.count_da_hora_votes_per_user()
 
     result = []
@@ -32,9 +33,9 @@ def get_da_hora_ranking(conn_provider) -> list[dict]:
         result.append({
             "user": {
                 "discord_id": user.discord_id,
-                "nome": user.name,
-                "aba": user.tab,
-                "coluna": user.column
+                "name": user.name,
+                "tab": user.tab,
+                "column": user.column
             },
             "total_da_hora": total_da_hora
         })
@@ -52,6 +53,7 @@ def get_da_hora_total(conn_provider, discord_id) -> tuple[User, int]:
 
 def get_lixo_ranking(conn_provider) -> list[dict]:
     vote_repo = create_votes_repository(conn_provider)
+
     ranking_data = vote_repo.count_lixo_votes_per_user()
 
     result = []
@@ -59,9 +61,9 @@ def get_lixo_ranking(conn_provider) -> list[dict]:
         result.append({
             "user": {
                 "discord_id": user.discord_id,
-                "nome": user.name,
-                "aba": user.tab,
-                "coluna": user.column
+                "name": user.name,
+                "tab": user.tab,
+                "column": user.column
             },
             "total_lixo": total_lixo
         })
