@@ -3,6 +3,7 @@ from flask import Blueprint, current_app, jsonify, request
 from exception.user_not_found_error import UserNotFoundError
 from services.genres_service import get_most_watched_genres, get_most_voted_good_genres, get_most_voted_bad_genres, \
     count_genres_by_user
+from services.users_service import get_user
 from util.exception_util import error_response, ERROR_CODES
 
 genres_bp = Blueprint("genres", __name__)
@@ -37,7 +38,9 @@ def get_my_genres():
         return error_response("Campo 'discord_id' é obrigatório", "missing_discord_id", 400)
 
     try:
-        user, genres = count_genres_by_user(conn, discord_id)
+        genres = count_genres_by_user(conn, discord_id)
+        user = get_user(conn, discord_id)
+
         return jsonify({
             "user": user.to_dict(),
             "genres": genres
@@ -51,7 +54,9 @@ def get_user_genres(discord_id):
     conn = current_app.config["CONN_PROVIDER"]
 
     try:
-        user, genres = count_genres_by_user(conn, discord_id)
+        genres = count_genres_by_user(conn, discord_id)
+        user = get_user(conn, discord_id)
+
         return jsonify({
             "user": user.to_dict(),
             "genres": genres

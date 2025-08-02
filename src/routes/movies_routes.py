@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify, current_app
 
+from exception.invalid_vote_error import InvalidVoteError
 from exception.movie_details_fetch_error import MovieDetailsFetchError
 from exception.movie_not_found_error import MovieNotFoundError
 from exception.user_not_found_error import UserNotFoundError
 from services.movies_service import add_movie, get_all_movies_grouped_by_user, get_all_user_movies
+from services.users_service import get_user
 from util.exception_util import error_response, ERROR_CODES
 
 movies_bp = Blueprint("movies", __name__)
@@ -27,7 +29,7 @@ def add_movie_route():
         )
 
     try:
-        movie = add_movie(
+        result = add_movie(
             conn_provider,
             title,
             movie_data.get("year"),
@@ -35,10 +37,28 @@ def add_movie_route():
             movie_data.get("spreadsheet_row"),
             movie_data.get("vote")
         )
-        return jsonify(movie.to_dict()), 201, {
+
+        movie = result["movie"]
+        responsible = result["responsible"]
+        vote_enum = result["vote"]
+
+        response = {
+            "movie": {
+                **movie.to_dict(),
+                "responsible": responsible.to_dict()
+            }
+        }
+
+        if vote_enum is not None:
+            response["vote"] = {
+                "voter_id": responsible.discord_id,
+                "vote": vote_enum.name  # Ex: "DA_HORA"
+            }
+
+        return jsonify(response), 201, {
             "Location": f"/movies/{movie.id}"
         }
-    except (UserNotFoundError, MovieNotFoundError, MovieDetailsFetchError)  as e:
+    except (UserNotFoundError, MovieNotFoundError, MovieDetailsFetchError, InvalidVoteError)  as e:
         code, status = ERROR_CODES.get(type(e), ("unknown_error", 400))
         return error_response(str(e), code, status)
 
@@ -51,15 +71,22 @@ def list_movies_route():
     try:
         if discord_id :
             movies = get_all_user_movies(conn_provider, discord_id)
-            result = [movie.to_dict() for movie in movies]
+            user = get_user(conn_provider, discord_id)
+
+            result = {
+                "user": user.to_dict(),
+                "movies": [movie.to_dict() for movie in movies]
+            }
         else:
             grouped_movies = get_all_movies_grouped_by_user(conn_provider)
-            result = {
-                user: [movie.to_dict() for movie in movies]
-                for user, movies in grouped_movies.items()
-            }
+            result = [
+                {
+                    "user": group["user"].to_dict(),
+                    "movies": [movie.to_dict() for movie in group["movies"]]
+                }
+                for group in grouped_movies
+            ]
+        return jsonify(result), 200
     except UserNotFoundError as e:
         code, status = ERROR_CODES.get(type(e), ("unknown_error", 400))
         return error_response(str(e), code, status)
-
-    return jsonify(result), 200

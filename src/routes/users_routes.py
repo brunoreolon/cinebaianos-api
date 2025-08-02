@@ -31,6 +31,7 @@ def register_route():
             user_data["tab"],
             user_data["column"]
         )
+
         return jsonify(user.to_dict()), 201, {
             "Location": f"/users/{user.discord_id}"
         }

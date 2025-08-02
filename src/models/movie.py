@@ -13,7 +13,7 @@ class Movie:
         return {
             "id": self.id,
             "title": self.title,
-            "responsible_id": self.responsible_id,
+            # "responsible_id": self.responsible_id,
             "spreadsheet_row": self.spreadsheet_row,
             "genre": self.genre,
             "year": self.year,

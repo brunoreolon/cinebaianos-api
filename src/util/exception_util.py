@@ -1,6 +1,7 @@
 from flask import jsonify
 
 from exception.column_not_found_error import ColumnNotFoundError
+from exception.invalid_vote_error import InvalidVoteError
 from exception.movie_details_fetch_error import MovieDetailsFetchError
 from exception.movie_not_found_error import MovieNotFoundError
 from exception.spread_sheet_error import SpreadsheetError
@@ -17,7 +18,8 @@ ERROR_CODES = {
     MovieDetailsFetchError: ("movie_details_fetch_error", 404),
     ColumnNotFoundError: ("column_not_found_error", 400),
     SpreadsheetError: ("spread_sheet_error", 400),
-    VoteRegistrationError: ("vote_registration_error", 500)
+    VoteRegistrationError: ("vote_registration_error", 400),
+    InvalidVoteError: ("invalid_vote_error", 400)
 }
 
 def error_response(message: str, code: str, status_code: int):

@@ -9,7 +9,7 @@ from gspread_formatting import format_cell_range, CellFormat, TextFormat
 
 from exception.column_not_found_error import ColumnNotFoundError
 from exception.spread_sheet_error import SpreadsheetError
-from src.di.repository_factory import create_users_repository
+from services.users_service import get_all
 
 load_dotenv()
 
@@ -87,10 +87,8 @@ def add_vote_to_spreadsheet(tab, row, column, vote):
         raise SpreadsheetError("Erro inesperado ao salvar voto")
 
 def read_all_movies(conn_provider):
-    user_repo = create_users_repository(conn_provider)
-
     sheett = get_sheet()
-    users = user_repo.get_all_users()
+    users = get_all(conn_provider)
     logging.info(f"Usuários encontrados: {users}\n")
 
     found_movies = []
@@ -129,16 +127,14 @@ def read_all_movies(conn_provider):
                 })
 
         except Exception as e:
-            logging.info(f"Erro ao processar tab {tab}: {e}")
-            raise SpreadsheetError(f"Erro ao processar tab {tab}: {e}")
+            logging.info(f"Erro ao processar a aba {tab}: {e}")
+            raise SpreadsheetError(f"Erro ao processar a aba {tab}: {e}")
 
     return found_movies
 
 def read_votes_from_spreadsheet(conn_provider):
-    user_repo = create_users_repository(conn_provider)
-
     sheett = get_sheet()
-    users = user_repo.get_all_users()
+    users = get_all(conn_provider)
     votes = []
 
     # Mapa COLUNA -> {id, name}
