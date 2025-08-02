@@ -5,10 +5,12 @@ from services.genres_service import get_most_watched_genres, get_most_voted_good
     count_genres_by_user
 from services.users_service import get_user
 from util.exception_util import error_response, ERROR_CODES
+from auth.auth import require_auth
 
 genres_bp = Blueprint("genres", __name__)
 
 @genres_bp.route("/genres/most-watched", methods=["GET"])
+@require_auth
 def most_watched_genres():
     conn_provider = current_app.config["CONN_PROVIDER"]
 
@@ -16,6 +18,7 @@ def most_watched_genres():
     return jsonify({"genres": genres}), 200
 
 @genres_bp.route("/genres/most-voted-good", methods=["GET"])
+@require_auth
 def most_voted_good_genres():
     conn = current_app.config["CONN_PROVIDER"]
 
@@ -23,6 +26,7 @@ def most_voted_good_genres():
     return jsonify({"genres": genres}), 200
 
 @genres_bp.route("/genres/most-voted-bad", methods=["GET"])
+@require_auth
 def most_voted_bad_genres():
     conn = current_app.config["CONN_PROVIDER"]
 
@@ -30,6 +34,7 @@ def most_voted_bad_genres():
     return jsonify({"genres": genres}), 200
 
 @genres_bp.route("/genres/mine", methods=["GET"])
+@require_auth
 def get_my_genres():
     conn = current_app.config["CONN_PROVIDER"]
 
@@ -50,6 +55,7 @@ def get_my_genres():
         return error_response(str(e), code, status)
 
 @genres_bp.route("/genres/user/<string:discord_id>", methods=["GET"])
+@require_auth
 def get_user_genres(discord_id):
     conn = current_app.config["CONN_PROVIDER"]
 

@@ -30,9 +30,6 @@ def create_app():
     app.register_blueprint(tmdb_bp, url_prefix="/api")
     app.register_blueprint(sync_bp, url_prefix="/api")
 
-    for rule in app.url_map.iter_rules():
-        print(rule)
-
     return app
 
 if __name__ == "__main__":

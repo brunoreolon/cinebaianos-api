@@ -4,11 +4,14 @@ from exception.user_not_found_error import UserNotFoundError
 from services.rankings_service import get_da_hora_ranking, get_lixo_ranking, get_ranking, get_da_hora_total, \
     get_lixo_total
 from util.exception_util import ERROR_CODES, error_response
+from auth.auth import require_auth
+
 
 rankings_bp = Blueprint("rankings", __name__)
 
 
 @rankings_bp.route("/ranking", methods=["GET"])
+@require_auth
 def get_total_votes_per_user():
     conn_provider = current_app.config["CONN_PROVIDER"]
 
@@ -17,6 +20,7 @@ def get_total_votes_per_user():
 
 
 @rankings_bp.route("/ranking/da-hora", methods=["GET"])
+@require_auth
 def ranking_da_hora():
     conn_provider = current_app.config["CONN_PROVIDER"]
 
@@ -24,6 +28,7 @@ def ranking_da_hora():
     return jsonify(result), 200
 
 @rankings_bp.route("/ranking/da-hora/<string:discord_id>", methods=["GET"])
+@require_auth
 def da_hora_total(discord_id):
     conn_provider = current_app.config["CONN_PROVIDER"]
 
@@ -39,6 +44,7 @@ def da_hora_total(discord_id):
         return error_response(str(e), code, status)
 
 @rankings_bp.route("/ranking/lixo", methods=["GET"])
+@require_auth
 def ranking_lixo():
     conn_provider = current_app.config["CONN_PROVIDER"]
 
@@ -46,6 +52,7 @@ def ranking_lixo():
     return jsonify(result), 200
 
 @rankings_bp.route("/ranking/lixos/<string:discord_id>", methods=["GET"])
+@require_auth
 def lixos_total(discord_id):
     conn_provider = current_app.config["CONN_PROVIDER"]
 

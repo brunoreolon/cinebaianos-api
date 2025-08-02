@@ -4,10 +4,12 @@ from exception.movie_details_fetch_error import MovieDetailsFetchError
 from exception.movie_not_found_error import MovieNotFoundError
 from services.tmdb_service import fetch_movie_details
 from util.exception_util import ERROR_CODES, error_response
+from auth.auth import require_auth
 
 tmdb_bp = Blueprint("tmdb", __name__)
 
 @tmdb_bp.route("/movie-details", methods=["POST"])
+@require_auth
 def movie_details_route():
     data = request.get_json()
     title = data.get("title")

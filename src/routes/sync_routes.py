@@ -5,10 +5,12 @@ from exception.movie_not_found_error import MovieNotFoundError
 from exception.spread_sheet_error import SpreadsheetError
 from services.sync_service import sync_movies_and_votes
 from util.exception_util import ERROR_CODES, error_response
+from auth.auth import require_auth
 
 sync_bp = Blueprint("sync", __name__)
 
 @sync_bp.route("/sync", methods=["POST"])
+@require_auth
 def sync_route():
     conn_provider = current_app.config["CONN_PROVIDER"]
 
