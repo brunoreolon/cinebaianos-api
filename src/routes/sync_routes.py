@@ -8,7 +8,7 @@ from util.exception_util import ERROR_CODES, error_response
 
 sync_bp = Blueprint("sync", __name__)
 
-@sync_bp.route("/sincronizar", methods=["POST"])
+@sync_bp.route("/sync", methods=["POST"])
 def sync_route():
     conn_provider = current_app.config["CONN_PROVIDER"]
 
