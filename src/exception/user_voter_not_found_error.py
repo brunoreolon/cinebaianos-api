@@ -1,0 +1,2 @@
+class UserVoterNotFoundError(Exception):
+    pass

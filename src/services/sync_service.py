@@ -1,10 +1,10 @@
 import logging
 import time
 
+from services.sheet_service import read_all_movies, read_votes_from_spreadsheet
 from services.tmdb_service import fetch_movie_details
 from src.di.repository_factory import create_movies_repository, create_votes_repository
 from src.di.maintenance_factory import create_maintenance_repository
-from src.infra.sheets.sheets import read_all_movies, read_votes_from_spreadsheet
 
 def synchronize_movies_with_spreadsheet(conn_provider):
     movie_repo = create_movies_repository(conn_provider)
@@ -21,10 +21,10 @@ def synchronize_movies_with_spreadsheet(conn_provider):
 
     # 3. Adicionar no banco com dados enriquecidos
     for movie in movies_spreadsheet:
-        title = movie['titulo']
-        year = movie['ano']
-        id_responsavel = movie['id_responsavel']
-        id_linha = movie['id_linha']
+        title = movie['title']
+        year = movie['year']
+        responsible_id = movie['responsible_id']
+        spreadsheet_row = movie['spreadsheet_row']
 
         logging.info(f"🔍 Buscando: {title}")
         details = fetch_movie_details(title, year)
@@ -33,11 +33,11 @@ def synchronize_movies_with_spreadsheet(conn_provider):
         if details:
             movie_repo.add_movie(
                 tmdb_id=details.id,
-                titulo=details.title,
-                id_responsavel=id_responsavel,
-                linha_planilha=id_linha,
+                title=details.title,
+                responsible_id=responsible_id,
+                spreadsheet_row=spreadsheet_row,
                 year=details.year,
-                genero=details.genres[0]["name"] if details.genres else "Indefinido"
+                genre=details.genre if details.genre else "Indefinido"
             )
 
             logging.info(f"✅ {details.title} ({details.year}) adicionado.\n")
@@ -75,7 +75,8 @@ def synchronize_votes_with_spreadsheet(conn_provider):
             logging.info(f"❌ Filme não encontrado para responsavel={responsible_name}, linha={row_id}")
             continue
 
-        movie_id, movie_title = movie_info
+        movie_id = movie_info.id
+        movie_title = movie_info.title
         vote_repo.register_vote(movie_id, responsible_id, voter_id, vote_value)
         logging.info(f"🗳️ Voto registrado: {voter_name} votou '{vote_value}' no filme '{movie_title}' (Aba={tab}, Responsável={responsible_name}, linha {row_id})\n")
         total_votes += 1

@@ -1,0 +1,2 @@
+class MovieDetailsFetchError(Exception):
+    pass

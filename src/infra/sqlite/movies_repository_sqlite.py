@@ -38,7 +38,6 @@ class MovieRepositorySQLite(MoviesRepository):
                 )
             else:
                 return None
-            return cursor.lastrowid
 
     def find_movies_by_user(self, discord_id: str) -> List[Movie]:
         with self.conn_provider.get_connection() as conn:

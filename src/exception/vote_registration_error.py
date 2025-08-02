@@ -1,0 +1,2 @@
+class VoteRegistrationError(Exception):
+    pass

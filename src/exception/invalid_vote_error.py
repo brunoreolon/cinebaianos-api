@@ -1,0 +1,2 @@
+class InvalidVoteError(Exception):
+    pass

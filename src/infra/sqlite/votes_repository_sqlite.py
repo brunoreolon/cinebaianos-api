@@ -8,7 +8,7 @@ class VoteRepositorySQLite(VotesRepository):
     def __init__(self,  conn_provider: ConnectionProvider):
         self.conn_provider = conn_provider
 
-    def register_vote(self, movie_id: int, responsible_id: str, voter_id: str, vote: str) -> None:
+    def register_vote(self, movie_id: int, responsible_id: str, voter_id: str, vote: int) -> None:
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -18,7 +18,7 @@ class VoteRepositorySQLite(VotesRepository):
                            """, (movie_id, responsible_id, voter_id, vote))
             conn.commit()
 
-    def count_votes_received_from_all_users(self, discord_id: str, type_vote: str) -> int:
+    def count_votes_received_from_all_users(self, discord_id: str, vote: int) -> int:
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -26,7 +26,7 @@ class VoteRepositorySQLite(VotesRepository):
                            FROM movies f
                                     JOIN votes v ON f.id = v.movie_id
                            WHERE f.responsible_id = ? AND v.vote = ?
-                           """, (discord_id, type_vote))
+                           """, (discord_id, vote))
             result = cursor.fetchone()
             return result[0] if result else 0
 

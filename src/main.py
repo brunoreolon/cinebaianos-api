@@ -7,6 +7,7 @@ from routes.movies_routes import movies_bp
 from routes.sync_routes import sync_bp
 from routes.tmdb_routes import tmdb_bp
 from routes.users_routes import users_bp
+from routes.votes_routes import votes_bp
 
 
 def create_app():
@@ -21,6 +22,7 @@ def create_app():
 
     app.register_blueprint(users_bp, url_prefix="/api")
     app.register_blueprint(movies_bp, url_prefix="/api")
+    app.register_blueprint(votes_bp, url_prefix="/api")
     app.register_blueprint(tmdb_bp, url_prefix="/api")
     app.register_blueprint(sync_bp, url_prefix="/api")
 

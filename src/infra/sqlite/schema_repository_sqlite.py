@@ -40,7 +40,7 @@ class SchemasRepositorySQLite(SchemasRepository):
                                                                 movie_id INTEGER,
                                                                 responsible_id TEXT,
                                                                 voter_id TEXT,
-                                                                vote TEXT,
+                                                                vote INTEGER,
                                                                 FOREIGN KEY(movie_id) REFERENCES movies(id),
                                FOREIGN KEY(responsible_id) REFERENCES users(discord_id),
                                FOREIGN KEY(voter_id) REFERENCES users(discord_id),

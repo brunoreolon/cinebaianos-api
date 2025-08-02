@@ -1,5 +1,7 @@
 import requests
 from config import Config
+from exception.movie_details_fetch_error import MovieDetailsFetchError
+from exception.movie_not_found_error import MovieNotFoundError
 from models.movie_detail import MovieDetail
 
 
@@ -18,7 +20,7 @@ def fetch_movie_details(title, year):
     response = requests.get(url, params=params)
 
     if response.status_code != 200 or not response.json().get("results"):
-        return None
+        raise MovieNotFoundError(f"Movie '{title}' ({year}) not found.")
 
     movie_id = response.json()["results"][0]["id"]
 
@@ -29,8 +31,9 @@ def fetch_movie_details(title, year):
     }
 
     details_resp = requests.get(details_url, params=details_params)
+
     if details_resp.status_code != 200:
-        return None
+        raise MovieDetailsFetchError(f"Failed to fetch details for movie ID {movie_id}")
 
     data = details_resp.json()
 

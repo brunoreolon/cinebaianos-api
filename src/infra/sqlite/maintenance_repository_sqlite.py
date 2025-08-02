@@ -8,8 +8,8 @@ class MaintenanceRepositorySQLite(MaintenanceRepository):
     def clear_movie_bank(self):
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM votos")
-            cursor.execute("DELETE FROM filmes")
-            cursor.execute("DELETE FROM sqlite_sequence WHERE name = 'filmes'")
-            cursor.execute("DELETE FROM sqlite_sequence WHERE name = 'votos'")
+            cursor.execute("DELETE FROM movies")
+            cursor.execute("DELETE FROM votes")
+            cursor.execute("DELETE FROM sqlite_sequence WHERE name = 'movies'")
+            cursor.execute("DELETE FROM sqlite_sequence WHERE name = 'votes'")
             conn.commit()

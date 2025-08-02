@@ -1,2 +1,0 @@
-class MovieDetailsNotFoundError(Exception):
-    pass
