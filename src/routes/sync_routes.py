@@ -23,9 +23,6 @@ def sync_route():
             "total_votes": total_votes,
             "execution_time_seconds": round(elapsed, 2)
         }), 200
-    except (MovieNotFoundError, MovieDetailsFetchError) as e:
-        code, status = ERROR_CODES.get(type(e), ("unknown_error", 400))
-        return error_response(str(e), code, status)
-    except SpreadsheetError as e:
+    except (MovieNotFoundError, MovieDetailsFetchError, SpreadsheetError) as e:
         code, status = ERROR_CODES.get(type(e), ("unknown_error", 400))
         return error_response(str(e), code, status)

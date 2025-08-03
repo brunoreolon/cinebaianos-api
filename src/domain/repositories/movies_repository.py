@@ -8,7 +8,7 @@ class MoviesRepository(ABC):
 
     @abstractmethod
     def add_movie(self, title: str, responsible_id: str, spreadsheet_row: int,
-                  genre: str, year: int, tmdb_id: int) -> Movie:
+                  genre: str, year: int, tmdb_id: int, poster_path: str) -> Movie:
         pass
 
     @abstractmethod

@@ -41,10 +41,12 @@ def fetch_movie_details(title, year):
     genres = data.get("genres", [])
     first_genre = genres[0]["name"] if genres else "Indefinido"
     year_str = data.get("release_date", "").split("-")[0]
+    poster_path = "https://image.tmdb.org/t/p/original" + (data.get("poster_path") or "")
 
     return MovieDetail(
         id=data.get("id"),
         title=data.get("title"),
         genre=first_genre,
+        poster_path=poster_path,
         year=year_str
     )
