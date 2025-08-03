@@ -1,49 +1,48 @@
-import functools
-import inspect
-
-from flask import request, current_app, abort
 import jwt
+import inspect
+from flask import request, current_app, jsonify
+from functools import wraps
 
 def require_auth(func):
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper(*args, **kwargs):
         bot_token = request.headers.get("X-Bot-Token")
-        auth_header = request.headers.get("Authorization")
+        jwt_token = request.headers.get("Authorization")
 
-        # 1. Autenticação via bot token
+        sig = inspect.signature(func)
+
+        # --- Verificação via BOT ---
         if bot_token and bot_token == current_app.config.get("BOT_API_TOKEN"):
             json_data = request.get_json(silent=True) or {}
             discord_id = json_data.get("discord_id") or json_data.get("voter_id")
 
-
-            sig = inspect.signature(func)
-            if (
-                    "discord_id" in sig.parameters
-                    and discord_id is not None
-                    and kwargs.get("discord_id") is None
-            ):
+            if "discord_id" in sig.parameters and not kwargs.get("discord_id"):
                 kwargs["discord_id"] = discord_id
 
             return func(*args, **kwargs)
 
-        # 2. Autenticação via JWT
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(" ")[1]
+        # --- Verificação via Usuário (JWT) ---
+        if jwt_token and jwt_token.startswith("Bearer "):
+            token = jwt_token.split(" ")[1]
             try:
-                payload = jwt.decode(token, current_app.config["JWT_SECRET"], algorithms=["HS256"])
+                payload = jwt.decode(
+                    token,
+                    current_app.config["JWT_SECRET"],
+                    algorithms=["HS256"]
+                )
+
                 discord_id = payload.get("discord_id")
 
-                if "discord_id" not in kwargs:
+                if "discord_id" in sig.parameters and not kwargs.get("discord_id"):
                     kwargs["discord_id"] = discord_id
 
                 return func(*args, **kwargs)
 
             except jwt.ExpiredSignatureError:
-                abort(401, "Token JWT expirado")
+                return jsonify({"error": "Token expirado"}), 401
             except jwt.InvalidTokenError:
-                abort(401, "Token JWT inválido")
+                return jsonify({"error": "Token inválido"}), 401
 
-        # 3. Não autenticado
-        abort(401, "Não autenticado")
+        return jsonify({"error": "Autenticação necessária"}), 401
 
     return wrapper

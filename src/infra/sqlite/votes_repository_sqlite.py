@@ -3,6 +3,8 @@ from typing import List, Tuple
 from src.domain.providers.connection_provider import ConnectionProvider
 from src.domain.repositories.votes_repository import VotesRepository
 from models.user import User
+from models.vote_type import VoteType
+
 
 class VoteRepositorySQLite(VotesRepository):
 
@@ -22,10 +24,10 @@ class VoteRepositorySQLite(VotesRepository):
     def count_all_votes_per_user(self) -> List[Tuple[User, int, int]]:
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                           SELECT u.discord_id, u.name, u.tab, u.column,
-                                  SUM(CASE WHEN v.vote = 'DA HORA' THEN 1 ELSE 0 END) AS da_hora,
-                                  SUM(CASE WHEN v.vote = 'LIXO' THEN 1 ELSE 0 END) AS lixo
+            cursor.execute(f"""
+                           SELECT u.discord_id, u.name, u.tab, u.column, email, password,
+                                  SUM(CASE WHEN v.vote = {VoteType.DA_HORA.value} THEN 1 ELSE 0 END) AS da_hora,
+                                  SUM(CASE WHEN v.vote = {VoteType.LIXO.value} THEN 1 ELSE 0 END) AS lixo
                            FROM users u
                                     LEFT JOIN movies f ON u.discord_id = f.responsible_id
                                     LEFT JOIN votes v ON f.id = v.movie_id
@@ -36,9 +38,9 @@ class VoteRepositorySQLite(VotesRepository):
 
             result = []
             for row in rows:
-                user = User(discord_id=row[0], name=row[1], tab=row[2], column=row[3])
-                da_hora_count = row[4] or 0
-                lixo_count = row[5] or 0
+                user = User(discord_id=row[0], name=row[1], tab=row[2], column=row[3], email=row[4], password=row[5])
+                da_hora_count = row[6] or 0
+                lixo_count = row[7] or 0
                 result.append((user, da_hora_count, lixo_count))
 
             return result
@@ -46,12 +48,12 @@ class VoteRepositorySQLite(VotesRepository):
     def count_da_hora_votes_per_user(self) -> List[Tuple[User, int]]:
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                           SELECT u.discord_id, u.name, u.tab, u.column, COUNT(*) AS total
+            cursor.execute(f"""
+                           SELECT u.discord_id, u.name, u.tab, u.column, email, password, COUNT(*) AS total
                            FROM users u
                                     LEFT JOIN movies f ON u.discord_id = f.responsible_id
                                     LEFT JOIN votes v ON f.id = v.movie_id
-                           WHERE v.vote = 'DA HORA'
+                           WHERE v.vote = {VoteType.DA_HORA.value}
                            GROUP BY u.discord_id, u.name, u.tab, u.column
                            ORDER BY total DESC
                            """)
@@ -59,8 +61,8 @@ class VoteRepositorySQLite(VotesRepository):
 
             result = []
             for row in rows:
-                user = User(discord_id=row[0], name=row[1], tab=row[2], column=row[3])
-                da_hora_count = row[4] or 0
+                user = User(discord_id=row[0], name=row[1], tab=row[2], column=row[3], email=row[4], password=row[5])
+                da_hora_count = row[6] or 0
                 result.append((user, da_hora_count))
 
             return result
@@ -68,12 +70,12 @@ class VoteRepositorySQLite(VotesRepository):
     def count_da_hora_votes_for_user(self, discord_id: str) -> int:
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(f"""
                            SELECT COUNT(v.vote)
                            FROM users u
                                     JOIN movies f ON u.discord_id = f.responsible_id
                                     JOIN votes v ON f.id = v.movie_id
-                           WHERE u.discord_id = ? AND v.vote = 'DA HORA'
+                           WHERE u.discord_id = ? AND v.vote = {VoteType.DA_HORA.value}
                            """, (discord_id,))
             row = cursor.fetchone()
 
@@ -82,12 +84,12 @@ class VoteRepositorySQLite(VotesRepository):
     def count_lixo_votes_per_user(self) -> List[Tuple[User, int]]:
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                           SELECT u.discord_id, u.name, u.tab, u.column, COUNT(*) AS total
+            cursor.execute(f"""
+                           SELECT u.discord_id, u.name, u.tab, u.column, email, password, COUNT(*) AS total
                            FROM users u
                                     LEFT JOIN movies f ON u.discord_id = f.responsible_id
                                     LEFT JOIN votes v ON f.id = v.movie_id
-                           WHERE v.vote = 'LIXO'
+                           WHERE v.vote = {VoteType.LIXO.value}
                            GROUP BY u.discord_id, u.name, u.tab, u.column
                            ORDER BY total DESC
                            """)
@@ -95,8 +97,8 @@ class VoteRepositorySQLite(VotesRepository):
 
             result = []
             for row in rows:
-                user = User(discord_id=row[0], name=row[1], tab=row[2], column=row[3])
-                da_hora_count = row[4] or 0
+                user = User(discord_id=row[0], name=row[1], tab=row[2], column=row[3], email=row[4], password=row[5])
+                da_hora_count = row[6] or 0
                 result.append((user, da_hora_count))
 
             return result
@@ -104,12 +106,12 @@ class VoteRepositorySQLite(VotesRepository):
     def count_lixo_votes_for_user(self, discord_id: str) -> int:
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(f"""
                            SELECT COUNT(v.vote)
                            FROM users u
                                     JOIN movies f ON u.discord_id = f.responsible_id
                                     JOIN votes v ON f.id = v.movie_id
-                           WHERE u.discord_id = ? AND v.vote = 'LIXO'
+                           WHERE u.discord_id = ? AND v.vote = {VoteType.LIXO.value}
                            """, (discord_id,))
             result = cursor.fetchone()
 
