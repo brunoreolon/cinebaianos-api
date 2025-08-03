@@ -10,3 +10,4 @@ class Config:
     BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
     ORIGINS = os.getenv("FRONTEND_ORIGINS").split(",")
     BASE_URL = "https://api.themoviedb.org/3"
+    PORT = int(os.getenv("PORT"))
