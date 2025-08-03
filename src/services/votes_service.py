@@ -8,7 +8,7 @@ from services.users_service import get_user
 def register_vote_db(conn_provider, movie_id, responsible_id, voter_id, vote):
     vote_repo = create_votes_repository(conn_provider)
     vote_enum = VoteType(vote)
-    vote_repo.register_vote(movie_id, responsible_id, voter_id, vote_enum.label())
+    vote_repo.register_vote(movie_id, responsible_id, voter_id, vote_enum.value)
 
     return True
 

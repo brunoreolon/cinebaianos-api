@@ -3,6 +3,7 @@ import time
 
 from di.maintenance_factory import create_maintenance_repository
 from di.repository_factory import create_movies_repository
+from models.vote_type import VoteType
 from services.movies_service import get_movie_by_row_and_user
 from services.sheet_service import read_all_movies, read_votes_from_spreadsheet
 from services.tmdb_service import fetch_movie_details
@@ -77,7 +78,8 @@ def synchronize_votes_with_spreadsheet(conn_provider):
 
         movie_id = movie_info.id
         movie_title = movie_info.title
-        register_vote_db(conn_provider, movie_id, responsible_id, voter_id, vote_value)
+        vote_enum = VoteType.from_label(vote_value)
+        register_vote_db(conn_provider, movie_id, responsible_id, voter_id, vote_enum)
         logging.info(f"🗳️ Voto registrado: {voter_name} votou '{vote_value}' no filme '{movie_title}' (Aba={tab}, Responsável={responsible_name}, linha {row_id})\n")
         total_votes += 1
 
