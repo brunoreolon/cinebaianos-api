@@ -20,7 +20,7 @@ def get_most_voted_good_genres(conn_provider):
 def get_most_voted_bad_genres(conn_provider):
     genre_repo = create_genres_repository(conn_provider)
 
-    raw_genres = genre_repo.count_genres_da_hora()
+    raw_genres = genre_repo.count_genres_lixo()
     genres = [{"genre": g, "count": c} for g, c in raw_genres]
 
     return genres
