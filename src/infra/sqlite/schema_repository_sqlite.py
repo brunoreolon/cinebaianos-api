@@ -39,6 +39,7 @@ class SchemasRepositorySQLite(SchemasRepository):
                                                                  genre TEXT,
                                                                  year INTEGER,
                                                                  tmdb_id INTEGER,
+                                                                 poster_path TEXT,
                                                                  date_added TEXT,
                                                                  FOREIGN KEY(responsible_id) REFERENCES users(discord_id)
                                )""")

@@ -19,7 +19,7 @@ def add_movie_route():
     movie_data = request.get_json()
     title = movie_data.get("title")
 
-    required_fields = ["title", "responsible_id", "spreadsheet_row"]
+    required_fields = ["title", "responsible_id"]
     missing_fields = [f for f in required_fields if not movie_data.get(f)]
 
     if missing_fields:
@@ -36,7 +36,6 @@ def add_movie_route():
             title,
             movie_data.get("year"),
             movie_data.get("responsible_id"),
-            movie_data.get("spreadsheet_row"),
             movie_data.get("vote")
         )
 

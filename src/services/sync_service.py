@@ -41,7 +41,8 @@ def synchronize_movies_with_spreadsheet(conn_provider):
                 responsible_id=responsible_id,
                 spreadsheet_row=spreadsheet_row,
                 year=details.year,
-                genre=details.genre if details.genre else "Indefinido"
+                genre=details.genre if details.genre else "Indefinido",
+                poster_path=details.poster_path,
             )
 
             logging.info(f"✅ {details.title} ({details.year}) adicionado.\n")

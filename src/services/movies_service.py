@@ -9,7 +9,7 @@ from services.tmdb_service import fetch_movie_details
 from services.users_service import get_user
 
 
-def add_movie(conn_provider, title, year, responsible_id, spreadsheet_row, vote):
+def add_movie(conn_provider, title, year, responsible_id, vote):
     movie_repo = create_movies_repository(conn_provider)
 
     user = get_user(conn_provider, responsible_id)
@@ -26,14 +26,14 @@ def add_movie(conn_provider, title, year, responsible_id, spreadsheet_row, vote)
             vote_enum = VoteType.from_value(vote_int)
             vote_name = vote_enum.label()
             vote_value = vote_enum.value
-        except InvalidVoteError as e:
-            raise e
+        except (InvalidVoteError, ValueError) as e:
+            raise InvalidVoteError(f"Voto inválido: {vote}")
     else:
         vote_enum = None
         vote_name = None
         vote_value = None
 
-    add_movie_to_spreadsheet(
+    row = add_movie_to_spreadsheet(
         movie_details.title,
         user.tab,
         user.column,
@@ -43,10 +43,11 @@ def add_movie(conn_provider, title, year, responsible_id, spreadsheet_row, vote)
     movie = movie_repo.add_movie(
         title=movie_details.title,
         responsible_id=user.discord_id,
-        spreadsheet_row=spreadsheet_row,
+        spreadsheet_row=row,
         genre=movie_details.genre if movie_details.genre else "Indefinido",
         year=movie_details.year,
-        tmdb_id=movie_details.id
+        tmdb_id=movie_details.id,
+        poster_path=movie_details.poster_path
     )
 
     if vote_enum is not None:
@@ -56,7 +57,7 @@ def add_movie(conn_provider, title, year, responsible_id, spreadsheet_row, vote)
     return {
         "movie": movie,
         "responsible": user,
-        "vote": vote_enum  # pode ser None
+        "vote": vote_enum
     }
 
 def get_all_movies_grouped_by_user(conn_provider):
