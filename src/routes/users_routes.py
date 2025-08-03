@@ -14,7 +14,7 @@ def register_route():
     conn_provider = current_app.config["CONN_PROVIDER"]
     user_data = request.get_json()
 
-    required_fields = ["discord_id", "name", "tab", "column"]
+    required_fields = ["discord_id", "name", "tab", "column", "email", "password"]
     missing_fields = [f for f in required_fields if not user_data.get(f)]
 
     if missing_fields:
@@ -31,7 +31,9 @@ def register_route():
             user_data["discord_id"],
             user_data["name"],
             user_data["tab"],
-            user_data["column"]
+            user_data["column"],
+            user_data["email"],
+            user_data["password"]
         )
 
         return jsonify(user.to_dict()), 201, {

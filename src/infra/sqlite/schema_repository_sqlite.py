@@ -14,11 +14,20 @@ class SchemasRepositorySQLite(SchemasRepository):
             cursor = conn.cursor()
 
             cursor.execute("""
+                           CREATE TABLE IF NOT EXISTS refresh_tokens (
+                                                                    token TEXT PRIMARY KEY,
+                                                                    discord_id TEXT,
+                                                                    expires_at DATETIME
+                           )""")
+
+            cursor.execute("""
                            CREATE TABLE IF NOT EXISTS users (
                                                                    discord_id TEXT PRIMARY KEY,
                                                                    name TEXT,
                                                                    tab TEXT,
-                                                                   column TEXT
+                                                                   column TEXT,
+                                                                   email TEXT,
+                                                                   password TEXT              
                            )""")
 
             cursor.execute("""

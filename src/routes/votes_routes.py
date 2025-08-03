@@ -38,13 +38,16 @@ def register_vote_route():
 
     vote_raw = vote_data["vote"]
 
-    movie = get_movie_by_id(conn_provider, movie_id)
-    responsible = get_user(conn_provider, movie.responsible_id)
+    try:
+        movie = get_movie_by_id(conn_provider, movie_id)
+        responsible = get_user(conn_provider, movie.responsible_id)
+    except MovieNotFoundError as e:
+        return error_response(f"Filme com ID '{movie_id}' não encontrado.", "movie_not_found_error", 404)
 
     try:
         voter = get_user(conn_provider, voter_id)
     except UserNotFoundError:
-        raise UserVoterNotFoundError(f"Usuário votante com ID '{voter_id}' não encontrado.")
+        return error_response(f"Usuário votante com ID '{voter_id}' não encontrado.", "user_voter_not_found_error", 404)
 
     try:
         vote_enum = VoteType.from_value(vote_raw)

@@ -31,3 +31,16 @@ class VoteType(IntEnum):
             return cls(value).name.replace("_", " ").title()
         except ValueError:
             raise InvalidVoteError(f"Voto inválido: {value}")
+
+    @classmethod
+    def from_label(cls, label: str) -> "VoteType":
+        mapping = {
+            "DA HORA": cls.DA_HORA,
+            "LIXO": cls.LIXO,
+            "NÃO ASSISTI": cls.NAO_ASSISTI,
+            # se quiser aceitar variações, normalize antes (ex: maiúsculas)
+        }
+        label_normalized = label.strip().upper()
+        if label_normalized not in mapping:
+            raise InvalidVoteError(f"Label de voto inválido: {label}")
+        return mapping[label_normalized]
