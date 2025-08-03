@@ -10,18 +10,19 @@ class MovieRepositorySQLite(MoviesRepository):
         self.conn_provider = conn_provider
 
     def add_movie(self, title: str, responsible_id: str, spreadsheet_row: int,
-                  genre: str, year: int, tmdb_id: int) -> Movie:
+                  genre: str, year: int, tmdb_id: int, poster_path: str) -> Movie:
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                           INSERT INTO movies (title, responsible_id, spreadsheet_row, genre, year, tmdb_id, date_added)
-                           VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-                           """, (title, responsible_id, spreadsheet_row, genre, year, tmdb_id))
+                           INSERT INTO movies (title, responsible_id, spreadsheet_row, genre, year, tmdb_id, poster_path, date_added)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                           """, (title, responsible_id, spreadsheet_row, genre, year, tmdb_id, poster_path))
             conn.commit()
             movie_id = cursor.lastrowid
 
             cursor.execute("""
-                           SELECT id, title, responsible_id, spreadsheet_row, genre, year, tmdb_id, date_added FROM movies WHERE id = ?
+                           SELECT id, title, responsible_id, spreadsheet_row, genre, year, tmdb_id, poster_path, 
+                               date_added FROM movies WHERE id = ?
                            """, (movie_id,))
             row = cursor.fetchone()
 
@@ -34,7 +35,8 @@ class MovieRepositorySQLite(MoviesRepository):
                     genre=row[4],
                     year=row[5],
                     tmdb_id=row[6],
-                    date_added=row[7],
+                    poster_path=row[7],
+                    date_added=row[8],
                 )
             else:
                 return None
@@ -56,7 +58,8 @@ class MovieRepositorySQLite(MoviesRepository):
                         genre=row[4],
                         year=row[5],
                         tmdb_id=row[6],
-                        date_added=row[7],
+                        poster_path=row[7],
+                        date_added=row[8],
                     )
                     for row in rows
                 ]
@@ -68,7 +71,7 @@ class MovieRepositorySQLite(MoviesRepository):
         with self.conn_provider.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                           SELECT id, title, responsible_id, spreadsheet_row, genre, year, tmdb_id, date_added FROM movies
+                           SELECT id, title, responsible_id, spreadsheet_row, genre, year, tmdb_id, poster_path, date_added FROM movies
                            WHERE responsible_id = ? AND spreadsheet_row = ?
                            """, (responsible_id, spreadsheet_row))
             row = cursor.fetchone()
@@ -81,7 +84,8 @@ class MovieRepositorySQLite(MoviesRepository):
                     genre=row[4],
                     year=row[5],
                     tmdb_id=row[6],
-                    date_added=row[7]
+                    poster_path=row[7],
+                    date_added=row[8]
                 )
 
             return None
@@ -101,7 +105,8 @@ class MovieRepositorySQLite(MoviesRepository):
                     genre=row[4],
                     year=row[5],
                     tmdb_id=row[6],
-                    date_added=row[7]
+                    poster_path=row[7],
+                    date_added=row[8]
                 )
 
             return None
@@ -123,7 +128,8 @@ class MovieRepositorySQLite(MoviesRepository):
                         genre=row[4],
                         year=row[5],
                         tmdb_id=row[6],
-                        date_added=row[7],
+                        poster_path=row[7],
+                        date_added=row[8],
                     )
                     for row in rows
                 ]
