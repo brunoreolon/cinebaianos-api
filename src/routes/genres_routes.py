@@ -43,8 +43,8 @@ def get_my_genres():
         return error_response("Campo 'discord_id' é obrigatório", "missing_discord_id", 400)
 
     try:
-        genres = count_genres_by_user(conn, discord_id)
         user = get_user(conn, discord_id)
+        genres = count_genres_by_user(conn, user.discord_id)
 
         return jsonify({
             "user": user.to_dict(),
@@ -60,8 +60,8 @@ def get_user_genres(discord_id):
     conn = current_app.config["CONN_PROVIDER"]
 
     try:
-        genres = count_genres_by_user(conn, discord_id)
         user = get_user(conn, discord_id)
+        genres = count_genres_by_user(conn, user.discord_id)
 
         return jsonify({
             "user": user.to_dict(),

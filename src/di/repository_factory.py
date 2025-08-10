@@ -10,24 +10,33 @@ from src.infra.sqlite.users_repository_sqlite import UserRepositorySQLite
 from src.infra.sqlite.movies_repository_sqlite import MovieRepositorySQLite
 from src.infra.sqlite.votes_repository_sqlite import VoteRepositorySQLite
 from src.infra.sqlite.genres_repository_sqlite import GenresRepositorySQLite
+from infra.postgres.users_repository_postgres import UserRepositoryPostgres
+from infra.postgres.genres_repository_postgres import GenresRepositoryPostgres
+from infra.postgres.movies_repository_posgtres import MovieRepositoryPostgres
+from infra.postgres.votes_repository_postgres import VoteRepositoryPostgres
+
 
 load_dotenv()
 
 # Registrando os backends suportados
 _USERS_REPOSITORIES = {
     "sqlite": UserRepositorySQLite,
+    "postgres": UserRepositoryPostgres,
 }
 
 _MOVIES_REPOSITORIES = {
     "sqlite": MovieRepositorySQLite,
+    "postgres": MovieRepositoryPostgres,
 }
 
 _VOTES_REPOSITORIES = {
     "sqlite": VoteRepositorySQLite,
+    "postgres": VoteRepositoryPostgres,
 }
 
 _GENRES_REPOSITORIES = {
     "sqlite": GenresRepositorySQLite,
+    "postgres": GenresRepositoryPostgres,
 }
 
 def create_users_repository(conn_provider) -> UsersRepository:

@@ -2,9 +2,11 @@ import os
 
 from domain.repositories.auth_repository import AuthRepository
 from infra.sqlite.auth_repository_sqlite import AuthRepositorySQLite
+from infra.postgres.auth_repository_postgres import AuthRepositoryPostgres
 
 _REFRESH_TOKEN_REPOSITORIES = {
     "sqlite": AuthRepositorySQLite,
+    "postgres": AuthRepositoryPostgres,
 }
 
 def create_refresh_token_repository(conn_provider) -> AuthRepository:
