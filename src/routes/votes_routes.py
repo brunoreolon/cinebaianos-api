@@ -40,7 +40,7 @@ def register_vote_route():
 
     try:
         movie = get_movie_by_id(conn_provider, movie_id)
-        responsible = movie.responsible_id
+        responsible = get_user(conn_provider, movie.responsible_id)
     except MovieNotFoundError as e:
         return error_response(f"Filme com ID '{movie_id}' não encontrado.", "movie_not_found_error", 404)
 
