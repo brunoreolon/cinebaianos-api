@@ -63,7 +63,7 @@ public class UserService {
     private List<VoteStatsResponse> getVoteSummaryForUser(User user, List<VoteType> types) {
         return types.stream()
                 .map(voteTypes -> {
-                    int totalVotes = voteService.countVotesByTypeAndUser(voteTypes, user);
+                    Long totalVotes = voteService.countVotesByTypeAndUser(voteTypes, user);
                     VoteTypeSummaryResponse voteTypeSummaryResponse = new VoteTypeSummaryResponse(
                             voteTypes.getId(), voteTypes.getDescription()
                     );

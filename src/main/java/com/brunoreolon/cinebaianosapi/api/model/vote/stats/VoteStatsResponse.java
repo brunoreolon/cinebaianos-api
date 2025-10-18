@@ -13,6 +13,6 @@ import lombok.Setter;
 public class VoteStatsResponse {
 
     private VoteTypeSummaryResponse type;
-    private Integer totalVotes;
+    private Long totalVotes;
 
 }

@@ -1,11 +1,13 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.MovieConverter;
+import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVoteDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieIdRequest;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieSearchRequest;
+import com.brunoreolon.cinebaianosapi.api.model.user.response.UserWithMoviesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteTypeId;
 import com.brunoreolon.cinebaianosapi.client.converter.TmdbConverter;
 import com.brunoreolon.cinebaianosapi.client.model.MovieResponse;
@@ -15,6 +17,7 @@ import com.brunoreolon.cinebaianosapi.domain.exception.MultipleMoviesFoundExcept
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.service.MovieService;
 import com.brunoreolon.cinebaianosapi.domain.service.TmdbService;
+import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,8 +35,10 @@ public class MovieController {
     public static final String LANGUAGE = "pt-BR";
     private final MovieService movieService;
     private final TmdbService tmdbService;
+    private final UserService userService;
     private final MovieConverter movieConverter;
     private final TmdbConverter tmdbConverter;
+    private final UserConverter userConverter;
 
     @PostMapping
     public ResponseEntity<MovieVoteDetailResponse> addById(@Valid @RequestBody MovieIdRequest movieIdRequest,
@@ -89,6 +94,14 @@ public class MovieController {
     public ResponseEntity<Void> delete(@PathVariable("movieId") Long movieId) {
         movieService.delete(movieId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/users/{discordId}")
+    public ResponseEntity<UserWithMoviesResponse> getMoviesByUser(@PathVariable String discordId) {
+        User user = userService.getWithMovies(discordId);
+        UserWithMoviesResponse response = userConverter.toWithMoviesResponse(user);
+
+        return ResponseEntity.ok().body(response);
     }
 
 }

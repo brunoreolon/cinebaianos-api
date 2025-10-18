@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class VoteService {
 
@@ -46,11 +48,7 @@ public class VoteService {
 
     @Transactional
     public Vote update(String discordId, Long movieId, Long voteId) {
-        VoteId id = new VoteId(movieId, discordId);
-
-        Vote existingVote = voteRepository.findById(id)
-                .orElseThrow(() -> new VoteNotFoundException(String.format("Vote not found for user '%s' and movie '%s'",
-                        discordId, movieId)));
+        Vote existingVote = getVote(discordId, movieId);
 
         VoteType voteType = voteTypeRegistrationService.get(voteId);
         existingVote.setVote(voteType);
@@ -58,8 +56,24 @@ public class VoteService {
         return voteRepository.save(existingVote);
     }
 
-    public int countVotesByTypeAndUser(VoteType voteType, User user) {
+    public Vote getVote(String discordId, Long movieId) {
+        return voteRepository.findById(new VoteId(movieId, discordId))
+                .orElseThrow(() -> new VoteNotFoundException(String.format("Vote not found for user '%s' and movie '%s'",
+                        discordId, movieId)));
+    }
+
+    public Long countVotesByTypeAndUser(VoteType voteType, User user) {
         return voteRepository.countAllByVoteTypeAndReceiver(voteType, user);
+    }
+
+    public List<Vote> getVotesByUser(String discordId) {
+        List<Vote> byVoterDiscordId = voteRepository.findByVoterWithMovie(discordId);
+        return byVoterDiscordId;
+    }
+
+    public void delete(String discordId, Long movieId) {
+        Vote vote = getVote(discordId, movieId);
+        voteRepository.delete(vote);
     }
 
     private Vote save(User voter, Movie movie, Long voteId) {
