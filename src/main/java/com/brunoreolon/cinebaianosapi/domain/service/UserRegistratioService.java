@@ -5,15 +5,20 @@ import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class UserRegistratioService {
 
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     @Transactional
@@ -24,9 +29,24 @@ public class UserRegistratioService {
             throw new UserAlreadyRegisteredException(String.format("There is already a user registered with the discord id '%s'",
                     user.getDiscordId()));
 
-        //TODO enviar email com a senha
+        String newPassword = generateRandomPassword(8);
 
-        return userRepository.save(user);
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+
+        User newUser = userRepository.save(user);
+
+        emailService.send(user.getEmail(), newPassword);
+
+        return newUser;
+    }
+
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@";
+        SecureRandom random = new SecureRandom();
+        return random.ints(length, 0, chars.length())
+                .mapToObj(i -> String.valueOf(chars.charAt(i)))
+                .collect(Collectors.joining());
     }
 
     public User update(User user) {

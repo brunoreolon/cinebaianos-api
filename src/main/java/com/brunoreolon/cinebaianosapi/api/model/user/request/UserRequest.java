@@ -26,7 +26,7 @@ public class UserRequest {
     @Email
     private String email;
 
-    @NotBlank(groups = {UserCreateGroup.class, UserUpdateGroup.class})
+    @NotBlank(groups = {UserUpdateGroup.class})
     @Size(min = 6)
     private String password;
 
