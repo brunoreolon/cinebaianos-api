@@ -33,7 +33,7 @@ public class VoteService {
         User voter = userRegistratioService.get(discordId);
         Movie movie = movieService.get(movieId);
 
-        if(voteRepository.existsById(new VoteId(movieId, discordId))) {
+        if (voteRepository.existsById(new VoteId(movieId, discordId))) {
             throw new VoteAlreadyRegisteredException(String.format("Vote has already been registered for user '%s' and movie '%s'",
                     discordId, movieId));
         }
@@ -79,7 +79,7 @@ public class VoteService {
     private Vote save(User voter, Movie movie, Long voteId) {
         VoteType voteType = voteTypeRegistrationService.getOptional(voteId)
                 .filter(VoteType::isActive)
-                .orElseThrow(() -> new BusinessException("The vote type with id '%d' is inactive and cannot be used",
+                .orElseThrow(() -> new BusinessException(String.format("The vote type with id '%d' is inactive and cannot be used", voteId),
                         HttpStatus.BAD_REQUEST,
                         "Inactive Vote"));
 
@@ -91,6 +91,13 @@ public class VoteService {
                 .build();
 
         return voteRepository.save(newVote);
+    }
+
+    public MovieVotes getMovieVotesReceived(Long movieId) {
+        Movie movie = movieService.get(movieId);
+        List<Vote> votes = voteRepository.findByMovieId(movieId);
+
+        return new MovieVotes(movie, votes);
     }
 
 }

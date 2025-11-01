@@ -1,11 +1,13 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.VoteConverter;
+import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVotesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserMovieVoteResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteTypeId;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteDetailResponse;
+import com.brunoreolon.cinebaianosapi.domain.model.MovieVotes;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
@@ -55,9 +57,8 @@ public class VoteController {
     }
 
     @PostMapping()
-    public ResponseEntity<VoteDetailResponse> registerVote(@PathVariable String discordId,
-                                                           @Valid @RequestBody VoteRequest voteRequest) {
-        Vote newVote = voteService.register(discordId, voteRequest.getMovie().getId(), voteRequest.getVote());
+    public ResponseEntity<VoteDetailResponse> registerVote(@Valid @RequestBody VoteRequest voteRequest) {
+        Vote newVote = voteService.register(voteRequest.getVoter().getDiscordId(), voteRequest.getMovie().getId(), voteRequest.getVote());
         return ResponseEntity.status(HttpStatus.CREATED).body(voteConverter.toDetailResponse(newVote));
     }
 
@@ -74,6 +75,14 @@ public class VoteController {
                                            @PathVariable Long movieId) {
         voteService.delete(discordId, movieId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("{movieId}/votes")
+    public ResponseEntity<MovieVotesResponse> getMovieVotesReceived(@PathVariable Long movieId) {
+        MovieVotes movieVotesReceived = voteService.getMovieVotesReceived(movieId);
+        MovieVotesResponse movieVotesResponse = voteConverter.toMovieVotesResponse(movieVotesReceived);
+
+        return ResponseEntity.ok().body(movieVotesResponse);
     }
 
 }

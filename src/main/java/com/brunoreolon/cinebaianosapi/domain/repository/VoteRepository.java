@@ -17,4 +17,5 @@ public interface VoteRepository extends JpaRepository<Vote, VoteId> {
     @Query("SELECT v FROM Vote v JOIN FETCH v.movie JOIN FETCH v.voter WHERE v.voter.discordId = :discordId")
     List<Vote> findByVoterWithMovie(@Param("discordId") String discordId);
 
+    List<Vote> findByMovieId(Long movieId);
 }
