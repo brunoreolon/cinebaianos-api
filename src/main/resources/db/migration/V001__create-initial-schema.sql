@@ -4,7 +4,7 @@ create table movie (
     title       varchar(255) not null,
     genre       varchar(255) not null,
     year        varchar(255) not null,
-    tmbd_id     varchar(255) not null,
+    tmdb_id     varchar(255) not null,
     poster_path varchar(255) not null,
     date_added  timestamp(6),
     primary key (id)

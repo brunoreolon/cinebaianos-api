@@ -22,13 +22,13 @@ public class MovieService {
 
     @Transactional
     public Movie save(Movie movie, String chooserID, Long vote) {
-        boolean tmdbIdAlreadyExists = movieRepository.findByTmbdId(movie.getTmbdId())
+        boolean tmdbIdAlreadyExists = movieRepository.findByTmdbId(movie.getTmdbId())
                 .filter(m -> !m.equals(movie))
                 .isPresent();
 
         if (tmdbIdAlreadyExists)
             throw new MovieAlreadyRegisteredException(String.format("there is already a movie registered with the tmdb id '%s'",
-                    movie.getTmbdId()));
+                    movie.getTmdbId()));
 
         User chooser = userRegistratioService.get(chooserID);
         movie.setChooser(chooser);

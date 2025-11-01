@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long> {
 
-    Optional<Movie> findByTmbdId(String tmdbId);
+    Optional<Movie> findByTmdbId(String tmdbId);
 
     @Query("""
                 SELECT m.genre AS genre, COUNT(m) AS count 

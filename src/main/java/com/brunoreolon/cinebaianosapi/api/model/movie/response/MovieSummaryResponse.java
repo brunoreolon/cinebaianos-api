@@ -13,6 +13,6 @@ public class MovieSummaryResponse {
 
     private Long id;
     private String title;
-    private String tmbdId;
+    private String tmdbId;
 
 }

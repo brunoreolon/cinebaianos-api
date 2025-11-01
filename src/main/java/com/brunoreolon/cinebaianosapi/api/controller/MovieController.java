@@ -1,18 +1,19 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.MovieConverter;
+import com.brunoreolon.cinebaianosapi.api.converter.TmdbConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVoteDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieIdRequest;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieSearchRequest;
+import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserWithMoviesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteTypeId;
-import com.brunoreolon.cinebaianosapi.client.converter.TmdbConverter;
-import com.brunoreolon.cinebaianosapi.client.model.MovieResponse;
-import com.brunoreolon.cinebaianosapi.client.model.TmdbMovieResponse;
-import com.brunoreolon.cinebaianosapi.client.model.TmdbResponse;
+import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
+import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
+import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
 import com.brunoreolon.cinebaianosapi.domain.exception.MultipleMoviesFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.service.MovieService;
@@ -32,20 +33,23 @@ import java.util.Optional;
 @AllArgsConstructor
 public class MovieController {
 
-    public static final String LANGUAGE = "pt-BR";
     private final MovieService movieService;
     private final TmdbService tmdbService;
     private final UserService userService;
     private final MovieConverter movieConverter;
     private final TmdbConverter tmdbConverter;
     private final UserConverter userConverter;
+    private final TmdbProperties tmdbProperties;
 
     @PostMapping
     public ResponseEntity<MovieVoteDetailResponse> addById(@Valid @RequestBody MovieIdRequest movieIdRequest,
-                                                           @RequestParam(name = "language", defaultValue = LANGUAGE) String language) {
-        MovieResponse movieResponse = tmdbConverter.convertMovieDetail(
-                tmdbService.getMovieDetails(movieIdRequest.getMovie().getId(), language));
-        Movie movie = tmdbConverter.toEntity(movieResponse);
+                                                           @RequestParam(name = "language", required = false) String language) {
+        if (language == null) {
+            language = tmdbProperties.getLanguage();
+        }
+
+        ClientMovieDetailsResponse movieDetails = tmdbService.getMovieDetails(movieIdRequest.getMovie().getId(), language);
+        Movie movie = tmdbConverter.toEntityFromClientMovieDetail(movieDetails);
         Long voteId = getVoteId(movieIdRequest.getVote());
         Movie newMovie = movieService.save(movie, movieIdRequest.getChooser().getDiscordId(), voteId);
 
@@ -54,17 +58,19 @@ public class MovieController {
 
     @PostMapping("/candidates")
     public ResponseEntity<MovieVoteDetailResponse> searchAndAddMovie(@Valid @RequestBody MovieSearchRequest movieSearchRequest,
-                                                                     @RequestParam(name = "language", defaultValue = LANGUAGE) String language) {
-        TmdbResponse response = tmdbService.getMovie(movieSearchRequest.getTitle(), movieSearchRequest.getYear(), language);
-        List<TmdbMovieResponse> tmdbMovieResponses = tmdbConverter.converteList(response.getResults());
+                                                                     @RequestParam(name = "language", required = false) String language) {
+        if (language == null) {
+            language = tmdbProperties.getLanguage();
+        }
+
+        ClientResultsResponse response = tmdbService.search(movieSearchRequest.getTitle(), movieSearchRequest.getYear(), language);
+        List<TmdbMovieResponse> tmdbMovieResponses = tmdbConverter.toMovieResponseList(response.getResults());
 
         if (tmdbMovieResponses.size() > 1)
             throw new MultipleMoviesFoundException(tmdbMovieResponses);
 
-        MovieResponse movieResponse = tmdbConverter.convertMovieDetail(
-                tmdbService.getMovieDetails(tmdbMovieResponses.getFirst().getId(), language));
-
-        Movie movie = tmdbConverter.toEntity(movieResponse);
+        ClientMovieDetailsResponse movieDetails = tmdbService.getMovieDetails(tmdbMovieResponses.getFirst().getId(), language);
+        Movie movie = tmdbConverter.toEntityFromClientMovieDetail(movieDetails);
 
         Long voteId = getVoteId(movieSearchRequest.getVote());
 

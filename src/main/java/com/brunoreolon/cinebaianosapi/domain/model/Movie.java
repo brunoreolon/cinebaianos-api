@@ -39,7 +39,7 @@ public class Movie {
     private String year;
 
     @NotNull
-    private String tmbdId;
+    private String tmdbId;
 
     @NotBlank
     private String posterPath;

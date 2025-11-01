@@ -17,7 +17,7 @@ public class MovieDetailResponse {
     private String title;
     private String genre;
     private String year;
-    private String tmbdId;
+    private String tmdbId;
     private LocalDateTime dateAdded;
     private String posterPath;
 

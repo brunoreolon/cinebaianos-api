@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.exception;
 
-import com.brunoreolon.cinebaianosapi.client.model.TmdbMovieResponse;
+import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
