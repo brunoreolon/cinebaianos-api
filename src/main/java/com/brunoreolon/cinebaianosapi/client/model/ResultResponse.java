@@ -7,16 +7,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class MovieResponse {
+public class ResultResponse {
 
     private Long id;
-    private List<GenreResponse> genres;
     private String title;
     private String overview;
 

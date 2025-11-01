@@ -16,5 +16,6 @@ public class TmdbProperties {
     private String apiKey;
     private String baseUrl;
     private String posterPath;
+    private String language;
 
 }

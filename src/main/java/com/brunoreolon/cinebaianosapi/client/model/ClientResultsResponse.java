@@ -11,8 +11,8 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-public class TmdbResponse {
+public class ClientResultsResponse {
 
-    private List<TmdbMovieResponse> results;
+    private List<ResultResponse> results;
 
 }

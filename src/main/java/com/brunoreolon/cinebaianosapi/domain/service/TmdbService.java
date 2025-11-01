@@ -3,8 +3,8 @@ package com.brunoreolon.cinebaianosapi.domain.service;
 import com.brunoreolon.cinebaianosapi.client.TmdbClient;
 import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
 import com.brunoreolon.cinebaianosapi.client.exception.ClientException;
-import com.brunoreolon.cinebaianosapi.client.model.MovieResponse;
-import com.brunoreolon.cinebaianosapi.client.model.TmdbResponse;
+import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
+import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,9 +17,9 @@ public class TmdbService {
     private final TmdbProperties tmdbProperties;
     private final TmdbClient tmdbClient;
 
-    public TmdbResponse getMovie(String title, String year, String language) {
+    public ClientResultsResponse search(String title, String year, String language) {
         try {
-            TmdbResponse response = tmdbClient.getMovie(tmdbProperties.getApiKey(), title, year, language);
+            ClientResultsResponse response = tmdbClient.getMovie(tmdbProperties.getApiKey(), title, year, language);
 
             if (response == null || response.getResults().isEmpty())
                 throw new ClientException(String.format("Movie with title '%s' not found", title), HttpStatus.NOT_FOUND);
@@ -31,9 +31,9 @@ public class TmdbService {
         }
     }
 
-    public MovieResponse getMovieDetails(Long movieId, String language) {
+    public ClientMovieDetailsResponse getMovieDetails(Long movieId, String language) {
         try {
-            return tmdbClient.getMovieDetails(tmdbProperties.getApiKey(), movieId, language);
+            return tmdbClient.getMovieDetails(movieId, tmdbProperties.getApiKey(), language);
         } catch (FeignException e) {
             if (e instanceof FeignException.NotFound) {
                 throw new ClientException(String.format("Movie with id '%s' not found", movieId), HttpStatus.NOT_FOUND);

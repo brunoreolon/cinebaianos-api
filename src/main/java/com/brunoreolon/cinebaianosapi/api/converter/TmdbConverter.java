@@ -1,0 +1,51 @@
+package com.brunoreolon.cinebaianosapi.api.converter;
+
+import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieDetailsResponse;
+import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
+import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
+import com.brunoreolon.cinebaianosapi.client.model.ResultResponse;
+import com.brunoreolon.cinebaianosapi.domain.model.Movie;
+import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
+import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
+
+@Component
+@AllArgsConstructor
+public class TmdbConverter {
+
+    private final ModelMapper modelMapper;
+    private final PosterPathUtil pathUtil;
+
+    public TmdbMovieDetailsResponse toMovieDetailsResponse(ClientMovieDetailsResponse clientMovieDetailsResponse) {
+        TmdbMovieDetailsResponse map = modelMapper.map(clientMovieDetailsResponse, TmdbMovieDetailsResponse.class);
+        map.setPosterPath(pathUtil.fullPosterPath(map.getPosterPath()));
+
+        return map;
+    }
+
+    public List<TmdbMovieResponse> toMovieResponseList(List<ResultResponse> results) {
+        if (results == null || results.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return results.stream()
+                .map(this::toMovieResponse)
+                .toList();
+    }
+
+    public TmdbMovieResponse toMovieResponse(ResultResponse resultResponse) {
+        TmdbMovieResponse map = modelMapper.map(resultResponse, TmdbMovieResponse.class);
+        map.setPosterPath(pathUtil.fullPosterPath(map.getPosterPath()));
+
+        return map;
+    }
+
+    public Movie toEntityFromClientMovieDetail(ClientMovieDetailsResponse clientMovieDetailsResponse) {
+        return modelMapper.map(clientMovieDetailsResponse, Movie.class);
+    }
+
+}
