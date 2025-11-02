@@ -23,7 +23,7 @@ import java.util.List;
 @ToString
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User {
+public class User implements Ownable<String> {
 
     @Id
     @EqualsAndHashCode.Include
@@ -50,4 +50,15 @@ public class User {
     @OneToMany(mappedBy = "chooser")
     List<Movie> movies = new ArrayList<>();
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name="user_roles", joinColumns=@JoinColumn(name="discord_id"))
+    @Enumerated(EnumType.STRING)
+    private List<Role> roles = new ArrayList<>();
+
+    private boolean isBot;
+
+    @Override
+    public String getOwnerId() {
+        return getDiscordId();
+    }
 }

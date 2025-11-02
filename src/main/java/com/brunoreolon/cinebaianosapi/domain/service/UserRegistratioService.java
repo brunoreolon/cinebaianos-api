@@ -2,6 +2,7 @@ package com.brunoreolon.cinebaianosapi.domain.service;
 
 import com.brunoreolon.cinebaianosapi.domain.exception.UserAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
+import com.brunoreolon.cinebaianosapi.domain.model.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class UserRegistratioService {
+public class UserRegistratioService implements OwnableService<User, String> {
 
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
@@ -69,6 +70,7 @@ public class UserRegistratioService {
         return userRepository.save(user);
     }
 
+    @Override
     public User get(String discordId) {
         return userRepository.findByDiscordId(discordId)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with discordId '%s' not found", discordId)));

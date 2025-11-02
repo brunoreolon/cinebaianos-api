@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.core;
+package com.brunoreolon.cinebaianosapi.core.modelmapper;
 
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;

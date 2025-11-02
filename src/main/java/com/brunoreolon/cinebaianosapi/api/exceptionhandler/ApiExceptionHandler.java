@@ -4,6 +4,8 @@ import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.http.*;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,6 +51,32 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
 
         return ResponseEntity.status(ex.getStatus()).body(problemDetail);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
+        ProblemDetail problemDetail = getProblemDetail(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage(),
+                null,
+                null,
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex) {
+        ProblemDetail problemDetail = getProblemDetail(
+                HttpStatus.UNAUTHORIZED,
+                "Authentication failed",
+                ex.getMessage(),
+                null,
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
 
 }

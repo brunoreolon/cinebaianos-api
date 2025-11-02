@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @Builder
-public class Vote {
+public class Vote implements Ownable {
 
     @EmbeddedId
     @Valid
@@ -44,5 +44,10 @@ public class Vote {
 
     @UpdateTimestamp
     private LocalDateTime updated;
+
+    @Override
+    public String getOwnerId() {
+        return getVoter().getDiscordId();
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteKey;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteNotFoundException;
@@ -13,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class VoteService {
+public class VoteService implements OwnableService<Vote, VoteKey> {
 
     private final MovieService movieService;
     private final UserRegistratioService userRegistratioService;
@@ -98,6 +99,11 @@ public class VoteService {
         List<Vote> votes = voteRepository.findByMovieId(movieId);
 
         return new MovieVotes(movie, votes);
+    }
+
+    @Override
+    public Vote get(VoteKey key) {
+        return getVote(key.getDiscordId(), key.getMovieId());
     }
 
 }

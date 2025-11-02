@@ -4,6 +4,7 @@ import com.brunoreolon.cinebaianosapi.api.converter.VoteTypeConverter;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeDetailResponse;
+import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteTypeRegistrationService;
 import jakarta.validation.Valid;
@@ -23,6 +24,7 @@ public class VoteTypeRegistrationController {
     private final VoteTypeConverter voteTypeConverter;
 
     @PostMapping
+    @CheckSecurity.IsAdmin
     public ResponseEntity<VoteTypeDetailResponse> create(@Valid @RequestBody VoteTypeRequest voteTypeRequest) {
         VoteType voteType = voteTypeConverter.toEntityFromCreate(voteTypeRequest);
         VoteType newVoteType = voteTypeRegistrationService.save(voteType);
@@ -31,24 +33,28 @@ public class VoteTypeRegistrationController {
     }
 
     @GetMapping
+    @CheckSecurity.IsAdmin
     public ResponseEntity<List<VoteTypeDetailResponse>> getAll() {
         List<VoteType> voteTypes = voteTypeRegistrationService.getAll();
         return ResponseEntity.ok().body(voteTypeConverter.toDetailResponseList(voteTypes));
     }
 
     @GetMapping("/{typeVoteId}")
+    @CheckSecurity.IsAdmin
     public ResponseEntity<VoteTypeDetailResponse> get(@PathVariable Long typeVoteId) {
         VoteType voteType = voteTypeRegistrationService.get(typeVoteId);
         return ResponseEntity.ok().body(voteTypeConverter.toDetailResponse(voteType));
     }
 
     @DeleteMapping("/{typeVoteId}")
+    @CheckSecurity.IsAdmin
     public ResponseEntity<Void> delete(@PathVariable Long typeVoteId) {
         voteTypeRegistrationService.delete(typeVoteId);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{typeVoteId}")
+    @CheckSecurity.IsAdmin
     public ResponseEntity<VoteTypeDetailResponse> edit(@PathVariable Long typeVoteId,
                                                        @Valid @RequestBody VoteTypeUpdateRequest voteTypeUpdateRequest) {
         VoteType voteType = voteTypeConverter.toEntityFromUpdate(voteTypeUpdateRequest);

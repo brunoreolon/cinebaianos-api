@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.core;
+package com.brunoreolon.cinebaianosapi.core.modelmapper;
 
 import com.brunoreolon.cinebaianosapi.client.model.GenreResponse;
 import org.modelmapper.Converter;

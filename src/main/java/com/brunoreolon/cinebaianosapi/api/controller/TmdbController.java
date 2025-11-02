@@ -6,6 +6,7 @@ import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
 import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
+import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
 import com.brunoreolon.cinebaianosapi.domain.service.TmdbService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class TmdbController {
     private final TmdbProperties tmdbProperties;
 
     @GetMapping("/search/movies")
+    @CheckSecurity.CanAccess
     public ResponseEntity<List<TmdbMovieResponse>> search(@RequestParam(name = "title", required = true) String title,
                                                           @RequestParam(name = "year", required = false) String year,
                                                           @RequestParam(name = "language", required = false) String language) {
@@ -35,6 +37,7 @@ public class TmdbController {
     }
 
     @GetMapping("/movies/{movieId}")
+    @CheckSecurity.CanAccess
     public ResponseEntity<TmdbMovieDetailsResponse> searchDetails(@PathVariable("movieId") Long movieId,
                                                                   @RequestParam(name = "language", required = false) String language) {
         if (language == null) {

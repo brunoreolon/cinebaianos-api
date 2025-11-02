@@ -17,7 +17,7 @@ import java.util.List;
 @Setter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Movie {
+public class Movie implements Ownable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,5 +49,10 @@ public class Movie {
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     public List<Vote> votes = new ArrayList<>();
+
+    @Override
+    public String getOwnerId() {
+        return getChooser().getDiscordId();
+    }
 
 }

@@ -4,6 +4,8 @@ import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
+import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
+import com.brunoreolon.cinebaianosapi.domain.model.ResourceId;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
 import jakarta.validation.Valid;
@@ -26,31 +28,36 @@ public class UserRegistrationController {
     private final UserConverter userConverter;
 
     @PostMapping
+    @CheckSecurity.IsAdminOrBot
     public ResponseEntity<UserDetailResponse> create(@Validated(UserCreateGroup.class) @RequestBody UserRequest userRequestuser) {
         User newUser = userRegistratioService.create(userConverter.toEntityFromCreate(userRequestuser));
         return ResponseEntity.status(HttpStatus.CREATED).body(userConverter.toDetailResponse(newUser));
     }
 
     @GetMapping
+    @CheckSecurity.CanAccess
     public ResponseEntity<List<UserDetailResponse>> getAll() {
         List<User> users = userRegistratioService.getAll();
         return ResponseEntity.ok().body(userConverter.toDetailResponseList(users));
     }
 
     @GetMapping("/{discordId}")
+    @CheckSecurity.CanAccess
     public ResponseEntity<UserDetailResponse> get(@PathVariable String discordId) {
         User user = userRegistratioService.get(discordId);
         return ResponseEntity.ok().body(userConverter.toDetailResponse(user));
     }
 
     @DeleteMapping("/{discordId}")
-    public ResponseEntity<Void> delete(@PathVariable String discordId) {
+    @CheckSecurity.IsAdmin
+    public ResponseEntity<Void> delete(@PathVariable @ResourceId String discordId) {
         userRegistratioService.delete(discordId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{discordId}")
-    public ResponseEntity<UserDetailResponse> update(@PathVariable String discordId,
+    @CheckSecurity.IsOwner(service = "userRegistratioService")
+    public ResponseEntity<UserDetailResponse> update(@PathVariable @ResourceId String discordId,
                                                      @Valid @RequestBody UserUpdateRequest userRequest) {
         User userUpdate = userConverter.toEntityFromUpdate(userRequest);
         userUpdate.setDiscordId(discordId);

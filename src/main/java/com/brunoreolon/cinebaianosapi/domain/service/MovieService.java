@@ -3,6 +3,7 @@ package com.brunoreolon.cinebaianosapi.domain.service;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
+import com.brunoreolon.cinebaianosapi.domain.model.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class MovieService {
+public class MovieService implements OwnableService<Movie, Long> {
 
     private final MovieRepository movieRepository;
     private final UserRegistratioService userRegistratioService;
@@ -43,6 +44,7 @@ public class MovieService {
         return newMovie;
     }
 
+    @Override
     public Movie get(Long movieId) {
         return movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException(String.format("Movie with id '%d' not found",  movieId)));
