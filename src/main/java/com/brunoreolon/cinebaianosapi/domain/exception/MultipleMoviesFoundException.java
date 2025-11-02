@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.exception;
 
 import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -12,7 +13,8 @@ public class MultipleMoviesFoundException extends BusinessException {
     public static final String MULTIPLE_MOVIES_DETAIL = "More than one movie found. Choose the correct one to add.";
 
     public MultipleMoviesFoundException(List<TmdbMovieResponse> movies) {
-        super(MULTIPLE_MOVIES_DETAIL, HttpStatus.CONFLICT, MULTIPLE_MOVIES_TITLE, Map.of("options", movies));
+        super(MULTIPLE_MOVIES_DETAIL, HttpStatus.CONFLICT, MULTIPLE_MOVIES_TITLE,
+                Map.of("options", movies, "errorCode", ApiErrorCode.MULTIPLE_MOVIES_FOUND.getCode()));
     }
 
 }

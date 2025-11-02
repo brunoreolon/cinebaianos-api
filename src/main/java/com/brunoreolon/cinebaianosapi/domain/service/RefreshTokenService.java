@@ -19,7 +19,6 @@ public class RefreshTokenService {
     private final JwtProperties jwtProperties;
     private final RefreshTokenRepository refreshTokenRepo;
 
-    // Cria e salva um novo refresh token
     @Transactional
     public RefreshToken createRefreshToken(User user) {
         RefreshToken token = new RefreshToken();
@@ -30,12 +29,11 @@ public class RefreshTokenService {
         return refreshTokenRepo.save(token);
     }
 
-    // Rotaciona o token: desativa o antigo e cria um novo
     @Transactional
     public RefreshToken rotateRefreshToken(RefreshToken oldToken) {
         if (oldToken != null && oldToken.isActive()) {
             oldToken.setActive(false);
-            refreshTokenRepo.save(oldToken); // invalida o token usado
+            refreshTokenRepo.save(oldToken);
         }
         return createRefreshToken(oldToken.getUser());
     }
@@ -56,6 +54,6 @@ public class RefreshTokenService {
     }
 
     public Optional<RefreshToken> findByToken(String token) {
-        return refreshTokenRepo.findByTokenAndActiveTrue(token);
+        return refreshTokenRepo.findByToken(token);
     }
 }

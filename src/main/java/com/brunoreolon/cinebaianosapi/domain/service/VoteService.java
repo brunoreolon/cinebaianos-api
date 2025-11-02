@@ -6,12 +6,14 @@ import com.brunoreolon.cinebaianosapi.domain.exception.VoteAlreadyRegisteredExce
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.VoteRepository;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class VoteService implements OwnableService<Vote, VoteKey> {
@@ -80,9 +82,11 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
     private Vote save(User voter, Movie movie, Long voteId) {
         VoteType voteType = voteTypeRegistrationService.getOptional(voteId)
                 .filter(VoteType::isActive)
-                .orElseThrow(() -> new BusinessException(String.format("The vote type with id '%d' is inactive and cannot be used", voteId),
+                .orElseThrow(() -> new BusinessException(
+                        String.format("The vote type with id '%d' is inactive and cannot be used", voteId),
                         HttpStatus.BAD_REQUEST,
-                        "Inactive Vote"));
+                        "Inactive Vote",
+                        Map.of("errorCode", ApiErrorCode.VOTE_INVALID_STATUS)));
 
         Vote newVote = Vote.builder()
                 .voteId(new VoteId(movie.getId(), voter.getDiscordId()))

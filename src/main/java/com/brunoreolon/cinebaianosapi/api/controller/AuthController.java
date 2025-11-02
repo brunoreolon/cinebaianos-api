@@ -4,6 +4,7 @@ import com.brunoreolon.cinebaianosapi.api.model.auth.request.LoginRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.RefreshRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.TokenResponse;
 import com.brunoreolon.cinebaianosapi.core.security.JwtService;
+import com.brunoreolon.cinebaianosapi.domain.exception.InvalidRefreshTokenException;
 import com.brunoreolon.cinebaianosapi.domain.model.RefreshToken;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
@@ -55,10 +56,10 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> refresh(@RequestBody @Valid RefreshRequest request) {
         RefreshToken oldToken = refreshTokenService.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new RuntimeException("Refresh token inválido"));
+                .orElseThrow(() -> new InvalidRefreshTokenException("The refresh token is invalid"));
 
         if (!refreshTokenService.isValid(oldToken)) {
-            throw new RuntimeException("Refresh token expirado ou inativo");
+            throw new InvalidRefreshTokenException("The refresh token is expired or inactive");
         }
 
         User user = oldToken.getUser();

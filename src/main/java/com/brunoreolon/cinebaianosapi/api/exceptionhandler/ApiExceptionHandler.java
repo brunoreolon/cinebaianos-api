@@ -1,11 +1,12 @@
 package com.brunoreolon.cinebaianosapi.api.exceptionhandler;
 
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
+import com.brunoreolon.cinebaianosapi.domain.exception.InvalidRefreshTokenException;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -66,13 +67,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
     }
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex) {
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<Object> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
         ProblemDetail problemDetail = getProblemDetail(
                 HttpStatus.UNAUTHORIZED,
-                "Authentication failed",
+                "Invalid refresh token",
                 ex.getMessage(),
-                null,
+                Map.of("errorCode", ApiErrorCode.INVALID_OR_EXPIRED_REFRESH_TOKEN.getCode()),
                 null
         );
 

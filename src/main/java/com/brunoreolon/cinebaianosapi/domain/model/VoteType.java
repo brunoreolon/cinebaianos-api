@@ -1,10 +1,13 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.http.HttpStatus;
+
+import java.util.Map;
 
 @Entity
 @NoArgsConstructor
@@ -43,7 +46,8 @@ public class VoteType {
             throw new BusinessException(
                     "You cannot activate a vote that is already active.",
                     HttpStatus.BAD_REQUEST,
-                    "Vote cannot be activated");
+                    "Vote cannot be activated",
+                    Map.of("errorCode", ApiErrorCode.VOTE_INVALID_STATUS));
 
         this.active = true;
     }
@@ -53,7 +57,8 @@ public class VoteType {
             throw new BusinessException(
                     "You cannot deactivate a vote that is already deactivated.",
                     HttpStatus.BAD_REQUEST,
-                    "Vote cannot be disabled");
+                    "Vote cannot be disabled",
+                    Map.of("errorCode", ApiErrorCode.VOTE_INVALID_STATUS));
 
         this.active = false;
     }
