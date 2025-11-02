@@ -200,22 +200,3 @@ JWT_KEYSTORE_PASSWORD=
 JWT_KEY_PASSWORD=
 JWT_ALIAS=jwt
 ```
-
----
-
-## ⚙️ Perfis de ambiente
-
-* **Dev:** Utiliza porta `8090`, H2 ou banco local, e log detalhado de autenticação.
-* **Prod:** Utiliza porta `8080`, banco PostgreSQL remoto, e configurações de e-mail e JWT de produção.
-
----
-
-## 📬 Testando com Postman
-
-* Importar o arquivo `Cinebaianos.postman_collection.json`
-* Testar endpoints de filmes, votos e ranking.
-* Variáveis de ambiente no Postman:
-
-    * `API_URL` → `http://localhost:8080`
-
-> ✅ Este README organiza de forma clara **tecnologias, funcionalidades, endpoints principais, ranking, configuração Docker, perfis de ambiente e teste com Postman**, facilitando a vida de qualquer desenvolvedor que queira iniciar a aplicação rapidamente.
