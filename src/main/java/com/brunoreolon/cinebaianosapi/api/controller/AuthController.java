@@ -4,6 +4,7 @@ import com.brunoreolon.cinebaianosapi.api.model.auth.request.LoginRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.RefreshRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.TokenResponse;
 import com.brunoreolon.cinebaianosapi.core.security.JwtService;
+import com.brunoreolon.cinebaianosapi.domain.exception.ExperidRefreshTokenException;
 import com.brunoreolon.cinebaianosapi.domain.exception.InvalidRefreshTokenException;
 import com.brunoreolon.cinebaianosapi.domain.model.RefreshToken;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
@@ -59,7 +60,7 @@ public class AuthController {
                 .orElseThrow(() -> new InvalidRefreshTokenException("The refresh token is invalid"));
 
         if (!refreshTokenService.isValid(oldToken)) {
-            throw new InvalidRefreshTokenException("The refresh token is expired or inactive");
+            throw new ExperidRefreshTokenException("The refresh token is expired or inactive");
         }
 
         User user = oldToken.getUser();

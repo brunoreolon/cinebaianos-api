@@ -1,12 +1,13 @@
 package com.brunoreolon.cinebaianosapi.api.exceptionhandler;
 
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
-import com.brunoreolon.cinebaianosapi.domain.exception.InvalidRefreshTokenException;
+import com.brunoreolon.cinebaianosapi.domain.exception.InvalidOrExperidRefreshTokenException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
+import com.brunoreolon.cinebaianosapi.util.ExceptionUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.http.*;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,29 +55,28 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(problemDetail);
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
+    @ExceptionHandler(InvalidOrExperidRefreshTokenException.class)
+    public ResponseEntity<Object> handleInvalidRefreshToken(InvalidOrExperidRefreshTokenException ex) {
         ProblemDetail problemDetail = getProblemDetail(
-                HttpStatus.FORBIDDEN,
+                ex.getStatus(),
+                ex.getTitle(),
                 ex.getMessage(),
-                null,
-                null,
+                ex.getProperties(),
                 null
         );
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problemDetail);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
 
-    @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<Object> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
-        ProblemDetail problemDetail = getProblemDetail(
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex) {
+        ProblemDetail problemDetail = ExceptionUtil.getProblemDetail(
                 HttpStatus.UNAUTHORIZED,
-                "Invalid refresh token",
+                "Invalid credentials",
                 ex.getMessage(),
-                Map.of("errorCode", ApiErrorCode.INVALID_OR_EXPIRED_REFRESH_TOKEN.getCode()),
+                ApiErrorCode.INVALID_CREDENTIALS.asMap(),
                 null
         );
-
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
 

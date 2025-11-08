@@ -10,7 +10,7 @@ public class EntityNotFoundException extends BusinessException {
     public static final String ENTITY_NOT_FOUND_TITLE = "Entity Not Found";
     
     public EntityNotFoundException(String message, ApiErrorCode apiErrorCode) {
-        super(message, HttpStatus.NOT_FOUND, ENTITY_NOT_FOUND_TITLE, Map.of("errorCode", apiErrorCode.getCode()));
+        super(message, HttpStatus.NOT_FOUND, ENTITY_NOT_FOUND_TITLE, apiErrorCode.asMap());
     }
 
 }

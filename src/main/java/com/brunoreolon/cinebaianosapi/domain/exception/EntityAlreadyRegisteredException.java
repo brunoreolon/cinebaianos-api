@@ -10,7 +10,7 @@ public class EntityAlreadyRegisteredException extends BusinessException {
     public static final String ENTITY_ALREADY_REGISTERED_TITLE = "Entity already registered";
 
     public EntityAlreadyRegisteredException(String message, ApiErrorCode apiErrorCode) {
-        super(message, HttpStatus.BAD_REQUEST, ENTITY_ALREADY_REGISTERED_TITLE, Map.of("errorCode", apiErrorCode.getCode()));
+        super(message, HttpStatus.BAD_REQUEST, ENTITY_ALREADY_REGISTERED_TITLE, apiErrorCode.asMap());
     }
 
 }

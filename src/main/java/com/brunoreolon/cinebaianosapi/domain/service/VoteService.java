@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class VoteService implements OwnableService<Vote, VoteKey> {
@@ -81,12 +80,20 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
 
     private Vote save(User voter, Movie movie, Long voteId) {
         VoteType voteType = voteTypeRegistrationService.getOptional(voteId)
-                .filter(VoteType::isActive)
                 .orElseThrow(() -> new BusinessException(
-                        String.format("The vote type with id '%d' is inactive and cannot be used", voteId),
+                        String.format("The vote type with id '%d' does not exist", voteId),
                         HttpStatus.BAD_REQUEST,
                         "Inactive Vote",
-                        Map.of("errorCode", ApiErrorCode.VOTE_INVALID_STATUS)));
+                        ApiErrorCode.VOTE_TYPE_NOT_FOUND.asMap()));
+
+        if (!voteType.isActive()) {
+            throw new BusinessException(
+                    String.format("The vote type with id '%d' is inactive and cannot be used", voteId),
+                    HttpStatus.BAD_REQUEST,
+                    "Inactive Vote Type",
+                    ApiErrorCode.VOTE_INVALID_STATUS.asMap()
+            );
+        }
 
         Vote newVote = Vote.builder()
                 .voteId(new VoteId(movie.getId(), voter.getDiscordId()))

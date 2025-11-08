@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
@@ -7,7 +8,9 @@ import com.brunoreolon.cinebaianosapi.domain.model.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,14 @@ public class MovieService implements OwnableService<Movie, Long> {
                     movie.getTmdbId()));
 
         User chooser = userRegistratioService.get(chooserID);
+
+        if (chooser.isBot())
+            throw new BusinessException(
+                    "Bot users cannot have movies added.",
+                    HttpStatus.FORBIDDEN,
+                    "Action Not Allowed",
+                    ApiErrorCode.BOT_USER_FORBIDDEN.asMap());
+
         movie.setChooser(chooser);
 
         Movie newMovie = movieRepository.save(movie);

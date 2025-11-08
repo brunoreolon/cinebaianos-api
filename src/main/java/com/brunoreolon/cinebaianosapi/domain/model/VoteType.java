@@ -47,7 +47,7 @@ public class VoteType {
                     "You cannot activate a vote that is already active.",
                     HttpStatus.BAD_REQUEST,
                     "Vote cannot be activated",
-                    Map.of("errorCode", ApiErrorCode.VOTE_INVALID_STATUS));
+                    ApiErrorCode.VOTE_INVALID_STATUS.asMap());
 
         this.active = true;
     }
@@ -58,7 +58,7 @@ public class VoteType {
                     "You cannot deactivate a vote that is already deactivated.",
                     HttpStatus.BAD_REQUEST,
                     "Vote cannot be disabled",
-                    Map.of("errorCode", ApiErrorCode.VOTE_INVALID_STATUS));
+                    ApiErrorCode.VOTE_INVALID_STATUS.asMap());
 
         this.active = false;
     }

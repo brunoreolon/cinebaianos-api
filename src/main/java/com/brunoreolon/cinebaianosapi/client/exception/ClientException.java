@@ -9,7 +9,7 @@ import java.util.Map;
 public class ClientException extends BusinessException {
 
     public ClientException(String message, HttpStatus status, ApiErrorCode errorCode) {
-        super(message, status, "Client Exception", Map.of("errorCode", errorCode.getCode()));
+        super(message, status, "Client Exception", errorCode.asMap());
     }
 
 }

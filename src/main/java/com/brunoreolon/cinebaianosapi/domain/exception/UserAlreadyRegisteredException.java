@@ -5,7 +5,7 @@ import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 public class UserAlreadyRegisteredException extends EntityAlreadyRegisteredException {
 
     public UserAlreadyRegisteredException(String message) {
-        super(message, ApiErrorCode.MOVIE_ALREADY_REGISTERED);
+        super(message, ApiErrorCode.USER_ALREADY_REGISTERED);
     }
 
 }
