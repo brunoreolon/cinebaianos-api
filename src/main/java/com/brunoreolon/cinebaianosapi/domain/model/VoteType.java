@@ -4,10 +4,9 @@ import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.http.HttpStatus;
-
-import java.util.Map;
 
 @Entity
 @NoArgsConstructor
@@ -30,6 +29,11 @@ public class VoteType {
 
     @NotBlank
     private String description;
+
+    @Pattern(regexp = "^#[A-Fa-f0-9]{6}$", message = "Color must be a valid hex code, e.g. #00FF00")
+    private String color;
+
+    private String emoji;
 
     private boolean active;
 

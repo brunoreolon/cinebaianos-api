@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.domain.exception.VoteTypeNotFoundException
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.VoteTypeRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,9 @@ public class VoteTypeRegistrationService {
         if (nameAlreadyExists)
             throw new VoteTypeAlreadyRegisteredException(String.format("there is already a VoteType registered with the name '%s'",
                     voteType.getName()));
+
+        if (voteType.getEmoji() == null || voteType.getEmoji().isBlank())
+            voteType.setEmoji("⭐");
 
         return voteTypeRepository.save(voteType);
     }

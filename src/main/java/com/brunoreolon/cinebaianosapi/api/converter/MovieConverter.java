@@ -47,7 +47,9 @@ public class MovieConverter {
         if (vote != null) {
             VoteTypeSummaryResponse voteTypeSummaryResponse = new VoteTypeSummaryResponse(
                     vote.getVote().getId(),
-                    vote.getVote().getDescription()
+                    vote.getVote().getDescription(),
+                    vote.getVote().getColor(),
+                    vote.getVote().getEmoji()
             );
 
             response.setVote(voteTypeSummaryResponse);

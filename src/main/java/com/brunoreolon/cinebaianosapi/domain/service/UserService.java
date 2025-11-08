@@ -67,7 +67,7 @@ public class UserService {
                 .map(voteTypes -> {
                     Long totalVotes = voteService.countVotesByTypeAndUser(voteTypes, user);
                     VoteTypeSummaryResponse voteTypeSummaryResponse = new VoteTypeSummaryResponse(
-                            voteTypes.getId(), voteTypes.getDescription()
+                            voteTypes.getId(), voteTypes.getDescription(), voteTypes.getColor(), voteTypes.getEmoji()
                     );
                     return new VoteStatsResponse(voteTypeSummaryResponse, totalVotes);
                 })

@@ -13,5 +13,7 @@ public class VoteTypeSummaryResponse {
 
     private Long id;
     private String description;
+    private String color;
+    private String emoji;
 
 }

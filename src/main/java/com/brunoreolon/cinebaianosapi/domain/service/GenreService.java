@@ -60,7 +60,7 @@ public class GenreService {
                 .map(genre -> {
                     List<VoteStatsResponse> voteCounts = allVoteTypes.stream()
                             .map(vt -> new VoteStatsResponse(
-                                            new VoteTypeSummaryResponse(vt.getId(), vt.getName()),
+                                            new VoteTypeSummaryResponse(vt.getId(), vt.getName(), vt.getColor(), vt.getEmoji()),
                                             votesMap.getOrDefault(genre, Map.of()).getOrDefault(vt.getName(), 0L)
                                     )
                             )
