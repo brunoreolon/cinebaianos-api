@@ -36,8 +36,17 @@ public class UserRegistrationController {
 
     @GetMapping
     @CheckSecurity.CanAccess
-    public ResponseEntity<List<UserDetailResponse>> getAll() {
+    public ResponseEntity<List<UserDetailResponse>> getAll(
+            @RequestParam(value = "includeBot", required = false, defaultValue = "false") boolean includeBot
+    ) {
         List<User> users = userRegistratioService.getAll();
+
+        if (!includeBot) {
+            users = users.stream()
+                    .filter(user -> !user.isBot())
+                    .toList();
+        }
+
         return ResponseEntity.ok().body(userConverter.toDetailResponseList(users));
     }
 

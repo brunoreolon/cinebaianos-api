@@ -33,14 +33,14 @@ public class VoteTypeRegistrationController {
     }
 
     @GetMapping
-    @CheckSecurity.IsAdmin
+    @CheckSecurity.CanAccess
     public ResponseEntity<List<VoteTypeDetailResponse>> getAll() {
         List<VoteType> voteTypes = voteTypeRegistrationService.getAll();
         return ResponseEntity.ok().body(voteTypeConverter.toDetailResponseList(voteTypes));
     }
 
     @GetMapping("/{typeVoteId}")
-    @CheckSecurity.IsAdmin
+    @CheckSecurity.CanAccess
     public ResponseEntity<VoteTypeDetailResponse> get(@PathVariable Long typeVoteId) {
         VoteType voteType = voteTypeRegistrationService.get(typeVoteId);
         return ResponseEntity.ok().body(voteTypeConverter.toDetailResponse(voteType));

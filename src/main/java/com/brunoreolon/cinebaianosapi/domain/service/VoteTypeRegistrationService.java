@@ -43,7 +43,7 @@ public class VoteTypeRegistrationService {
     }
 
     public List<VoteType> getAll() {
-        return voteTypeRepository.findAll();
+        return voteTypeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     @Transactional

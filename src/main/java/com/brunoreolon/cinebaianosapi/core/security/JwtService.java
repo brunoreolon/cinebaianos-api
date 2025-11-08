@@ -1,6 +1,5 @@
 package com.brunoreolon.cinebaianosapi.core.security;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -34,7 +33,7 @@ public class JwtService {
     public void init() {
         try {
             Resource resource = new ClassPathResource(jwtProperties.getPath());
-            KeyStore keyStore = KeyStore.getInstance("PKCS12"); // CORRETO
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
             try (InputStream is = resource.getInputStream()) {
                 keyStore.load(is, jwtProperties.getKeypass().toCharArray());
             }

@@ -29,11 +29,13 @@ public class UserService {
 
     public User getWithMovies(String discordId) {
         return userRepository.findByDiscordIdWithMovies(discordId)
+                .filter(u -> !u.isBot())
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with discordId '%s' not found", discordId)));
     }
 
     public List<UserVoteStatsResponse> getVotes(Long voteTypeId) {
         return userRegistratioService.getAll().stream()
+                .filter(u -> !u.isBot())
                 .map(user -> {
                     List<VoteType> votesToConsider = getVotesToConsider(voteTypeId);
 
