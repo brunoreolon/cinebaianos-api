@@ -42,6 +42,16 @@ public class ApplicationService {
         return isOwner(service, resourceId);
     }
 
+    public boolean isOwnerOrAdmin(OwnableService service, Object resourceId) {
+        User user = getLoggedUser();
+        if (user == null) return false;
+
+        boolean admin = user.getRoles().stream()
+                .anyMatch(r -> r.name().equals("ADMIN"));
+
+        return isOwner(service, resourceId) || admin;
+    }
+
     public void checkCanAddMovieFor(String chooserDiscordId) {
         User logged = getLoggedUser();
         if (logged == null) {

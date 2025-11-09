@@ -59,7 +59,7 @@ public class UserService {
     private List<VoteType> getVotesToConsider(Long voteTypeId) {
         return (voteTypeId != null)
                 ? List.of(voteTypeRegistrationService.get(voteTypeId)) :
-                voteTypeRegistrationService.getAll();
+                voteTypeRegistrationService.getAll(null);
     }
 
     private List<VoteStatsResponse> getVoteSummaryForUser(User user, List<VoteType> types) {

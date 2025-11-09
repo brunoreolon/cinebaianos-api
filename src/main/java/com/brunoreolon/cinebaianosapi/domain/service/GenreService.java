@@ -87,7 +87,7 @@ public class GenreService {
     }
 
     private List<VoteType> getVoteTypes(Long voteTypeId) {
-        return voteTypeId == null ? voteTypeRegistrationService.getAll()
+        return voteTypeId == null ? voteTypeRegistrationService.getAll(null)
                 : voteTypeRegistrationService.getOptional(voteTypeId)
                 .map(List::of)
                 .orElse(List.of());

@@ -34,8 +34,9 @@ public class VoteTypeRegistrationController {
 
     @GetMapping
     @CheckSecurity.CanAccess
-    public ResponseEntity<List<VoteTypeDetailResponse>> getAll() {
-        List<VoteType> voteTypes = voteTypeRegistrationService.getAll();
+    public ResponseEntity<List<VoteTypeDetailResponse>> getAll(
+            @RequestParam(name = "active", defaultValue = "true") Boolean active) {
+        List<VoteType> voteTypes = voteTypeRegistrationService.getAll(active);
         return ResponseEntity.ok().body(voteTypeConverter.toDetailResponseList(voteTypes));
     }
 

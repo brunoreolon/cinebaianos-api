@@ -46,8 +46,11 @@ public class VoteTypeRegistrationService {
                 .orElseThrow(() -> new VoteTypeNotFoundException(String.format("VoteType with id '%d' not found", id)));
     }
 
-    public List<VoteType> getAll() {
-        return voteTypeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    public List<VoteType> getAll(Boolean active) {
+        if (active == null) {
+            return voteTypeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+        }
+        return voteTypeRepository.findAllByActiveOrderByIdAsc(active);
     }
 
     @Transactional

@@ -38,6 +38,12 @@ public @interface CheckSecurity {
 
     @Retention(RUNTIME)
     @Target(METHOD)
+    @interface IsOwnerOrAdmin {
+        String service();
+    }
+
+    @Retention(RUNTIME)
+    @Target(METHOD)
     @interface IsOwnerVote {
         String service();
     }
@@ -45,6 +51,12 @@ public @interface CheckSecurity {
     @Retention(RUNTIME)
     @Target(METHOD)
     @interface IsOwnerOrBot {
+        String service();
+    }
+
+    @Retention(RUNTIME)
+    @Target(METHOD)
+    @interface IsOwnerVoteOrBot {
         String service();
     }
 

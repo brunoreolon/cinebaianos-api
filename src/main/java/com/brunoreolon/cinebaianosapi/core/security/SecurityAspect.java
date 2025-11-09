@@ -12,7 +12,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
+import java.util.function.Predicate;
 
 @Aspect
 @Component
@@ -34,30 +36,41 @@ public class SecurityAspect {
 
     @Before("@annotation(isOwnerVote)")
     public void checkOwnershipVote(JoinPoint joinPoint, CheckSecurity.IsOwnerVote isOwnerVote) {
-        OwnableService<?, ?> service = (OwnableService<?, ?>) context.getBean(isOwnerVote.service());
+        checkOwnerVote(joinPoint, isOwnerVote.service(), false);
+    }
 
-        Object[] args = joinPoint.getArgs();
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Parameter[] parameters = signature.getMethod().getParameters();
+    @Before("@annotation(IsOwnerVoteOrBot)")
+    public void checkOwnershipVoteOrBot(JoinPoint joinPoint, CheckSecurity.IsOwnerVoteOrBot isOwnerVoteOrBot) {
+        checkOwnerVote(joinPoint, isOwnerVoteOrBot.service(), false);
+    }
 
-        String discordId = null;
-        Long movieId = null;
+    @Before("@annotation(isOwnerOrAdmin)")
+    public void checkOwnerOrAdmin(JoinPoint joinPoint, CheckSecurity.IsOwnerOrAdmin isOwnerOrAdmin) {
+        OwnableService<?, ?> service = (OwnableService<?, ?>) context.getBean(isOwnerOrAdmin.service());
+        Object resourceId = getResourceId(joinPoint);
 
-        for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i].isAnnotationPresent(ResourceId.class)) {
-                if ("discordId".equals(parameters[i].getAnnotation(ResourceId.class).name())) {
-                    discordId = (String) args[i];
-                } else if ("movieId".equals(parameters[i].getAnnotation(ResourceId.class).name())) {
-                    movieId = (Long) args[i];
-                }
-            }
+        boolean autorizado = applicationService.isOwnerOrAdmin(service, resourceId);
+
+        if (!autorizado) {
+            throw new AccessDeniedException("You are not allowed to modify this resource.");
         }
+    }
+
+    private void checkOwnerVote(JoinPoint joinPoint, String serviceBeanName, boolean allowBot) {
+        OwnableService<?, ?> service = (OwnableService<?, ?>) context.getBean(serviceBeanName);
+
+        String discordId = (String) getAnnotatedParam(joinPoint, "discordId");
+        Long movieId = (Long) getAnnotatedParam(joinPoint, "movieId");
 
         if (discordId == null || movieId == null) {
             throw new IllegalStateException("discordId or movieId not found in method parameters");
         }
 
-        boolean authorized = applicationService.isOwner(service, new VoteKey(discordId, movieId));
+        VoteKey key = new VoteKey(discordId, movieId);
+
+        boolean authorized = allowBot
+                ? applicationService.isOwnerOrBot(service, key)
+                : applicationService.isOwner(service, key);
 
         if (!authorized) {
             throw new AccessDeniedException("You are not allowed to modify this vote");
@@ -83,19 +96,26 @@ public class SecurityAspect {
     }
 
     private static Object getResourceId(JoinPoint joinPoint) {
+        return findParameterByAnnotation(joinPoint, ResourceId.class, ann -> true);
+    }
+
+    private static Object getAnnotatedParam(JoinPoint joinPoint, String name) {
+        return findParameterByAnnotation(joinPoint, ResourceId.class, ann -> ((ResourceId) ann).name().equals(name));
+    }
+
+    private static Object findParameterByAnnotation(JoinPoint joinPoint, Class<? extends Annotation> annotationType,
+                                                    Predicate<Annotation> filter) {
         Object[] args = joinPoint.getArgs();
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Parameter[] parameters = signature.getMethod().getParameters();
 
-        Object resourceId = null;
         for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i].isAnnotationPresent(ResourceId.class)) {
-                resourceId = args[i];
-                break;
+            Annotation annotation = parameters[i].getAnnotation(annotationType);
+            if (annotation != null && filter.test(annotation)) {
+                return args[i];
             }
         }
-
-        return resourceId;
+        return null;
     }
 
 }

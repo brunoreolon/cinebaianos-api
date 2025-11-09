@@ -82,7 +82,7 @@ public class VoteController {
     }
 
     @DeleteMapping("/users/{discordId}/movies/{movieId}")
-    @CheckSecurity.IsOwnerVote(service = "voteService")
+    @CheckSecurity.IsOwnerVoteOrBot(service = "voteService")
     public ResponseEntity<Void> deleteVote(@PathVariable @ResourceId(name = "discordId") String discordId,
                                            @PathVariable @ResourceId(name = "movieId") Long movieId) {
         voteService.delete(discordId, movieId);

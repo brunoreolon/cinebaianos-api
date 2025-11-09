@@ -65,7 +65,7 @@ public class UserRegistrationController {
     }
 
     @PatchMapping("/{discordId}")
-    @CheckSecurity.IsOwner(service = "userRegistratioService")
+    @CheckSecurity.IsOwnerOrAdmin(service = "userRegistratioService")
     public ResponseEntity<UserDetailResponse> update(@PathVariable @ResourceId String discordId,
                                                      @Valid @RequestBody UserUpdateRequest userRequest) {
         User userUpdate = userConverter.toEntityFromUpdate(userRequest);
