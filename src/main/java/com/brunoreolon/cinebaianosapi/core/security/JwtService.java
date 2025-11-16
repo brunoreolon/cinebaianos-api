@@ -1,8 +1,6 @@
 package com.brunoreolon.cinebaianosapi.core.security;
 
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -69,16 +67,25 @@ public class JwtService {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(publicKey).build().parseClaimsJws(token);
-            return true;
+            Claims claims = parseClaims(token);
+            return !claims.getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            throw e;
         } catch (JwtException e) {
             return false;
         }
     }
 
-    public String getUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(publicKey).build()
-                .parseClaimsJws(token).getBody().getSubject();
+    public Claims parseClaims(String token) throws JwtException {
+        return Jwts.parserBuilder()
+                .setSigningKey(publicKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public long getExpirationInSeconds() {
+        return jwtProperties.getAccessTokenExpirationMinutes() * 60L;
     }
 
 }
