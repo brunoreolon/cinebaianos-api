@@ -1,13 +1,16 @@
 package com.brunoreolon.cinebaianosapi.api.converter;
 
+import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVotesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserMovieVoteResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteDetailResponse;
-import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryResponse;
+import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteSummaryResponse;
+import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.MovieVotes;
+import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
 import lombok.AllArgsConstructor;
@@ -23,12 +26,33 @@ public class VoteConverter {
     private final ModelMapper modelMapper;
     private final PosterPathUtil pathUtil;
 
-    public VoteDetailResponse toDetailResponse(Vote movie) {
-        return modelMapper.map(movie, VoteDetailResponse.class);
+//    public VoteDetailResponse toDetailResponse(Vote movie) {
+//        return modelMapper.map(movie, VoteDetailResponse.class);
+//    }
+
+    public VoteDetailResponse toDetailResponse(Vote vote) {
+        Movie movie = vote.getMovie();
+        User voter = vote.getVoter();
+        VoteSummaryResponse voteSummary = new VoteSummaryResponse(
+                vote.getVote().getId(),
+                vote.getVote().getDescription(),
+                vote.getVote().getColor(),
+                vote.getVote().getEmoji(),
+                vote.getCreated()
+        );
+
+        return new VoteDetailResponse(
+                new MovieSummaryResponse(movie.getId(), movie.getTitle(), movie.getTmdbId()),
+                new UserSummaryResponse(voter.getDiscordId(), voter.getName()),
+                voteSummary
+        );
     }
 
     public UserMovieVoteResponse toUserMovieVoteResponse(Vote vote) {
-        return modelMapper.map(vote, UserMovieVoteResponse.class);
+        MovieSummaryResponse map1 = new MovieSummaryResponse(vote.getMovie().getId(), vote.getMovie().getTitle(), vote.getMovie().getYear());
+        VoteSummaryResponse map2 = modelMapper.map(vote, VoteSummaryResponse.class);
+
+        return new UserMovieVoteResponse(map1, map2);
     }
 
     public List<UserMovieVoteResponse> toUserMovieVoteResponseList(List<Vote> votes) {
@@ -41,7 +65,8 @@ public class VoteConverter {
         List<UsersVotesSummaryResponse> votes = movieVotes.getVotes().stream()
                 .map(v -> {
                     UserSummaryResponse voter = modelMapper.map(v.getVoter(), UserSummaryResponse.class);
-                    VoteTypeSummaryResponse vote = modelMapper.map(v.getVote(), VoteTypeSummaryResponse.class);
+                    VoteSummaryResponse vote = modelMapper.map(v.getVote(), VoteSummaryResponse.class);
+                    vote.setVotedAt(v.getCreated());
 
                     return new UsersVotesSummaryResponse(voter, vote);
                 })

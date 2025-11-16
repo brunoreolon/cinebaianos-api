@@ -69,8 +69,7 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
     }
 
     public List<Vote> getVotesByUser(String discordId) {
-        List<Vote> byVoterDiscordId = voteRepository.findByVoterWithMovie(discordId);
-        return byVoterDiscordId;
+        return voteRepository.findByVoterWithMovie(discordId);
     }
 
     public void delete(String discordId, Long movieId) {

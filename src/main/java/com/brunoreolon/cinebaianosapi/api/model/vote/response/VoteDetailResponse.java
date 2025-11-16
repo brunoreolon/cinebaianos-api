@@ -15,6 +15,6 @@ public class VoteDetailResponse {
 
     private MovieSummaryResponse movie;
     private UserSummaryResponse voter;
-    private VoteTypeSummaryResponse vote;
+    private VoteSummaryResponse vote;
 
 }

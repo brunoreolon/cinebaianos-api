@@ -11,6 +11,6 @@ import lombok.Setter;
 public class UsersVotesSummaryResponse {
 
     private UserSummaryResponse voter;
-    private VoteTypeSummaryResponse vote;
+    private VoteSummaryResponse vote;
 
 }
