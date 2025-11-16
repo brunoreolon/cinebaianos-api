@@ -21,4 +21,8 @@ public class UserUpdateRequest {
     @Size(min = 6)
     private String password;
 
+    private String avatar;
+
+    private String biography;
+
 }

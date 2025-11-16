@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.core.modelmapper;
 
+import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteSummaryResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
@@ -34,6 +35,8 @@ public class ModalMapperConfig {
         modelMapper.createTypeMap(User.class, UserDetailResponse.class)
                 .addMappings(mapper -> {
                     mapper.map(User::getCreated, UserDetailResponse::setJoined);
+                    mapper.map(User::getAvatar, UserDetailResponse::setAvatar);
+                    mapper.map(User::getBiography, UserDetailResponse::setBiography);
                 });
 
         modelMapper.createTypeMap(Vote.class, VoteSummaryResponse.class)

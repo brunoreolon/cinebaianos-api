@@ -57,6 +57,9 @@ public class User implements Ownable<String> {
 
     private boolean isBot;
 
+    private String avatar;
+    private String biography;
+
     @Override
     public String getOwnerId() {
         return getDiscordId();

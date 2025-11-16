@@ -16,6 +16,8 @@ public class UserDetailResponse {
     private String discordId;
     private String name;
     private String email;
+    private String avatar;
+    private String biography;
     private LocalDateTime Joined;
 
 }
