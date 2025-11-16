@@ -5,7 +5,6 @@ import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.VoteTypeRepository;
-import com.brunoreolon.cinebaianosapi.domain.service.MovieUpdateService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -18,12 +17,9 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRegistratioService userRegistratioService;
     private final UserRepository userRepository;
     private final VoteTypeRepository voteTypeRepository;
-    private final MovieUpdateService service;
 
     @Override
     public void run(String... args) {
-//        service.updateMoviesFromTmdb();
-
 //        if (userRepository.count() == 0) {
 //            userRegistratioService.create(User.builder()
 //                    .discordId("339251538998329354")
