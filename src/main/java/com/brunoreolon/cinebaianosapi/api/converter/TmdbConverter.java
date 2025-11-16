@@ -3,6 +3,7 @@ package com.brunoreolon.cinebaianosapi.api.converter;
 import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
+import com.brunoreolon.cinebaianosapi.client.model.CrewResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ResultResponse;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
@@ -20,9 +21,18 @@ public class TmdbConverter {
     private final ModelMapper modelMapper;
     private final PosterPathUtil pathUtil;
 
+    private String getDirector(ClientMovieDetailsResponse movieDetails) {
+        return movieDetails.getCredits().getCrew().stream()
+                .filter(c -> "Director".equalsIgnoreCase(c.getJob()))
+                .map(CrewResponse::getName)
+                .findFirst()
+                .orElse(null);
+    }
+
     public TmdbMovieDetailsResponse toMovieDetailsResponse(ClientMovieDetailsResponse clientMovieDetailsResponse) {
         TmdbMovieDetailsResponse map = modelMapper.map(clientMovieDetailsResponse, TmdbMovieDetailsResponse.class);
         map.setPosterPath(pathUtil.fullPosterPath(map.getPosterPath()));
+        map.setDirector(getDirector(clientMovieDetailsResponse));
 
         return map;
     }

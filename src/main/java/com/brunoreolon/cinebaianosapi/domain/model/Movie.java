@@ -32,8 +32,13 @@ public class Movie implements Ownable {
     @NotBlank
     private String title;
 
-    @NotBlank
-    private String genre;
+    @ManyToMany
+    @JoinTable(
+            name = "movie_genres",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Genre> genres = new ArrayList<>();
 
     @NotBlank
     private String year;
@@ -49,6 +54,15 @@ public class Movie implements Ownable {
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     public List<Vote> votes = new ArrayList<>();
+
+    @NotBlank
+    private String synopsis;
+
+    @NotBlank
+    private String director;
+
+    @NotNull
+    private Integer duration;
 
     @Override
     public String getOwnerId() {

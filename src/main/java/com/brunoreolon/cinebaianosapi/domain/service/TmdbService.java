@@ -37,7 +37,7 @@ public class TmdbService {
 
     public ClientMovieDetailsResponse getMovieDetails(Long movieId, String language) {
         try {
-            return tmdbClient.getMovieDetails(movieId, tmdbProperties.getApiKey(), language);
+            return tmdbClient.getMovieDetails(movieId, tmdbProperties.getApiKey(), language, "credits");
         } catch (FeignException e) {
             if (e instanceof FeignException.NotFound) {
                 throw new ClientException(

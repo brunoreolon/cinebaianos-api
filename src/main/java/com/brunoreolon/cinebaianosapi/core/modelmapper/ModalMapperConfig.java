@@ -27,8 +27,8 @@ public class ModalMapperConfig {
                     mapper.map(ClientMovieDetailsResponse::getId, Movie::setTmdbId);
                     mapper.using(Converters.DATE_CONVERTER)
                             .map(ClientMovieDetailsResponse::getReleaseDate, Movie::setYear);
-                    mapper.using(Converters.GENRE_CONVERTER)
-                            .map(ClientMovieDetailsResponse::getGenres, Movie::setGenre);
+//                    mapper.using(Converters.GENRE_CONVERTER)
+//                            .map(ClientMovieDetailsResponse::getGenres, Movie::setGenre);
                 });
 
         modelMapper.createTypeMap(User.class, UserDetailResponse.class)

@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.model.movie.response;
 
+import com.brunoreolon.cinebaianosapi.api.model.GenreResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,11 +18,14 @@ public class MovieWithChooserResponse {
 
     private Long id;
     private String title;
-    private String genre;
+//    private String genre;
     private String year;
     private String tmdbId;
     private LocalDateTime dateAdded;
     private String posterPath;
+    private String synopsis;
+    private String director;
+    private List<GenreResponse> genres;
     private UserSummaryResponse chooser;
 
 }
