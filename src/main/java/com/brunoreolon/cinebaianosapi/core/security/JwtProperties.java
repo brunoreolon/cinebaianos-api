@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 public class JwtProperties {
 
     private String path;
+    private String keystoreBase64;
     private String storepass;
     private String alias;
     private String keypass;

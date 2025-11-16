@@ -8,12 +8,14 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -32,13 +34,23 @@ public class JwtService {
     @PostConstruct
     public void init() {
         try {
-            Resource resource = new ClassPathResource(jwtProperties.getPath());
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            try (InputStream is = resource.getInputStream()) {
-                keyStore.load(is, jwtProperties.getKeypass().toCharArray());
+
+            if (jwtProperties.getKeystoreBase64() != null && !jwtProperties.getKeystoreBase64().isBlank()) {
+                byte[] keyStoreBytes = Base64.getDecoder().decode(jwtProperties.getKeystoreBase64());
+                try (InputStream is = new ByteArrayInputStream(keyStoreBytes)) {
+                    keyStore.load(is, jwtProperties.getKeypass().toCharArray());
+                }
+            } else {
+                Resource resource = new ClassPathResource(jwtProperties.getPath());
+                try (InputStream is = resource.getInputStream()) {
+                    keyStore.load(is, jwtProperties.getKeypass().toCharArray());
+                }
             }
+
             this.privateKey = (PrivateKey) keyStore.getKey(jwtProperties.getAlias(), jwtProperties.getKeypass().toCharArray());
             this.publicKey = keyStore.getCertificate(jwtProperties.getAlias()).getPublicKey();
+
         } catch (Exception e) {
             throw new IllegalStateException("Cannot load keys from keystore", e);
         }
