@@ -25,12 +25,14 @@ public class GenreService {
     private final MovieRepository movieRepository;
 
     public Map<String, Integer> getGenreRankings() {
-        return movieRepository.findGenreCountsProjections().stream()
+        List<GenreCountProjection> projections = movieRepository.findGenreCountsProjections();
+        return projections.stream()
+                .filter(p -> p.getGenre() != null)
                 .collect(Collectors.toMap(
-                                GenreCountProjection::getGenre,
-                                GenreCountProjection::getCount
-                        )
-                );
+                        GenreCountProjection::getGenre,
+                        GenreCountProjection::getCount,
+                        Integer::sum
+                ));
     }
 
     public Map<String, Integer> getGenreRankingsByUser(String discordId) {

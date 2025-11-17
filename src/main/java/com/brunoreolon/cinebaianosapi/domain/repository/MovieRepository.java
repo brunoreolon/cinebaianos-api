@@ -15,11 +15,12 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     Optional<Movie> findByTmdbId(String tmdbId);
 
     @Query("""
-                SELECT g.name AS genreName, COUNT(m) AS count
+                SELECT g.name AS genre, COUNT(m) AS count
                 FROM Movie m
                 JOIN m.genres g
+                WHERE g.name IS NOT NULL
                 GROUP BY g.name
-                ORDER BY g.name
+                ORDER BY COUNT(m) DESC
             """)
     List<GenreCountProjection> findGenreCountsProjections();
 
