@@ -55,7 +55,10 @@ public class TmdbConverter {
     }
 
     public Movie toEntityFromClientMovieDetail(ClientMovieDetailsResponse clientMovieDetailsResponse) {
-        return modelMapper.map(clientMovieDetailsResponse, Movie.class);
+        Movie map = modelMapper.map(clientMovieDetailsResponse, Movie.class);
+        map.setDirector(getDirector(clientMovieDetailsResponse));
+
+        return map;
     }
 
 }

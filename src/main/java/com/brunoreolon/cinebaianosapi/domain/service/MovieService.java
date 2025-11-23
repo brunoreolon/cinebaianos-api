@@ -3,10 +3,8 @@ package com.brunoreolon.cinebaianosapi.domain.service;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieNotFoundException;
-import com.brunoreolon.cinebaianosapi.domain.model.Movie;
-import com.brunoreolon.cinebaianosapi.domain.model.OwnableService;
-import com.brunoreolon.cinebaianosapi.domain.model.User;
-import com.brunoreolon.cinebaianosapi.domain.model.Vote;
+import com.brunoreolon.cinebaianosapi.domain.model.*;
+import com.brunoreolon.cinebaianosapi.domain.repository.GenreRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
@@ -21,6 +19,7 @@ import java.util.List;
 public class MovieService implements OwnableService<Movie, Long> {
 
     private final MovieRepository movieRepository;
+    private final GenreRepository genreRepository;
     private final UserRegistratioService userRegistratioService;
     private final VoteService voteService;
 
@@ -44,6 +43,7 @@ public class MovieService implements OwnableService<Movie, Long> {
                     ApiErrorCode.BOT_USER_FORBIDDEN.asMap());
 
         movie.setChooser(chooser);
+        movie.setGenres(getGenres(movie));
 
         Movie newMovie = movieRepository.save(movie);
 
@@ -55,10 +55,20 @@ public class MovieService implements OwnableService<Movie, Long> {
         return newMovie;
     }
 
+    private List<Genre> getGenres(Movie movie) {
+        return movie.getGenres().stream()
+                .map(g -> genreRepository.findById(g.getId())
+                        .orElseGet(() -> {
+                            Genre genre = new Genre(g.getId(), g.getName());
+                            return genreRepository.save(genre);
+                        }))
+                .toList();
+    }
+
     @Override
     public Movie get(Long movieId) {
         return movieRepository.findById(movieId)
-                .orElseThrow(() -> new MovieNotFoundException(String.format("Movie with id '%d' not found",  movieId)));
+                .orElseThrow(() -> new MovieNotFoundException(String.format("Movie with id '%d' not found", movieId)));
     }
 
     public List<Movie> getAll() {

@@ -17,7 +17,6 @@ import java.util.List;
 public class Genre {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
@@ -27,7 +26,9 @@ public class Genre {
     @ManyToMany(mappedBy = "genres")
     private List<Movie> movies = new ArrayList<>();
 
-    public Genre(String name) {
+    public Genre(Long id, String name) {
+        this.id = id;
         this.name = name;
     }
+
 }
