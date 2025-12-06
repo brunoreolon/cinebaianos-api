@@ -2,6 +2,7 @@ package com.brunoreolon.cinebaianosapi.domain.repository;
 
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,9 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface MovieRepository extends JpaRepository<Movie, Long> {
+public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecificationExecutor<Movie> {
 
     Optional<Movie> findByTmdbId(String tmdbId);
+
+    @Query("SELECT m FROM Movie m JOIN FETCH m.genres WHERE m.id = :id")
+    Optional<Movie> findByIdWithGenres(@Param("id") Long id);
 
     @Query("""
                 SELECT g.name AS genre, COUNT(m) AS count

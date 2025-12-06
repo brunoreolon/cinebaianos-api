@@ -3,6 +3,7 @@ package com.brunoreolon.cinebaianosapi.api.controller;
 import com.brunoreolon.cinebaianosapi.api.converter.MovieConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.TmdbConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
+import com.brunoreolon.cinebaianosapi.api.model.movie.MoviePage;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVoteDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
@@ -11,6 +12,7 @@ import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieSearchRequest
 import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserWithMoviesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteTypeId;
+import com.brunoreolon.cinebaianosapi.api.queryFilter.MovieQueryFilter;
 import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
@@ -22,7 +24,14 @@ import com.brunoreolon.cinebaianosapi.domain.service.MovieService;
 import com.brunoreolon.cinebaianosapi.domain.service.TmdbService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -95,9 +104,20 @@ public class MovieController {
 
     @GetMapping
     @CheckSecurity.CanAccess
-    public ResponseEntity<List<MovieWithChooserResponse>> getAll() {
-        List<MovieWithChooserResponse> collectionModel = movieConverter.toWithChooserResponseList(movieService.getAll());
-        return ResponseEntity.ok().body(collectionModel);
+    public ResponseEntity<MoviePage> getAll(
+            MovieQueryFilter queryFilter,
+            @RequestParam(name = "page", defaultValue = "0", required = false) @PositiveOrZero Integer page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) @Positive @Max(100) Integer size,
+            @RequestParam(name = "sortBy", defaultValue = "dateAdded", required = false) String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = "desc", required = false) String sortDir
+    ) {
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<Movie> movies = movieService.getAll(queryFilter, pageable);
+        MoviePage moviePage = movieConverter.toWithChooserResponseList(movies);
+
+        return ResponseEntity.ok().body(moviePage);
     }
 
     @GetMapping("/{movieId}")

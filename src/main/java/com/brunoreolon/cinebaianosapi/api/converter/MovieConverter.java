@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.converter;
 
+import com.brunoreolon.cinebaianosapi.api.model.movie.MoviePage;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVoteDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
@@ -9,6 +10,7 @@ import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -58,10 +60,19 @@ public class MovieConverter {
         return response;
     }
 
-    public List<MovieWithChooserResponse> toWithChooserResponseList(List<Movie> movies) {
-        return movies.stream()
+    public MoviePage toWithChooserResponseList(Page<Movie> moviesPage) {
+        List<MovieWithChooserResponse> movies = moviesPage.stream()
                 .map(this::toWithChooserResponse)
                 .toList();
+
+        return new MoviePage(
+                moviesPage.getNumber(),
+                moviesPage.getSize(),
+                moviesPage.getNumberOfElements(),
+                moviesPage.getTotalElements(),
+                moviesPage.getTotalPages(),
+                movies
+        );
     }
 
 }
