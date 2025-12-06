@@ -18,9 +18,15 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
 
     @Query("SELECT m FROM User u JOIN u.movies m WHERE u.discordId = :discordId")
-    List<Movie> findAllMoviesByDiscordId(@Param("discordId")  String discordId);
+    List<Movie> findAllMoviesByDiscordId(@Param("discordId") String discordId);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.movies WHERE u.discordId = :discordId")
+    @Query("""
+                SELECT u 
+                FROM User u 
+                LEFT JOIN FETCH u.movies m
+                LEFT JOIN FETCH m.genres
+                WHERE u.discordId = :discordId
+            """)
     Optional<User> findByDiscordIdWithMovies(@Param("discordId") String discordId);
 
 }

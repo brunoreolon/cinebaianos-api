@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -94,7 +95,7 @@ public class MovieUpdateService {
             movie.setDuration(details.getDuration());
 
             // Atualiza gêneros
-            List<Genre> genres = details.getGenres().stream()
+            Set<Genre> genres = details.getGenres().stream()
                     .map(genreResp -> genreRepository.findByName(genreResp.getName())
                             .orElseGet(() -> {
                                 Genre g = new Genre(genreResp.getId(), genreResp.getName());
@@ -102,7 +103,7 @@ public class MovieUpdateService {
                                 log.debug("Novo gênero criado: {}", g.getName());
                                 return saved;
                             }))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
 
             movie.setGenres(genres);
             for (Genre g : genres) {

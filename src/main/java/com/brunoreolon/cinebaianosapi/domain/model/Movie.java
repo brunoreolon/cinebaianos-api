@@ -7,8 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @NoArgsConstructor
@@ -38,7 +37,8 @@ public class Movie implements Ownable {
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
-    private List<Genre> genres = new ArrayList<>();
+    @OrderBy("name ASC")
+    private Set<Genre> genres = new LinkedHashSet<>();
 
     @NotBlank
     private String year;

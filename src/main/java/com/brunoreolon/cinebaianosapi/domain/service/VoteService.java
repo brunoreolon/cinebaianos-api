@@ -59,7 +59,7 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
     }
 
     public Vote getVote(String discordId, Long movieId) {
-        return voteRepository.findById(new VoteId(movieId, discordId))
+        return voteRepository.findByIdWithMovie(new VoteId(movieId, discordId))
                 .orElseThrow(() -> new VoteNotFoundException(String.format("Vote not found for user '%s' and movie '%s'",
                         discordId, movieId)));
     }

@@ -11,7 +11,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -53,7 +55,7 @@ public class User implements Ownable<String> {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name="user_roles", joinColumns=@JoinColumn(name="discord_id"))
     @Enumerated(EnumType.STRING)
-    private List<Role> roles = new ArrayList<>();
+    private Set<Role> roles = new LinkedHashSet<>();
 
     private boolean isBot;
 

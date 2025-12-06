@@ -15,7 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -58,14 +59,14 @@ public class MovieService implements OwnableService<Movie, Long> {
         return newMovie;
     }
 
-    private List<Genre> getGenres(Movie movie) {
+    private Set<Genre> getGenres(Movie movie) {
         return movie.getGenres().stream()
                 .map(g -> genreRepository.findById(g.getId())
                         .orElseGet(() -> {
                             Genre genre = new Genre(g.getId(), g.getName());
                             return genreRepository.save(genre);
                         }))
-                .toList();
+                .collect(Collectors.toSet());
     }
 
     @Override
