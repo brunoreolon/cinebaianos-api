@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.Map;
@@ -40,6 +41,20 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
 
         return handleExceptionInternal(ex, problemDetail, headers, status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        Map<String, Object> invalidFields = getInvalidFields(ex, messageSource);
+        ProblemDetail problem = getProblemDetail(
+                HttpStatus.BAD_REQUEST,
+                INVALID_FIELDS_TITLE,
+                INVALID_FIELDS_DETAIL,
+                null,
+                invalidFields
+        );
+
+        return ResponseEntity.badRequest().body(problem);
     }
 
     @ExceptionHandler(BusinessException.class)
@@ -78,6 +93,18 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 null
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ProblemDetail> handleAllExceptions(Exception ex) {
+        ProblemDetail problem = getProblemDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal Server Error",
+                "An unexpected error occurred",
+                ApiErrorCode.UNEXPECTED_ERROR.asMap(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
 
 }
