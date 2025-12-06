@@ -142,7 +142,7 @@ public class MovieController {
     public ResponseEntity<MoviePage> getAll(
             MovieQueryFilter queryFilter,
             @RequestParam(name = "page", defaultValue = "0", required = false) @PositiveOrZero Integer page,
-            @RequestParam(name = "size", defaultValue = "10", required = false) @Positive @Max(100) Integer size,
+            @RequestParam(name = "size", defaultValue = "10", required = false) @Positive Integer size,
             @RequestParam(name = "sortBy", defaultValue = "dateAdded", required = false) String sortBy,
             @RequestParam(name = "sortDir", defaultValue = "desc", required = false) String sortDir
     ) {
