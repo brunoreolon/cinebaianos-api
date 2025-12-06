@@ -57,6 +57,19 @@ services:
       API_BASE_URL: http://api:8080/api
     networks:
       - local
+    
+  web:
+    image: cinebaianos-web:latest
+    container_name: cinebaianos-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+        API_BASE_URL: http://api:8080/api
+    ports:
+      - "3000:80"
+    networks:
+      - local
 
 networks:
   local:
