@@ -6,7 +6,6 @@ import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
 import com.brunoreolon.cinebaianosapi.api.model.movie.MoviePage;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVoteDetailResponse;
-import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieIdRequest;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieSearchRequest;
 import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
@@ -18,11 +17,17 @@ import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.ApplicationService;
 import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
+import com.brunoreolon.cinebaianosapi.core.security.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.domain.exception.MultipleMoviesFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.service.MovieService;
 import com.brunoreolon.cinebaianosapi.domain.service.TmdbService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
@@ -42,6 +47,8 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/movies")
 @AllArgsConstructor
+@Tag(name = "Filmes", description = "Operações relacionadas ao gerenciamento de filmes assistidos, incluindo cadastro, consulta e exclusão.")
+@SecurityRequirement(name = SecurityConfig.SECURITY)
 public class MovieController {
 
     private final MovieService movieService;
@@ -55,6 +62,14 @@ public class MovieController {
 
     @PostMapping
     @CheckSecurity.CanAccess
+    @Operation(summary = "Adicionar filme pelo TMDb ID",
+            description = "Recebe o TMDb ID de um filme, obtém os dados diretamente da API do TMDb e realiza o cadastro no sistema.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Filme cadastrado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para adicionar filmes para outro usuário"),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado no TMDb")
+    })
     public ResponseEntity<MovieVoteDetailResponse> addById(@Valid @RequestBody MovieIdRequest movieIdRequest,
                                                            @RequestParam(name = "language", required = false) String language) {
         if (language == null) {
@@ -73,6 +88,18 @@ public class MovieController {
 
     @PostMapping("/candidates")
     @CheckSecurity.CanAccess
+    @Operation(summary = "Adicionar filme informando título e ano",
+            description = "Realiza uma busca no TMDb utilizando título e ano. "
+                    + "Caso apenas um resultado seja encontrado, o filme é cadastrado. "
+                    + "Se múltiplos resultados forem encontrados, uma exceção contendo as opções será retornada."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Filme cadastrado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para adicionar filmes para outro usuário"),
+            @ApiResponse(responseCode = "404", description = "Nenhum filme correspondente encontrado no TMDb"),
+            @ApiResponse(responseCode = "409", description = "Mais de um filme encontrado para os critérios informados")
+    })
     public ResponseEntity<MovieVoteDetailResponse> searchAndAddMovie(@Valid @RequestBody MovieSearchRequest movieSearchRequest,
                                                                      @RequestParam(name = "language", required = false) String language) {
         if (language == null) {
@@ -104,6 +131,14 @@ public class MovieController {
 
     @GetMapping
     @CheckSecurity.CanAccess
+    @Operation(
+            summary = "Listar todos os filmes cadastrados",
+            description = "Retorna uma lista paginada de filmes cadastrados, com suporte a filtros, ordenação e paginação."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista de filmes retornada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
+    })
     public ResponseEntity<MoviePage> getAll(
             MovieQueryFilter queryFilter,
             @RequestParam(name = "page", defaultValue = "0", required = false) @PositiveOrZero Integer page,
@@ -122,6 +157,15 @@ public class MovieController {
 
     @GetMapping("/{movieId}")
     @CheckSecurity.CanAccess
+    @Operation(
+            summary = "Buscar filme por ID",
+            description = "Retorna os detalhes completos de um filme cadastrado no sistema, incluindo avaliador e informações adicionais."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Filme encontrado"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado")
+    })
     public ResponseEntity<MovieDetailResponse> get(@PathVariable("movieId") Long movieId) {
         Movie movie = movieService.get(movieId);
         return ResponseEntity.ok().body(movieConverter.toDetailResponse(movie));
@@ -129,6 +173,16 @@ public class MovieController {
 
     @DeleteMapping("/{movieId}")
     @CheckSecurity.IsOwner(service = "movieService")
+    @Operation(
+            summary = "Excluir filme",
+            description = "Remove definitivamente um filme do sistema com base no ID informado."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Filme excluído com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir filmes de outros usuários"),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado")
+    })
     public ResponseEntity<Void> delete(@PathVariable @ResourceId Long movieId) {
         movieService.delete(movieId);
         return ResponseEntity.noContent().build();
@@ -136,6 +190,15 @@ public class MovieController {
 
     @GetMapping("/users/{discordId}")
     @CheckSecurity.CanAccess
+    @Operation(
+            summary = "Listar filmes por usuário",
+            description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu Discord ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Filmes retornados com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
     public ResponseEntity<UserWithMoviesResponse> getMoviesByUser(@PathVariable String discordId) {
         User user = userService.getWithMovies(discordId);
         UserWithMoviesResponse response = userConverter.toWithMoviesResponse(user);
