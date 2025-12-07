@@ -53,7 +53,7 @@ public class Movie implements Ownable {
     private LocalDateTime dateAdded;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    public List<Vote> votes = new ArrayList<>();
+    public Set<Vote> votes = new LinkedHashSet<>();
 
     @NotBlank
     private String synopsis;

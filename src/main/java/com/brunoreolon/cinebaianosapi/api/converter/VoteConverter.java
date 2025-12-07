@@ -3,6 +3,7 @@ package com.brunoreolon.cinebaianosapi.api.converter;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVotesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
+import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserMovieVoteResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
@@ -64,7 +65,7 @@ public class VoteConverter {
     public MovieVotesResponse toMovieVotesResponse(MovieVotes movieVotes) {
         List<UsersVotesSummaryResponse> votes = movieVotes.getVotes().stream()
                 .map(v -> {
-                    UserSummaryResponse voter = modelMapper.map(v.getVoter(), UserSummaryResponse.class);
+                    UserDetailResponse voter = modelMapper.map(v.getVoter(), UserDetailResponse.class);
                     VoteSummaryResponse vote = modelMapper.map(v.getVote(), VoteSummaryResponse.class);
                     vote.setVotedAt(v.getCreated());
 

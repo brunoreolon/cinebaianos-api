@@ -4,10 +4,10 @@ import com.brunoreolon.cinebaianosapi.api.converter.MovieConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.TmdbConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
 import com.brunoreolon.cinebaianosapi.api.model.movie.MoviePage;
-import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVoteDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieIdRequest;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieSearchRequest;
+import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
 import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserWithMoviesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteTypeId;
@@ -29,7 +29,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
@@ -70,7 +69,7 @@ public class MovieController {
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para adicionar filmes para outro usuário"),
             @ApiResponse(responseCode = "404", description = "Filme não encontrado no TMDb")
     })
-    public ResponseEntity<MovieVoteDetailResponse> addById(@Valid @RequestBody MovieIdRequest movieIdRequest,
+    public ResponseEntity<MovieWithChooserResponse> addById(@Valid @RequestBody MovieIdRequest movieIdRequest,
                                                            @RequestParam(name = "language", required = false) String language) {
         if (language == null) {
             language = tmdbProperties.getLanguage();
@@ -83,7 +82,7 @@ public class MovieController {
         Long voteId = getVoteId(movieIdRequest.getVote());
         Movie newMovie = movieService.save(movie, movieIdRequest.getChooser().getDiscordId(), voteId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(movieConverter.toMovieVoteDetailResponse(newMovie, movie.getChooser().getDiscordId()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(movieConverter.toWithChooserResponse(newMovie));
     }
 
     @PostMapping("/candidates")
@@ -149,7 +148,7 @@ public class MovieController {
         Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<Movie> movies = movieService.getAll(queryFilter, pageable);
+        Page<Movie> movies = movieService.getAll(queryFilter.toSpecification(), pageable);
         MoviePage moviePage = movieConverter.toWithChooserResponseList(movies);
 
         return ResponseEntity.ok().body(moviePage);
@@ -166,9 +165,9 @@ public class MovieController {
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
             @ApiResponse(responseCode = "404", description = "Filme não encontrado")
     })
-    public ResponseEntity<MovieDetailResponse> get(@PathVariable("movieId") Long movieId) {
+    public ResponseEntity<MovieWithChooserResponse> get(@PathVariable("movieId") Long movieId) {
         Movie movie = movieService.get(movieId);
-        return ResponseEntity.ok().body(movieConverter.toDetailResponse(movie));
+        return ResponseEntity.ok().body(movieConverter.toWithChooserResponse(movie));
     }
 
     @DeleteMapping("/{movieId}")
@@ -204,6 +203,33 @@ public class MovieController {
         UserWithMoviesResponse response = userConverter.toWithMoviesResponse(user);
 
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("/awaiting-review")
+    @CheckSecurity.CanAccess
+    @Operation(
+            summary = "Listar filmes por usuário",
+            description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu Discord ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Filmes retornados com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    public ResponseEntity<MoviePage> getMoviesAwaitingReview(
+            MovieQueryFilter queryFilter,
+            @RequestParam(name = "page", defaultValue = "0", required = false) @PositiveOrZero Integer page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) @Positive Integer size,
+            @RequestParam(name = "sortBy", defaultValue = "dateAdded", required = false) String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = "desc", required = false) String sortDir
+    ) {
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<Movie> movies = movieService.getAll(queryFilter.toSpecification(), pageable);
+        MoviePage moviePage = movieConverter.toWithChooserResponseList(movies);
+
+        return ResponseEntity.ok().body(moviePage);
     }
 
 }

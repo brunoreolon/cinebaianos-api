@@ -1,7 +1,8 @@
 package com.brunoreolon.cinebaianosapi.api.model.movie.response;
 
 import com.brunoreolon.cinebaianosapi.api.model.GenreResponse;
-import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
+import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
+import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,6 @@ public class MovieWithChooserResponse {
 
     private Long id;
     private String title;
-//    private String genre;
     private String year;
     private String tmdbId;
     private LocalDateTime dateAdded;
@@ -26,6 +26,7 @@ public class MovieWithChooserResponse {
     private String synopsis;
     private String director;
     private List<GenreResponse> genres;
-    private UserSummaryResponse chooser;
+    private UserDetailResponse chooser;
+    private List<UsersVotesSummaryResponse> votes;
 
 }

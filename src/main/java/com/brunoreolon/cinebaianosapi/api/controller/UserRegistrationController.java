@@ -7,13 +7,17 @@ import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse
 import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
 import com.brunoreolon.cinebaianosapi.domain.model.ResourceId;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
+import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -25,6 +29,7 @@ import static com.brunoreolon.cinebaianosapi.api.model.ValidationGroups.*;
 public class UserRegistrationController {
 
     private final UserRegistratioService userRegistratioService;
+    private final UserRepository userRepository;
     private final UserConverter userConverter;
 
     @PostMapping
@@ -55,6 +60,19 @@ public class UserRegistrationController {
     public ResponseEntity<UserDetailResponse> get(@PathVariable String discordId) {
         User user = userRegistratioService.get(discordId);
         return ResponseEntity.ok().body(userConverter.toDetailResponse(user));
+    }
+
+    @GetMapping("/me")
+    @CheckSecurity.CanAccess
+    public ResponseEntity<UserDetailResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+        return ResponseEntity.ok(userConverter.toDetailResponse(user));
     }
 
     @DeleteMapping("/{discordId}")

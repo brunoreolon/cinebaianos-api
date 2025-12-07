@@ -2,8 +2,8 @@ package com.brunoreolon.cinebaianosapi.domain.spec;
 
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
+import com.brunoreolon.cinebaianosapi.domain.model.Vote;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -17,6 +17,33 @@ public class MovieSpecification {
                 query.distinct(true);
             }
             return builder.conjunction();
+        };
+    }
+
+    public static Specification<Movie> fetchVotes() {
+        return (root, query, builder) -> {
+            if (Movie.class.equals(query.getResultType())) {
+                var votes = root.fetch("votes", JoinType.LEFT);
+                votes.fetch("vote", JoinType.LEFT);
+                votes.fetch("voter", JoinType.LEFT);
+                root.fetch("chooser", JoinType.LEFT);
+                query.distinct(true);
+            }
+            return builder.conjunction();
+        };
+    }
+
+    public static Specification<Movie> notVotedBy(String discordId) {
+        return (root, query, cb) -> {
+            Subquery<Vote> subquery = query.subquery(Vote.class);
+            Root<Vote> voteRoot = subquery.from(Vote.class);
+            subquery.select(voteRoot);
+            subquery.where(
+                    cb.equal(voteRoot.get("id").get("voterId"), discordId),
+                    cb.equal(voteRoot.get("id").get("movieId"), root.get("id"))
+            );
+
+            return cb.not(cb.exists(subquery));
         };
     }
 

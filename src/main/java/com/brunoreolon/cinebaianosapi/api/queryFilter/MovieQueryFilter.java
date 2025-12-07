@@ -15,13 +15,16 @@ public class MovieQueryFilter {
     private String title;
     private LocalDate dateAdded;
     private String chooser;
+    private String discordId;
 
     public Specification<Movie> toSpecification() {
         return Specification
                 .where(MovieSpecification.fetchGenres())
+                .and(MovieSpecification.fetchVotes())
                 .and(MovieSpecification.withTitle(title))
                 .and(MovieSpecification.withDateAdded(dateAdded))
-                .and(MovieSpecification.withChooserName(chooser));
+                .and(MovieSpecification.withChooserName(chooser))
+                .and(MovieSpecification.notVotedBy(discordId));
     }
 
 }

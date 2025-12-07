@@ -1,6 +1,5 @@
 package com.brunoreolon.cinebaianosapi.core.modelmapper;
 
-import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteSummaryResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
