@@ -24,16 +24,18 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
+        AuthErrorReason reason = AuthErrorReason.INVALID;
 
-        String authError = (String) request.getAttribute("authError");
-        if (authError == null)
-            authError = "Access token missing or invalid";
+        Object attr = request.getAttribute("authErrorReason");
+        if (attr instanceof AuthErrorReason r) {
+            reason = r;
+        }
 
         ProblemDetail problemDetail = ExceptionUtil.getProblemDetail(
                 HttpStatus.UNAUTHORIZED,
-                authError.equals("Token expired") ? "Access token expired" : "Unauthorized",
-                authError,
-                ApiErrorCode.INVALID_OR_EXPIRED_ACCESS_TOKEN.asMap(),
+                reason.getTitle(),
+                reason.getDetail(),
+                reason.getCodeAsMap(),
                 null
         );
 

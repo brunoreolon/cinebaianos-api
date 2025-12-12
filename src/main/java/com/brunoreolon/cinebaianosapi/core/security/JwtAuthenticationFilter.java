@@ -18,12 +18,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Component
 @AllArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Set<String> PUBLIC_PATHS = Set.of(
+            "/api/auth",
+            "/actuator/health",
+            "/v3/api-docs",
+            "/swagger-ui",
+            "/swagger-ui.html"
+    );
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
@@ -36,36 +44,45 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
-        if (header != null && header.toLowerCase().startsWith("bearer ")) {
-            String token = header.substring(7).trim();
+        if (header == null || !header.toLowerCase().startsWith("bearer ")) {
+            logger.warn("Authorization header missing");
+            request.setAttribute("authErrorReason", AuthErrorReason.MISSING_TOKEN);
+            chain.doFilter(request, response);
+            return;
+        }
 
-            if (token.isBlank()) {
-                logger.warn("Authorization header is blank");
-                request.setAttribute("authError", "Token missing");
-            } else if (jwtBlacklistService.isBlacklisted(token)) {
-                logger.warn("JWT blacklisted");
-                request.setAttribute("authError", "Token blacklisted");
-            } else {
-                try {
-                    Claims claims = jwtService.parseClaims(token);
-                    String username = claims.getSubject();
+        String token = header.substring(7).trim();
 
-                    var userDetails = userDetailsService.loadUserByUsername(username);
-                    var auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        if (jwtBlacklistService.isBlacklisted(token)) {
+            logger.warn("JWT blacklisted");
+            request.setAttribute("authErrorReason", AuthErrorReason.BLACKLISTED);
+            chain.doFilter(request, response);
+            return;
+        }
 
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                } catch (ExpiredJwtException e) {
-                    logger.info("JWT expired for user: {}", e.getClaims().getSubject());
-                    request.setAttribute("authError", "Token expired");
-                } catch (JwtException | IllegalArgumentException e) {
-                    logger.info("JWT invalid: {}", e.getMessage());
-                    request.setAttribute("authError", "Token invalid");
-                }
-            }
-        } else {
-            request.setAttribute("authError", "Authorization header missing");
+        try {
+            Claims claims = jwtService.parseClaims(token);
+            String username = claims.getSubject();
+
+            var userDetails = userDetailsService.loadUserByUsername(username);
+            var auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        } catch (ExpiredJwtException e) {
+            logger.info("JWT expired for user: {}", e.getClaims().getSubject());
+            request.setAttribute("authErrorReason", AuthErrorReason.EXPIRED);
+        } catch (JwtException | IllegalArgumentException e) {
+            logger.info("JWT invalid: {}", e.getMessage());
+            request.setAttribute("authErrorReason", AuthErrorReason.INVALID);
         }
 
         chain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+    }
+
 }

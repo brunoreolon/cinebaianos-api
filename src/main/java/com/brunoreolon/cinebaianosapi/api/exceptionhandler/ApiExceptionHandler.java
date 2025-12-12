@@ -1,7 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.exceptionhandler;
 
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
-import com.brunoreolon.cinebaianosapi.domain.exception.InvalidOrExperidRefreshTokenException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import com.brunoreolon.cinebaianosapi.util.ExceptionUtil;
 import lombok.AllArgsConstructor;
@@ -68,19 +67,6 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
 
         return ResponseEntity.status(ex.getStatus()).body(problemDetail);
-    }
-
-    @ExceptionHandler(InvalidOrExperidRefreshTokenException.class)
-    public ResponseEntity<Object> handleInvalidRefreshToken(InvalidOrExperidRefreshTokenException ex) {
-        ProblemDetail problemDetail = getProblemDetail(
-                ex.getStatus(),
-                ex.getTitle(),
-                ex.getMessage(),
-                ex.getProperties(),
-                null
-        );
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
