@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieNotFoundException;
@@ -69,19 +70,20 @@ public class MovieService implements OwnableService<Movie, Long> {
                 .collect(Collectors.toSet());
     }
 
-    @Override
-    public Movie get(Long movieId) {
-        return movieRepository.findByIdWithGenres(movieId)
-                .orElseThrow(() -> new MovieNotFoundException(String.format("Movie with id '%d' not found", movieId)));
-    }
-
     public Page<Movie> getAll(Specification<Movie> specification, Pageable pageable) {
         return movieRepository.findAll(specification, pageable);
     }
 
+    @Transactional
     public void delete(Long movieId) {
         Movie movie = get(movieId);
         movieRepository.delete(movie);
+    }
+
+    @Override
+    public Movie get(Long movieId) {
+        return movieRepository.findByIdWithGenres(movieId)
+                .orElseThrow(() -> new MovieNotFoundException(String.format("Movie with id '%d' not found", movieId)));
     }
 
 }

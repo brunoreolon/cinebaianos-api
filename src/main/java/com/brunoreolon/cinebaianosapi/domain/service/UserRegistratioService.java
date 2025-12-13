@@ -1,11 +1,13 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.domain.exception.EntityInUseException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
-import com.brunoreolon.cinebaianosapi.domain.model.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,19 +72,25 @@ public class UserRegistratioService implements OwnableService<User, String> {
         return userRepository.save(user);
     }
 
-    @Override
-    public User get(String discordId) {
-        return userRepository.findByDiscordId(discordId)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with discordId '%s' not found", discordId)));
-    }
-
     public List<User> getAll() {
         return userRepository.findAll();
     }
 
     public void delete(String discordId) {
         User user = get(discordId);
-        userRepository.delete(user);
+
+        try {
+            userRepository.delete(user);
+            userRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new EntityInUseException(String.format("Cannot delete user with id '%s' because it has associated movies.", discordId));
+        }
+    }
+
+    @Override
+    public User get(String discordId) {
+        return userRepository.findByDiscordId(discordId)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with discordId '%s' not found", discordId)));
     }
 
 }

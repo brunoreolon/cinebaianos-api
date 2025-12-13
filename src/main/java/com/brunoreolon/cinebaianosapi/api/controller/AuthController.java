@@ -3,7 +3,7 @@ package com.brunoreolon.cinebaianosapi.api.controller;
 import com.brunoreolon.cinebaianosapi.api.model.auth.request.LoginRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.RefreshRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.TokenResponse;
-import com.brunoreolon.cinebaianosapi.core.security.JwtService;
+import com.brunoreolon.cinebaianosapi.core.security.authentication.service.JwtService;
 import com.brunoreolon.cinebaianosapi.domain.exception.ExpiredRefreshTokenException;
 import com.brunoreolon.cinebaianosapi.domain.exception.InvalidRefreshTokenException;
 import com.brunoreolon.cinebaianosapi.domain.model.RefreshToken;

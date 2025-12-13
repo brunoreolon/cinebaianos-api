@@ -7,10 +7,10 @@ import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse
 import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteTypeId;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteDetailResponse;
-import com.brunoreolon.cinebaianosapi.core.security.ApplicationService;
-import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.service.BusinessPermissionService;
 import com.brunoreolon.cinebaianosapi.domain.model.MovieVotes;
-import com.brunoreolon.cinebaianosapi.domain.model.ResourceId;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
+import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+
 @RestController
 @RequestMapping("/api/votes")
 @AllArgsConstructor
@@ -32,11 +34,11 @@ public class VoteController {
     private final UserService userService;
     private final UserRegistratioService userRegistratioService;
     private final VoteService voteService;
-    private final ApplicationService applicationService;
+    private final BusinessPermissionService permissionService;
     private final VoteConverter voteConverter;
 
     @GetMapping("/rankings")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<List<UserVoteStatsResponse>> getVoteRankings(
             @RequestParam(name = "type", required = false) Long voteTypeId) {
         List<UserVoteStatsResponse> votes = userService.getVotes(voteTypeId);
@@ -45,7 +47,7 @@ public class VoteController {
     }
 
     @GetMapping("/users/{discordId}")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<UserVoteStatsResponse> getUserVotes(@RequestParam(name = "vote", required = false) Long voteType,
                                                               @PathVariable String discordId) {
         User user = userRegistratioService.get(discordId);
@@ -55,7 +57,7 @@ public class VoteController {
     }
 
     @GetMapping("/users/{discordId}/movies-votes")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<List<UserMovieVoteResponse>> getUserMovieVotes(@PathVariable String discordId) {
         List<Vote> votes = voteService.getVotesByUser(discordId);
         List<UserMovieVoteResponse> response = voteConverter.toUserMovieVoteResponseList(votes);
@@ -64,33 +66,36 @@ public class VoteController {
     }
 
     @PostMapping()
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<VoteDetailResponse> registerVote(@Valid @RequestBody VoteRequest voteRequest) {
-        applicationService.checkCanVoteFor(voteRequest.getVoter().getDiscordId());
+        permissionService.checkCanVoteFor(voteRequest.getVoter().getDiscordId());
 
         Vote newVote = voteService.register(voteRequest.getVoter().getDiscordId(), voteRequest.getMovie().getId(), voteRequest.getVote());
         return ResponseEntity.status(HttpStatus.CREATED).body(voteConverter.toDetailResponse(newVote));
     }
 
-    @PutMapping("/users/{discordId}/movies/{movieId}")
-    @CheckSecurity.IsOwnerVote(service = "voteService")
-    public ResponseEntity<VoteDetailResponse> updateVote(@PathVariable @ResourceId(name = "discordId") String discordId,
-                                                         @PathVariable @ResourceId(name = "movieId") Long movieId,
+    @PutMapping("/users/{voterId}/movies/{movieId}")
+    @CheckOwner(service = VoteService.class)
+    public ResponseEntity<VoteDetailResponse> updateVote(@PathVariable @ResourceKey String voterId,
+                                                         @PathVariable @ResourceKey Long movieId,
                                                          @Valid @RequestBody VoteTypeId voteTypeId) {
-        Vote newVote = voteService.update(discordId, movieId, voteTypeId.getId());
+        Vote newVote = voteService.update(voterId, movieId, voteTypeId.getId());
         return ResponseEntity.ok().body(voteConverter.toDetailResponse(newVote));
     }
 
-    @DeleteMapping("/users/{discordId}/movies/{movieId}")
-    @CheckSecurity.IsOwnerVoteOrBot(service = "voteService")
-    public ResponseEntity<Void> deleteVote(@PathVariable @ResourceId(name = "discordId") String discordId,
-                                           @PathVariable @ResourceId(name = "movieId") Long movieId) {
-        voteService.delete(discordId, movieId);
+    @DeleteMapping("/users/{voterId}/movies/{movieId}")
+    @CheckOwner(
+            service = VoteService.class,
+            allowBot = true
+    )
+    public ResponseEntity<Void> deleteVote(@PathVariable @ResourceKey String voterId,
+                                           @PathVariable @ResourceKey Long movieId) {
+        voteService.delete(voterId, movieId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("{movieId}/votes")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<MovieVotesResponse> getMovieVotesReceived(@PathVariable Long movieId) {
         MovieVotes movieVotesReceived = voteService.getMovieVotesReceived(movieId);
         MovieVotesResponse movieVotesResponse = voteConverter.toMovieVotesResponse(movieVotesReceived);

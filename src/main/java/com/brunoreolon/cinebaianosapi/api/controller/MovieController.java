@@ -15,9 +15,9 @@ import com.brunoreolon.cinebaianosapi.api.queryFilter.MovieQueryFilter;
 import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
-import com.brunoreolon.cinebaianosapi.core.security.ApplicationService;
-import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
-import com.brunoreolon.cinebaianosapi.core.security.SecurityConfig;
+import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.service.BusinessPermissionService;
 import com.brunoreolon.cinebaianosapi.domain.exception.MultipleMoviesFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.service.MovieService;
@@ -43,6 +43,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+
 @RestController
 @RequestMapping("/api/movies")
 @AllArgsConstructor
@@ -53,14 +55,14 @@ public class MovieController {
     private final MovieService movieService;
     private final TmdbService tmdbService;
     private final UserService userService;
-    private final ApplicationService applicationService;
+    private final BusinessPermissionService permissionService;
     private final MovieConverter movieConverter;
     private final TmdbConverter tmdbConverter;
     private final UserConverter userConverter;
     private final TmdbProperties tmdbProperties;
 
     @PostMapping
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(summary = "Adicionar filme pelo TMDb ID",
             description = "Recebe o TMDb ID de um filme, obtém os dados diretamente da API do TMDb e realiza o cadastro no sistema.")
     @ApiResponses(value = {
@@ -75,7 +77,7 @@ public class MovieController {
             language = tmdbProperties.getLanguage();
         }
 
-        applicationService.checkCanAddMovieFor(movieIdRequest.getChooser().getDiscordId());
+        permissionService.checkCanAddMovieFor(movieIdRequest.getChooser().getDiscordId());
 
         ClientMovieDetailsResponse movieDetails = tmdbService.getMovieDetails(movieIdRequest.getMovie().getId(), language);
         Movie movie = tmdbConverter.toEntityFromClientMovieDetail(movieDetails);
@@ -86,7 +88,7 @@ public class MovieController {
     }
 
     @PostMapping("/candidates")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(summary = "Adicionar filme informando título e ano",
             description = "Realiza uma busca no TMDb utilizando título e ano. "
                     + "Caso apenas um resultado seja encontrado, o filme é cadastrado. "
@@ -105,7 +107,7 @@ public class MovieController {
             language = tmdbProperties.getLanguage();
         }
 
-        applicationService.checkCanAddMovieFor(movieSearchRequest.getChooser().getDiscordId());
+        permissionService.checkCanAddMovieFor(movieSearchRequest.getChooser().getDiscordId());
 
         ClientResultsResponse response = tmdbService.search(movieSearchRequest.getTitle(), movieSearchRequest.getYear(), language);
         List<TmdbMovieResponse> tmdbMovieResponses = tmdbConverter.toMovieResponseList(response.getResults());
@@ -129,7 +131,7 @@ public class MovieController {
     }
 
     @GetMapping
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Listar todos os filmes cadastrados",
             description = "Retorna uma lista paginada de filmes cadastrados, com suporte a filtros, ordenação e paginação."
@@ -155,7 +157,7 @@ public class MovieController {
     }
 
     @GetMapping("/{movieId}")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Buscar filme por ID",
             description = "Retorna os detalhes completos de um filme cadastrado no sistema, incluindo avaliador e informações adicionais."
@@ -171,7 +173,7 @@ public class MovieController {
     }
 
     @DeleteMapping("/{movieId}")
-    @CheckSecurity.IsOwner(service = "movieService")
+    @CheckOwner(service = MovieService.class)
     @Operation(
             summary = "Excluir filme",
             description = "Remove definitivamente um filme do sistema com base no ID informado."
@@ -182,13 +184,13 @@ public class MovieController {
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir filmes de outros usuários"),
             @ApiResponse(responseCode = "404", description = "Filme não encontrado")
     })
-    public ResponseEntity<Void> delete(@PathVariable @ResourceId Long movieId) {
+    public ResponseEntity<Void> delete(@PathVariable @ResourceKey Long movieId) {
         movieService.delete(movieId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/users/{discordId}")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Listar filmes por usuário",
             description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu Discord ID."
@@ -206,7 +208,7 @@ public class MovieController {
     }
 
     @GetMapping("/awaiting-review")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Listar filmes por usuário",
             description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu Discord ID."

@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -58,9 +59,16 @@ public class User implements Ownable<String> {
     private Set<Role> roles = new LinkedHashSet<>();
 
     private boolean isBot;
-
     private String avatar;
     private String biography;
+
+    public boolean hasRole(Role role) {
+        return roles.contains(role);
+    }
+
+    public boolean isAdmin() {
+        return hasRole(Role.ADMIN);
+    }
 
     @Override
     public String getOwnerId() {

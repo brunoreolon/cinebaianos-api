@@ -4,8 +4,8 @@ import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
-import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
-import com.brunoreolon.cinebaianosapi.domain.model.ResourceId;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
+import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 import static com.brunoreolon.cinebaianosapi.api.model.ValidationGroups.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -33,14 +34,14 @@ public class UserRegistrationController {
     private final UserConverter userConverter;
 
     @PostMapping
-    @CheckSecurity.IsAdminOrBot
+    @RequireRole(roles = {Role.ADMIN}, allowBot = true)
     public ResponseEntity<UserDetailResponse> create(@Validated(UserCreateGroup.class) @RequestBody UserRequest userRequestuser) {
         User newUser = userRegistratioService.create(userConverter.toEntityFromCreate(userRequestuser));
         return ResponseEntity.status(HttpStatus.CREATED).body(userConverter.toDetailResponse(newUser));
     }
 
     @GetMapping
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<List<UserDetailResponse>> getAll(
             @RequestParam(value = "includeBot", required = false, defaultValue = "false") boolean includeBot
     ) {
@@ -56,14 +57,14 @@ public class UserRegistrationController {
     }
 
     @GetMapping("/{discordId}")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<UserDetailResponse> get(@PathVariable String discordId) {
         User user = userRegistratioService.get(discordId);
         return ResponseEntity.ok().body(userConverter.toDetailResponse(user));
     }
 
     @GetMapping("/me")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<UserDetailResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -76,15 +77,18 @@ public class UserRegistrationController {
     }
 
     @DeleteMapping("/{discordId}")
-    @CheckSecurity.IsAdmin
-    public ResponseEntity<Void> delete(@PathVariable @ResourceId String discordId) {
+    @RequireRole(roles = {Role.ADMIN})
+    public ResponseEntity<Void> delete(@PathVariable @ResourceKey String discordId) {
         userRegistratioService.delete(discordId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{discordId}")
-    @CheckSecurity.IsOwnerOrAdmin(service = "userRegistratioService")
-    public ResponseEntity<UserDetailResponse> update(@PathVariable @ResourceId String discordId,
+    @CheckOwner(
+            service = UserRegistratioService.class,
+            allowAdmin = true
+    )
+    public ResponseEntity<UserDetailResponse> update(@PathVariable @ResourceKey String discordId,
                                                      @Valid @RequestBody UserUpdateRequest userRequest) {
         User userUpdate = userConverter.toEntityFromUpdate(userRequest);
         userUpdate.setDiscordId(discordId);

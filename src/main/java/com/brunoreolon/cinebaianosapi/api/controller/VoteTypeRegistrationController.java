@@ -4,7 +4,7 @@ import com.brunoreolon.cinebaianosapi.api.converter.VoteTypeConverter;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeDetailResponse;
-import com.brunoreolon.cinebaianosapi.core.security.CheckSecurity;
+import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteTypeRegistrationService;
 import jakarta.validation.Valid;
@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+
 @RestController
 @RequestMapping("/api/vote-types")
 @AllArgsConstructor
@@ -24,7 +26,7 @@ public class VoteTypeRegistrationController {
     private final VoteTypeConverter voteTypeConverter;
 
     @PostMapping
-    @CheckSecurity.IsAdmin
+    @RequireRole(roles = {Role.ADMIN})
     public ResponseEntity<VoteTypeDetailResponse> create(@Valid @RequestBody VoteTypeRequest voteTypeRequest) {
         VoteType voteType = voteTypeConverter.toEntityFromCreate(voteTypeRequest);
         VoteType newVoteType = voteTypeRegistrationService.save(voteType);
@@ -33,7 +35,7 @@ public class VoteTypeRegistrationController {
     }
 
     @GetMapping
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<List<VoteTypeDetailResponse>> getAll(
             @RequestParam(name = "active", defaultValue = "true") Boolean active) {
         List<VoteType> voteTypes = voteTypeRegistrationService.getAll(active);
@@ -41,21 +43,21 @@ public class VoteTypeRegistrationController {
     }
 
     @GetMapping("/{typeVoteId}")
-    @CheckSecurity.CanAccess
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
     public ResponseEntity<VoteTypeDetailResponse> get(@PathVariable Long typeVoteId) {
         VoteType voteType = voteTypeRegistrationService.get(typeVoteId);
         return ResponseEntity.ok().body(voteTypeConverter.toDetailResponse(voteType));
     }
 
     @DeleteMapping("/{typeVoteId}")
-    @CheckSecurity.IsAdmin
+    @RequireRole(roles = {Role.ADMIN})
     public ResponseEntity<Void> delete(@PathVariable Long typeVoteId) {
         voteTypeRegistrationService.delete(typeVoteId);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{typeVoteId}")
-    @CheckSecurity.IsAdmin
+    @RequireRole(roles = {Role.ADMIN})
     public ResponseEntity<VoteTypeDetailResponse> edit(@PathVariable Long typeVoteId,
                                                        @Valid @RequestBody VoteTypeUpdateRequest voteTypeUpdateRequest) {
         VoteType voteType = voteTypeConverter.toEntityFromUpdate(voteTypeUpdateRequest);

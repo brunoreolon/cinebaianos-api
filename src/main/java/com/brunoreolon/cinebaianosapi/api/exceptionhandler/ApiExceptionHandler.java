@@ -1,9 +1,12 @@
 package com.brunoreolon.cinebaianosapi.api.exceptionhandler;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.OwnershipAccessDeniedException;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import com.brunoreolon.cinebaianosapi.util.ExceptionUtil;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.http.*;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,6 +28,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     public static final String INVALID_FIELDS_TITLE = "One or more fields are invalid";
     public static final String INVALID_FIELDS_DETAIL = "Check the 'fields' property for details";
 
+    private static final Logger logger = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
     private final MessageSource messageSource;
 
     @Override
@@ -39,6 +44,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 invalidFields
         );
 
+        logger.warn("Validation failed for fields: {}", invalidFields, ex);
         return handleExceptionInternal(ex, problemDetail, headers, status, request);
     }
 
@@ -53,11 +59,14 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 invalidFields
         );
 
+        logger.warn("Validation failed for fields: {}", invalidFields, ex);
         return ResponseEntity.badRequest().body(problem);
     }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Object> handleBusinessException(BusinessException ex) {
+        logger.warn("Business exception occurred: {}", ex.getMessage());
+
         ProblemDetail problemDetail = getProblemDetail(
                 ex.getStatus(),
                 ex.getTitle(),
@@ -69,8 +78,25 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(problemDetail);
     }
 
+    @ExceptionHandler(OwnershipAccessDeniedException.class)
+    public ResponseEntity<Object> handleOwnershipAccessDeniedException(OwnershipAccessDeniedException ex) {
+        logger.warn("OwnershipAccessDeniedException exception occurred: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = getProblemDetail(
+                ex.getStatus(),
+                ex.getTitle(),
+                ex.getMessage(),
+                null,
+                null
+        );
+
+        return ResponseEntity.status(ex.getStatus()).body(problemDetail);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex) {
+        logger.warn("Invalid credentials attempt: {}", ex.getMessage());
+
         ProblemDetail problemDetail = ExceptionUtil.getProblemDetail(
                 HttpStatus.UNAUTHORIZED,
                 "Invalid credentials",
@@ -83,6 +109,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleAllExceptions(Exception ex) {
+        logger.error("Unexpected exception occurred", ex);
+
         ProblemDetail problem = getProblemDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Internal Server Error",

@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
-import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteKey;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteNotFoundException;
@@ -15,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class VoteService implements OwnableService<Vote, VoteKey> {
+public class VoteService implements OwnableService<Vote, VoteId> {
 
     private final MovieService movieService;
     private final UserRegistratioService userRegistratioService;
@@ -72,6 +73,7 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
         return voteRepository.findByVoterWithMovie(discordId);
     }
 
+    @Transactional
     public void delete(String discordId, Long movieId) {
         Vote vote = getVote(discordId, movieId);
         voteRepository.delete(vote);
@@ -112,8 +114,13 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
     }
 
     @Override
-    public Vote get(VoteKey key) {
-        return getVote(key.getDiscordId(), key.getMovieId());
+    public Vote get(VoteId key) {
+        return getVote(key.getVoterId(), key.getMovieId());
+    }
+
+    @Override
+    public VoteId buildId(ResourceKeyValues keyValues) {
+        return keyValues.as(VoteId.class);
     }
 
 }

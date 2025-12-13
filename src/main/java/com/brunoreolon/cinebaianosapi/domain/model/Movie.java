@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
