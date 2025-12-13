@@ -1,5 +1,6 @@
-package com.brunoreolon.cinebaianosapi.core.security;
+package com.brunoreolon.cinebaianosapi.core.security.authentication;
 
+import com.brunoreolon.cinebaianosapi.core.security.authentication.service.JwtService;
 import com.brunoreolon.cinebaianosapi.domain.service.CustomUserDetailsService;
 import com.brunoreolon.cinebaianosapi.domain.service.JwtBlacklistService;
 import io.jsonwebtoken.Claims;

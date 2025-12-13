@@ -1,5 +1,6 @@
-package com.brunoreolon.cinebaianosapi.core.security;
+package com.brunoreolon.cinebaianosapi.core.security.authentication.service;
 
+import com.brunoreolon.cinebaianosapi.core.security.authentication.JwtProperties;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.ClassPathResource;

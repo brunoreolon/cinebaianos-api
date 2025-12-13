@@ -7,13 +7,6 @@ import java.util.Map;
 @Getter
 public enum ApiErrorCode {
 
-    // Access Token
-    INVALID_OR_EXPIRED_ACCESS_TOKEN("invalid_or_expired_access_token"),
-    BLACKLISTED_ACCESS_TOKEN("token_blacklisted"),
-    MISSING_ACCESS_TOKEN("token_missing"),
-    EXPIRED_ACCESS_TOKEN("token_expired"),
-    INVALID_ACCESS_TOKEN("token_invalid"),
-
     // Refresh Token
     INVALID_REFRESH_TOKEN("invalid_refresh_token"),
     EXPIRED_REFRESH_TOKEN("expired_refresh_token"),

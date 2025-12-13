@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.core.security;
+package com.brunoreolon.cinebaianosapi.core.security.authentication;
 
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import com.brunoreolon.cinebaianosapi.util.ExceptionUtil;

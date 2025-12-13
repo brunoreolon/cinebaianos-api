@@ -1,6 +1,5 @@
-package com.brunoreolon.cinebaianosapi.core.security;
+package com.brunoreolon.cinebaianosapi.core.security.authentication;
 
-import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import com.brunoreolon.cinebaianosapi.util.ExceptionUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +33,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         ProblemDetail problemDetail = ExceptionUtil.getProblemDetail(
                 HttpStatus.UNAUTHORIZED,
                 reason.getTitle(),
-                reason.getDetail(),
+                reason.getDefaultDetail(),
                 reason.getCodeAsMap(),
                 null
         );

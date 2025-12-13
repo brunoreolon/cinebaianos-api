@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.core.security;
+package com.brunoreolon.cinebaianosapi.core.security.authentication;
 
 import com.brunoreolon.cinebaianosapi.domain.service.CustomUserDetailsService;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;

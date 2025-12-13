@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.core.security;
+package com.brunoreolon.cinebaianosapi.core.security.authentication;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
