@@ -21,6 +21,10 @@ public class ModalMapperConfig {
         modelMapper.getConfiguration().setFieldMatchingEnabled(true);
         modelMapper.getConfiguration().setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
 
+        modelMapper.typeMap(User.class, User.class).addMappings(mapper -> {
+            mapper.skip(User::setMovies);
+        });
+
         modelMapper.createTypeMap(ClientMovieDetailsResponse.class, Movie.class)
                 .addMappings(mapper -> {
                     mapper.skip(Movie::setId);

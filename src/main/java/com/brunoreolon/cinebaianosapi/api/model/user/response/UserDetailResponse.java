@@ -19,5 +19,8 @@ public class UserDetailResponse {
     private String avatar;
     private String biography;
     private LocalDateTime Joined;
+    private boolean isAdmin;
+    private boolean isBot;
+    private boolean active;
 
 }

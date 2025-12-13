@@ -22,23 +22,23 @@ public class EmailService {
     private String frontendUrl;
 
     @Async
-    public void send(String to, String newPassword) {
+    public void send(String to, String newPassword, String assunto, String conteudo) {
         try {
-            String htmlContent = "<html><body>"
-                    + "<p>Olá!</p>"
-                    + "<p>Sua conta no <b>Cinebaianos</b> foi criada com sucesso.</p>"
-                    + "<p>Sua senha temporária é: <b>" + newPassword + "</b></p>"
-                    + "<p>Por favor, clique no link abaixo para fazer o primeiro login e alterar sua senha:</p>"
-                    + "<p><a href='" + frontendUrl + "'>" + frontendUrl + "</a></p>"
-                    + "<p>Atenciosamente,<br>Equipe Cinebaianos</p>"
-                    + "</body></html>";
+//            String htmlContent = "<html><body>"
+//                    + "<p>Olá!</p>"
+//                    + "<p>Sua conta no <b>Cinebaianos</b> foi criada com sucesso.</p>"
+//                    + "<p>Sua senha temporária é: <b>" + newPassword + "</b></p>"
+//                    + "<p>Por favor, clique no link abaixo para fazer o primeiro login e alterar sua senha:</p>"
+//                    + "<p><a href='" + frontendUrl + "'>" + frontendUrl + "</a></p>"
+//                    + "<p>Atenciosamente,<br>Equipe Cinebaianos</p>"
+//                    + "</body></html>";
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(to);
-            helper.setSubject("Sua senha temporária");
-            helper.setText(htmlContent, true);
+            helper.setSubject(assunto);
+            helper.setText(conteudo, true);
 
             javaMailSender.send(message);
 

@@ -1,6 +1,8 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
+import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,6 +11,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -61,6 +64,7 @@ public class User implements Ownable<String> {
     private boolean isBot;
     private String avatar;
     private String biography;
+    private boolean active;
 
     public boolean hasRole(Role role) {
         return roles.contains(role);
@@ -70,8 +74,48 @@ public class User implements Ownable<String> {
         return hasRole(Role.ADMIN);
     }
 
+    public boolean canActivate() {
+        return !this.isActive();
+    }
+
+    public boolean canDisable() {
+        return this.isActive();
+    }
+
+    public void activate() {
+        if (!this.canActivate())
+            throw new BusinessException(
+                    "You cannot activate a user that is already active.",
+                    HttpStatus.BAD_REQUEST,
+                    "User cannot be activated",
+                    ApiErrorCode.VOTE_INVALID_STATUS.asMap());
+
+        this.active = true;
+    }
+
+    public void disable() {
+        if (!this.canDisable())
+            throw new BusinessException(
+                    "You cannot deactivate a user that is already deactivated.",
+                    HttpStatus.BAD_REQUEST,
+                    "User cannot be disabled",
+                    ApiErrorCode.VOTE_INVALID_STATUS.asMap());
+
+        this.active = false;
+    }
+
     @Override
     public String getOwnerId() {
         return getDiscordId();
+    }
+
+    public void AddAdmin() {
+        if (!this.hasRole(Role.ADMIN)) {
+            this.getRoles().add(Role.ADMIN);
+        }
+    }
+
+    public void RemoveAdmin() {
+        this.getRoles().remove(Role.ADMIN);
     }
 }

@@ -50,6 +50,15 @@ public class MovieService implements OwnableService<Movie, Long> {
         movie.setChooser(chooser);
         movie.setGenres(getGenres(movie));
 
+        if (movie.getSynopsis() == null || movie.getSynopsis().isEmpty())
+            movie.setSynopsis("Filme não possui sinopse");
+
+        if (movie.getDirector() == null || movie.getDirector().isEmpty())
+            movie.setSynopsis("Diretor não encontrado");
+
+        if (movie.getDuration() == null)
+            movie.setDuration(0);
+
         Movie newMovie = movieRepository.save(movie);
 
         if (vote != null) {

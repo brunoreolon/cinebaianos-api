@@ -6,7 +6,8 @@ import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,12 +18,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserRegistratioService implements OwnableService<User, String> {
 
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     @Transactional
     public User create(User user) {
@@ -36,10 +40,20 @@ public class UserRegistratioService implements OwnableService<User, String> {
 
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
-
+        user.activate();
         User newUser = userRepository.save(user);
 
-        emailService.send(user.getEmail(), newPassword);
+        String assunto = "Sua senha temporária";
+        String conteudo = "<html><body>"
+                + "<p>Olá!</p>"
+                + "<p>Sua conta no <b>Cinebaianos</b> foi criada com sucesso.</p>"
+                + "<p>Sua senha temporária é: <b>" + newPassword + "</b></p>"
+                + "<p>Por favor, clique no link abaixo para fazer o primeiro login e alterar sua senha:</p>"
+                + "<p><a href='" + frontendUrl + "'>" + frontendUrl + "</a></p>"
+                + "<p>Atenciosamente,<br>Equipe Cinebaianos</p>"
+                + "</body></html>";
+
+        emailService.send(user.getEmail(), newPassword, assunto, conteudo);
 
         return newUser;
     }
