@@ -12,8 +12,13 @@ import java.util.Optional;
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, VoteId> {
 
-    @Query("SELECT v FROM Vote v JOIN FETCH v.movie WHERE v.id = :id")
-    Optional<Vote> findByIdWithMovie(@Param("id") VoteId id);
+    @Query("""
+            SELECT v FROM Vote v
+            JOIN FETCH v.movie
+            JOIN FETCH v.voter
+            WHERE v.id = :id
+    """)
+    Optional<Vote> findByIdWithMovieAndVoter(@Param("id") VoteId id);
 
     @Query("SELECT COUNT(v) FROM Vote v WHERE v.vote = :voteType AND v.movie.chooser = :user")
     Long countAllByVoteTypeAndReceiver(@Param("voteType") VoteType voteType, @Param("user") User user);
