@@ -4,8 +4,10 @@ import com.brunoreolon.cinebaianosapi.domain.exception.EntityInUseException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.domain.model.Email;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
+import com.brunoreolon.cinebaianosapi.util.EmailUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 public class UserRegistratioService implements OwnableService<User, String> {
 
     private final EmailService emailService;
+    private final EmailUtil emailUtil;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
@@ -43,17 +46,8 @@ public class UserRegistratioService implements OwnableService<User, String> {
         user.activate();
         User newUser = userRepository.save(user);
 
-        String assunto = "Sua senha temporária";
-        String conteudo = "<html><body>"
-                + "<p>Olá!</p>"
-                + "<p>Sua conta no <b>Cinebaianos</b> foi criada com sucesso.</p>"
-                + "<p>Sua senha temporária é: <b>" + newPassword + "</b></p>"
-                + "<p>Por favor, clique no link abaixo para fazer o primeiro login e alterar sua senha:</p>"
-                + "<p><a href='" + frontendUrl + "'>" + frontendUrl + "</a></p>"
-                + "<p>Atenciosamente,<br>Equipe Cinebaianos</p>"
-                + "</body></html>";
-
-        emailService.send(user.getEmail(), newPassword, assunto, conteudo);
+        Email email = emailUtil.newUser(newUser, newPassword);
+        emailService.send(email);
 
         return newUser;
     }

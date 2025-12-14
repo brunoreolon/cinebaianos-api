@@ -1,16 +1,21 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.model.auth.request.LoginRequest;
+import com.brunoreolon.cinebaianosapi.api.model.auth.request.PasswordRecoveryRequest;
+import com.brunoreolon.cinebaianosapi.api.model.auth.request.ResetPasswordRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.RefreshRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.TokenResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.service.JwtService;
 import com.brunoreolon.cinebaianosapi.domain.exception.ExpiredRefreshTokenException;
 import com.brunoreolon.cinebaianosapi.domain.exception.InvalidRefreshTokenException;
+import com.brunoreolon.cinebaianosapi.domain.model.PasswordResetToken;
 import com.brunoreolon.cinebaianosapi.domain.model.RefreshToken;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.domain.service.JwtBlacklistService;
+import com.brunoreolon.cinebaianosapi.domain.service.PasswordRecoveryService;
 import com.brunoreolon.cinebaianosapi.domain.service.RefreshTokenService;
+import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +36,8 @@ public class AuthController {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final JwtBlacklistService jwtBlacklistService;
+    private final PasswordRecoveryService recoveryService;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody @Valid LoginRequest req) {
@@ -85,6 +92,27 @@ public class AuthController {
             String accessToken = authorization.substring(7).trim();
             jwtBlacklistService.blacklist(accessToken);
         }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/recover")
+    public ResponseEntity<Void> recoverPassword(@RequestBody @Valid PasswordRecoveryRequest recoveryRequest) {
+        recoveryService.recover(recoveryRequest.getEmail());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        PasswordResetToken resetToken =
+                recoveryService.validate(request.getToken());
+
+        userService.resetPasswordByRecover(
+                resetToken.getUser().getDiscordId(),
+                request.getNewPassword()
+        );
+
+        recoveryService.markAsUsed(resetToken);
 
         return ResponseEntity.noContent().build();
     }

@@ -14,7 +14,8 @@ public class MovieQueryFilter {
 
     private String title;
     private LocalDate dateAdded;
-    private String chooser;
+    private String chooserName;
+    private String chooserDiscordId;
     private String discordId;
 
     public Specification<Movie> toSpecification() {
@@ -23,7 +24,8 @@ public class MovieQueryFilter {
                 .and(MovieSpecification.fetchVotes())
                 .and(MovieSpecification.withTitle(title))
                 .and(MovieSpecification.withDateAdded(dateAdded))
-                .and(MovieSpecification.withChooserName(chooser))
+                .and(MovieSpecification.withChooserName(chooserName))
+                .and(MovieSpecification.withChooserDiscordID(chooserDiscordId))
                 .and(MovieSpecification.notVotedBy(discordId));
     }
 

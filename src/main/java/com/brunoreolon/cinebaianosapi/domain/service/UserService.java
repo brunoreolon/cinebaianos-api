@@ -5,13 +5,14 @@ import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryRespons
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
+import com.brunoreolon.cinebaianosapi.domain.model.Email;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
+import com.brunoreolon.cinebaianosapi.util.EmailUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +28,8 @@ public class UserService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final VoteService voteService;
+    private final EmailUtil emailUtil;
     private final UserRepository userRepository;
-
-    @Value("${frontend.url}")
-    private String frontendUrl;
 
     public List<Movie> getAllMovies(String discordId) {
         return userRepository.findAllMoviesByDiscordId(discordId);
@@ -83,25 +82,27 @@ public class UserService {
                 .toList();
     }
 
-    @Transactional
-    public void resetPassword(String discordId, String newPassword) {
+    private User resetPassword(String discordId, String newPassword) {
         User user = userRegistratioService.get(discordId);
         user.setPassword(passwordEncoder.encode(newPassword));
 
-        String assunto = "Senha redefinida pelo administrador - Cinebaianos";
-        String conteudo = "<html><body>"
-                + "<p>Olá, <b>" + user.getName() + "</b>!</p>"
-                + "<p>A senha da sua conta no <b>Cinebaianos</b> foi redefinida por um administrador do sistema.</p>"
-                + "<p>Sua nova senha temporária é:</p>"
-                + "<p><b>" + newPassword + "</b></p>"
-                + "<p>Por segurança, recomendamos que você faça login e altere essa senha assim que possível.</p>"
-                + "<p>Você pode acessar a plataforma pelo link abaixo:</p>"
-                + "<p><a href='" + frontendUrl + "'>" + frontendUrl + "</a></p>"
-                + "<p>Se você não reconhece essa ação, entre em contato com o suporte.</p>"
-                + "<p>Atenciosamente,<br>Equipe Cinebaianos</p>"
-                + "</body></html>";
+        return user;
+    }
 
-        emailService.send(user.getEmail(), newPassword, assunto, conteudo);
+    @Transactional
+    public void resetPasswordByRecover(String discordId, String newPassword) {
+        User user = resetPassword(discordId, newPassword);
+
+        Email email = emailUtil.resetPasswordByRecover(user);
+        emailService.send(email);
+    }
+
+    @Transactional
+    public void resetPasswordByAdmin(String discordId, String newPassword) {
+        User user = resetPassword(discordId, newPassword);
+
+        Email email = emailUtil.resetPasswordByAdmin(user, newPassword);
+        emailService.send(email);
     }
 
     @Transactional

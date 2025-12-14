@@ -148,7 +148,10 @@ public class MovieController {
             @RequestParam(name = "sortDir", defaultValue = "desc", required = false) String sortDir
     ) {
         Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Sort sort = Sort.by(direction, sortBy);
+        sort = sort.and(Sort.by(Sort.Direction.ASC, "chooser.name"));
+
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<Movie> movies = movieService.getAll(queryFilter.toSpecification(), pageable);
         MoviePage moviePage = movieConverter.toWithChooserResponseList(movies);

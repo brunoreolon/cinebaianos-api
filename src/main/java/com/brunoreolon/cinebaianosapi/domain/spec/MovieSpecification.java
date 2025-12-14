@@ -79,4 +79,13 @@ public class MovieSpecification {
         };
     }
 
+    public static Specification<Movie> withChooserDiscordID(String discordId) {
+        if (discordId == null || discordId.isBlank()) return null;
+
+        return (root, query, builder) -> {
+            Join<Movie, User> chooser = root.join("chooser", JoinType.INNER);
+            return builder.equal(chooser.get("discordId"), discordId);
+        };
+    }
+
 }

@@ -26,7 +26,7 @@ public class AdminController {
     @CheckSecurity.RequireRole(roles = {Role.ADMIN})
     public ResponseEntity<Void> resetPassword(@PathVariable @ResourceKey String discordId,
                                               @Valid @RequestBody UserResetPasswordRequest passwordRequest) {
-        userService.resetPassword(discordId, passwordRequest.getNewPassword());
+        userService.resetPasswordByAdmin(discordId, passwordRequest.getNewPassword());
         return ResponseEntity.noContent().build();
     }
 
