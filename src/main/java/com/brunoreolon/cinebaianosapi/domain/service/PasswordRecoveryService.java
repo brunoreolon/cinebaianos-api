@@ -9,7 +9,6 @@ import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.util.EmailUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -25,9 +24,6 @@ public class PasswordRecoveryService {
     private final PasswordResetTokenRepository repository;
     private final UserRepository userRepository;
 
-    @Value("${frontend.url}")
-    private String frontendUrl;
-
     /**
      * Inicia o fluxo de recuperação de senha.
      * Sempre executa de forma segura (não revela se o email existe).
@@ -37,7 +33,7 @@ public class PasswordRecoveryService {
         userRepository.findByEmail(email).ifPresent(user -> {
             PasswordResetToken token = create(user);
 
-            Email mail = emailUtil.recoverPassword(user, token);
+            Email mail = emailUtil.recoverPassword(user, token.getToken());
             emailService.send(mail);
         });
     }
