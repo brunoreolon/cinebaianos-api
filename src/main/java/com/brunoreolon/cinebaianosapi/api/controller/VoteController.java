@@ -11,9 +11,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.service.Busine
 import com.brunoreolon.cinebaianosapi.domain.model.MovieVotes;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
 import com.brunoreolon.cinebaianosapi.domain.model.Role;
-import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
-import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteService;
 import jakarta.validation.Valid;
@@ -32,28 +30,22 @@ import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotat
 public class VoteController {
 
     private final UserService userService;
-    private final UserRegistratioService userRegistratioService;
     private final VoteService voteService;
     private final BusinessPermissionService permissionService;
     private final VoteConverter voteConverter;
 
-    @GetMapping("/rankings")
+    @GetMapping("/received")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
-    public ResponseEntity<List<UserVoteStatsResponse>> getVoteRankings(
-            @RequestParam(name = "type", required = false) Long voteTypeId) {
-        List<UserVoteStatsResponse> votes = userService.getVotes(voteTypeId);
-
-        return ResponseEntity.ok().body(votes);
+    public ResponseEntity<List<UserVoteStatsResponse>> getVotesReceived(@RequestParam(name = "vote", required = false) Long voteType) {
+        List<UserVoteStatsResponse> votesReceived = userService.getVotesReceived(voteType);
+        return ResponseEntity.ok().body(votesReceived);
     }
 
-    @GetMapping("/users/{discordId}")
+    @GetMapping("/given")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
-    public ResponseEntity<UserVoteStatsResponse> getUserVotes(@RequestParam(name = "vote", required = false) Long voteType,
-                                                              @PathVariable String discordId) {
-        User user = userRegistratioService.get(discordId);
-        UserVoteStatsResponse votes = userService.getVotes(user, voteType);
-
-        return ResponseEntity.ok().body(votes);
+    public ResponseEntity<List<UserVoteStatsResponse>> getVotesGiven(@RequestParam(name = "vote", required = false) Long voteType) {
+        List<UserVoteStatsResponse> votesGiven = userService.getVotesGiven(voteType);
+        return ResponseEntity.ok().body(votesGiven);
     }
 
     @GetMapping("/users/{discordId}/movies-votes")

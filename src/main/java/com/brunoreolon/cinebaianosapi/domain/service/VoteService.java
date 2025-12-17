@@ -65,8 +65,12 @@ public class VoteService implements OwnableService<Vote, VoteId> {
                         discordId, movieId)));
     }
 
-    public Long countVotesByTypeAndUser(VoteType voteType, User user) {
+    public Long countVotesReceivedByTypeForUser(VoteType voteType, User user) {
         return voteRepository.countAllByVoteTypeAndReceiver(voteType, user);
+    }
+
+    public Long countVotesGivenByTypeForUser(VoteType voteType, User user) {
+        return voteRepository.countAllByVoteTypeAndGiver(voteType, user);
     }
 
     public List<Vote> getVotesByUser(String discordId) {

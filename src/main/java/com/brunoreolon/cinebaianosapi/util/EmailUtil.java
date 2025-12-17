@@ -1,7 +1,6 @@
 package com.brunoreolon.cinebaianosapi.util;
 
 import com.brunoreolon.cinebaianosapi.domain.model.Email;
-import com.brunoreolon.cinebaianosapi.domain.model.PasswordResetToken;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -85,8 +84,8 @@ public class EmailUtil {
                 .build();
     }
 
-    public Email recoverPassword(User user, PasswordResetToken token) {
-        String resetLink = String.format("%s/login.html?token=%s", frontendUrl, token.getToken());
+    public Email recoverPassword(User user, String token) {
+        String resetLink = String.format("%s/login.html?token=%s", frontendUrl, token);
         String subject = "Recuperação de senha CineBaianos";
 
         String content = """

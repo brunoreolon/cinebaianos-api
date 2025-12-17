@@ -41,26 +41,35 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with discordId '%s' not found", discordId)));
     }
 
-    public List<UserVoteStatsResponse> getVotes(Long voteTypeId) {
+    public List<UserVoteStatsResponse> getVotesReceived(Long voteTypeId) {
         return userRegistratioService.getAll().stream()
                 .filter(u -> !u.isBot())
-                .map(user -> {
-                    List<VoteType> votesToConsider = getVotesToConsider(voteTypeId);
-
-                    return new UserVoteStatsResponse(
-                            new UserSummaryResponse(user.getDiscordId(), user.getName()),
-                            getVoteSummaryForUser(user, votesToConsider)
-                    );
-                })
+                .map(user -> getVotesReceivedByUser(user, voteTypeId))
                 .toList();
     }
 
-    public UserVoteStatsResponse getVotes(User user, Long voteType) {
+    public UserVoteStatsResponse getVotesReceivedByUser(User user, Long voteType) {
         List<VoteType> votesToConsider = getVotesToConsider(voteType);
 
         return new UserVoteStatsResponse(
                 new UserSummaryResponse(user.getDiscordId(), user.getName()),
-                getVoteSummaryForUser(user, votesToConsider)
+                getVoteReceivedSummaryForUser(user, votesToConsider)
+        );
+    }
+
+    public List<UserVoteStatsResponse> getVotesGiven(Long voteTypeId) {
+        return userRegistratioService.getAll().stream()
+                .filter(u -> !u.isBot())
+                .map(user -> getVotesGivenByUser(user, voteTypeId))
+                .toList();
+    }
+
+    public UserVoteStatsResponse getVotesGivenByUser(User user, Long voteType) {
+        List<VoteType> votesToConsider = getVotesToConsider(voteType);
+
+        return new UserVoteStatsResponse(
+                new UserSummaryResponse(user.getDiscordId(), user.getName()),
+                getVoteGivenSummaryForUser(user, votesToConsider)
         );
     }
 
@@ -70,10 +79,22 @@ public class UserService {
                 voteTypeRegistrationService.getAll(null);
     }
 
-    private List<VoteStatsResponse> getVoteSummaryForUser(User user, List<VoteType> types) {
+    private List<VoteStatsResponse> getVoteReceivedSummaryForUser(User user, List<VoteType> types) {
         return types.stream()
                 .map(voteTypes -> {
-                    Long totalVotes = voteService.countVotesByTypeAndUser(voteTypes, user);
+                    Long totalVotes = voteService.countVotesReceivedByTypeForUser(voteTypes, user);
+                    VoteTypeSummaryResponse voteTypeSummaryResponse = new VoteTypeSummaryResponse(
+                            voteTypes.getId(), voteTypes.getDescription(), voteTypes.getColor(), voteTypes.getEmoji()
+                    );
+                    return new VoteStatsResponse(voteTypeSummaryResponse, totalVotes);
+                })
+                .toList();
+    }
+
+    private List<VoteStatsResponse> getVoteGivenSummaryForUser(User user, List<VoteType> types) {
+        return types.stream()
+                .map(voteTypes -> {
+                    Long totalVotes = voteService.countVotesGivenByTypeForUser(voteTypes, user);
                     VoteTypeSummaryResponse voteTypeSummaryResponse = new VoteTypeSummaryResponse(
                             voteTypes.getId(), voteTypes.getDescription(), voteTypes.getColor(), voteTypes.getEmoji()
                     );
@@ -127,4 +148,3 @@ public class UserService {
         }
     }
 }
-
