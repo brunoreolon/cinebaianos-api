@@ -1,5 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
+import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserStats;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryResponse;
@@ -10,6 +12,8 @@ import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
+import com.brunoreolon.cinebaianosapi.domain.repository.UserStatsRepository;
+import com.brunoreolon.cinebaianosapi.domain.repository.UserSummaryProjection;
 import com.brunoreolon.cinebaianosapi.util.EmailUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +33,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final VoteService voteService;
     private final EmailUtil emailUtil;
+    private final UserStatsRepository userStatsRepository;
     private final UserRepository userRepository;
 
     public List<Movie> getAllMovies(String discordId) {
@@ -147,4 +152,33 @@ public class UserService {
             user.RemoveAdmin();
         }
     }
+
+    public com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse getUserSummary(String discordId) {
+        User user = userRegistratioService.get(discordId);
+
+        UserDetailResponse userDetail = new UserDetailResponse(
+                user.getDiscordId(),
+                user.getName(),
+                user.getEmail(),
+                user.getAvatar(),
+                user.getBiography(),
+                user.getCreated(),
+                user.isAdmin(),
+                user.isBot(),
+                user.isActive()
+        );
+
+        UserSummaryProjection summary = userStatsRepository.findUserSummaryByDiscordId(discordId);
+
+        return new com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse(
+                userDetail,
+                new UserStats(
+                        summary.getTotalMoviesAdded(),
+                        summary.getTotalVotesGiven(),
+                        summary.getTotalVotesReceived(),
+                        summary.getMoviesPendingVote()
+                )
+        );
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
+import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity;
 import com.brunoreolon.cinebaianosapi.domain.model.Role;
@@ -36,6 +37,14 @@ public class UserStatsController {
         UserVoteStatsResponse votesGiven = userService.getVotesGivenByUser(user, voteType);
 
         return ResponseEntity.ok().body(votesGiven);
+    }
+
+    @GetMapping("/{discordId}/summary")
+    @CheckSecurity.RequireRole(roles = {Role.ADMIN, Role.USER})
+    public ResponseEntity<UserSummaryResponse> getUserSummary(@PathVariable String discordId) {
+        UserSummaryResponse userSummaryStats = userService.getUserSummary(discordId);
+
+        return ResponseEntity.ok().body(userSummaryStats);
     }
 
 }
