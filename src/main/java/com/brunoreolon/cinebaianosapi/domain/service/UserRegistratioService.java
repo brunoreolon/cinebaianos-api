@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.domain.exception.EntityInUseException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +41,7 @@ public class UserRegistratioService implements OwnableService<User, String> {
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
         user.activate();
+        user.setRoles(Set.of(Role.USER));
         User newUser = userRepository.save(user);
 
         publisher.publishEvent(new UserCreatedEvent(newUser, newPassword));

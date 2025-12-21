@@ -61,10 +61,10 @@ public class User implements Ownable<String> {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new LinkedHashSet<>();
 
-    private Boolean isBot;
+    private Boolean isBot = false;
     private String avatar;
     private String biography;
-    private Boolean active;
+    private Boolean active = false;
 
     public Boolean hasRole(Role role) {
         return roles.contains(role);
