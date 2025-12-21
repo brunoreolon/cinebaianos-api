@@ -86,7 +86,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 ex.getStatus(),
                 ex.getTitle(),
                 ex.getMessage(),
-                null,
+                ex.getErrorCode(),
                 null
         );
 
