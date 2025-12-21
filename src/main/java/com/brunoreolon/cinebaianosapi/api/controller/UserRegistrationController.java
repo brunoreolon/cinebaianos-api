@@ -49,7 +49,7 @@ public class UserRegistrationController {
 
         if (!includeBot) {
             users = users.stream()
-                    .filter(user -> !user.isBot())
+                    .filter(user -> !user.getIsBot())
                     .toList();
         }
 

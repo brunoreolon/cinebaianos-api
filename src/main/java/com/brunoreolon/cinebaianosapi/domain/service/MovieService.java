@@ -40,7 +40,7 @@ public class MovieService implements OwnableService<Movie, Long> {
 
         User chooser = userRegistratioService.get(chooserID);
 
-        if (chooser.isBot())
+        if (chooser.getIsBot())
             throw new BusinessException(
                     "Bot users cannot have movies added.",
                     HttpStatus.FORBIDDEN,

@@ -61,25 +61,25 @@ public class User implements Ownable<String> {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new LinkedHashSet<>();
 
-    private boolean isBot;
+    private Boolean isBot;
     private String avatar;
     private String biography;
-    private boolean active;
+    private Boolean active;
 
-    public boolean hasRole(Role role) {
+    public Boolean hasRole(Role role) {
         return roles.contains(role);
     }
 
-    public boolean isAdmin() {
+    public Boolean isAdmin() {
         return hasRole(Role.ADMIN);
     }
 
-    public boolean canActivate() {
-        return !this.isActive();
+    public Boolean canActivate() {
+        return !this.getActive();
     }
 
-    public boolean canDisable() {
-        return this.isActive();
+    public Boolean canDisable() {
+        return this.getActive();
     }
 
     public void activate() {

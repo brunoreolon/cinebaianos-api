@@ -45,7 +45,7 @@ public class UserContextService {
      * Retorna true se o usuário atual for bot do discord
      */
     public boolean isBot() {
-        return getLoggedUser().map(User::isBot).orElse(false);
+        return getLoggedUser().map(User::getIsBot).orElse(false);
     }
 
     /**

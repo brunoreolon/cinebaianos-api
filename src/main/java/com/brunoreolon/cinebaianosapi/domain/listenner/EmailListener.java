@@ -55,7 +55,7 @@ public class EmailListener {
     @EventListener
     public void redefinicaoSenhaByAdminListener(PasswordResetByAdminEvent event) {
         User user = event.user();
-        Email email = emailUtil.resetPasswordByRecover(user);
+        Email email = emailUtil.resetPasswordByAdmin(user, event.password());
 
         notificationService.send(email);
     }

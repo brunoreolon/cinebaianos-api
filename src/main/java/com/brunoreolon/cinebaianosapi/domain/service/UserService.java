@@ -41,13 +41,13 @@ public class UserService {
 
     public User getWithMovies(String discordId) {
         return userRepository.findByDiscordIdWithMovies(discordId)
-                .filter(u -> !u.isBot())
+                .filter(u -> !u.getIsBot())
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with discordId '%s' not found", discordId)));
     }
 
     public List<UserVoteStatsResponse> getVotesReceived(Long voteTypeId) {
         return userRegistratioService.getAll().stream()
-                .filter(u -> !u.isBot())
+                .filter(u -> !u.getIsBot())
                 .map(user -> getVotesReceivedByUser(user, voteTypeId))
                 .toList();
     }
@@ -64,8 +64,8 @@ public class UserService {
                         user.getBiography(),
                         user.getCreated(),
                         user.isAdmin(),
-                        user.isBot(),
-                        user.isActive()
+                        user.getIsBot(),
+                        user.getActive()
                 ),
                 getVoteReceivedSummaryForUser(user, votesToConsider)
         );
@@ -73,7 +73,7 @@ public class UserService {
 
     public List<UserVoteStatsResponse> getVotesGiven(Long voteTypeId) {
         return userRegistratioService.getAll().stream()
-                .filter(u -> !u.isBot())
+                .filter(u -> !u.getIsBot())
                 .map(user -> getVotesGivenByUser(user, voteTypeId))
                 .toList();
     }
@@ -90,8 +90,8 @@ public class UserService {
                         user.getBiography(),
                         user.getCreated(),
                         user.isAdmin(),
-                        user.isBot(),
-                        user.isActive()
+                        user.getIsBot(),
+                        user.getActive()
                 ),
                 getVoteGivenSummaryForUser(user, votesToConsider)
         );
@@ -179,8 +179,8 @@ public class UserService {
                 user.getBiography(),
                 user.getCreated(),
                 user.isAdmin(),
-                user.isBot(),
-                user.isActive()
+                user.getIsBot(),
+                user.getActive()
         );
 
         UserSummaryProjection summary = userStatsRepository.findUserSummaryByDiscordId(discordId);

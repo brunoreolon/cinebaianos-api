@@ -8,11 +8,14 @@ import com.brunoreolon.cinebaianosapi.domain.exception.VoteNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.VoteRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -22,6 +25,9 @@ public class VoteService implements OwnableService<Vote, VoteId> {
     private final UserRegistratioService userRegistratioService;
     private final VoteTypeRegistrationService voteTypeRegistrationService;
     private final VoteRepository voteRepository;
+
+    @Value("${vote.update-limit-days}")
+    private int voteUpdateLimitDays;
 
     public VoteService(@Lazy MovieService movieService, UserRegistratioService userRegistratioService,
                        VoteTypeRegistrationService voteTypeRegistrationService, VoteRepository voteRepository) {
@@ -52,6 +58,20 @@ public class VoteService implements OwnableService<Vote, VoteId> {
     @Transactional
     public Vote update(String discordId, Long movieId, Long voteId) {
         Vote existingVote = getVote(discordId, movieId);
+
+        long daysElapsed = ChronoUnit.DAYS.between(
+                existingVote.getCreated(),
+                LocalDateTime.now()
+        );
+
+        if (daysElapsed > voteUpdateLimitDays) {
+            throw new BusinessException(String.format(
+                    "This vote was created %d days ago and can no longer be modified. The maximum allowed time to change a vote is %d days after it was created.",
+                        daysElapsed, voteUpdateLimitDays),
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Vote modification period expired"
+            );
+        }
 
         VoteType voteType = voteTypeRegistrationService.get(voteId);
         existingVote.setVote(voteType);
