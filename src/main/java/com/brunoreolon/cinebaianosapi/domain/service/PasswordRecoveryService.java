@@ -1,9 +1,9 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordRecoveredEvent;
-import com.brunoreolon.cinebaianosapi.domain.exception.ResetTokenException;
 import com.brunoreolon.cinebaianosapi.domain.model.PasswordResetToken;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
+import com.brunoreolon.cinebaianosapi.domain.exception.ResetTokenException;
 import com.brunoreolon.cinebaianosapi.domain.repository.PasswordResetTokenRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import jakarta.transaction.Transactional;
