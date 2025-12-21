@@ -1,7 +1,7 @@
-package com.brunoreolon.cinebaianosapi.infra.email;
+package com.brunoreolon.cinebaianosapi.infra.notification;
 
 import com.brunoreolon.cinebaianosapi.domain.model.Email;
-import com.brunoreolon.cinebaianosapi.domain.service.EmailService;
+import com.brunoreolon.cinebaianosapi.domain.service.NotificationService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 @Service
 @Profile("dev")
 @RequiredArgsConstructor
-public class SmtpEmailService implements EmailService {
+public class SmtpNotificationService implements NotificationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SmtpEmailService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SmtpNotificationService.class);
 
     private final JavaMailSender javaMailSender;
 

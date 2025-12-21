@@ -1,8 +1,8 @@
-package com.brunoreolon.cinebaianosapi.infra.email;
+package com.brunoreolon.cinebaianosapi.infra.notification;
 
 import com.brunoreolon.cinebaianosapi.core.resend.ResendProperties;
 import com.brunoreolon.cinebaianosapi.domain.model.Email;
-import com.brunoreolon.cinebaianosapi.domain.service.EmailService;
+import com.brunoreolon.cinebaianosapi.domain.service.NotificationService;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;
@@ -17,9 +17,9 @@ import com.resend.Resend;
 @Service
 @Profile("prod")
 @RequiredArgsConstructor
-public class ResendEmailService implements EmailService {
+public class ResendNotificationService implements NotificationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResendEmailService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResendNotificationService.class);
 
     private final Resend resend;
     private final ResendProperties resendProperties;

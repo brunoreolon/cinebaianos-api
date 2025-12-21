@@ -6,7 +6,7 @@ import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByRecoverEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.UserCreatedEvent;
 import com.brunoreolon.cinebaianosapi.domain.model.Email;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
-import com.brunoreolon.cinebaianosapi.domain.service.EmailService;
+import com.brunoreolon.cinebaianosapi.domain.service.NotificationService;
 import com.brunoreolon.cinebaianosapi.util.EmailUtil;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -16,11 +16,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 public class EmailListener {
 
-    private final EmailService emailService;
+    private final NotificationService notificationService;
     private final EmailUtil emailUtil;
 
-    public EmailListener(EmailService emailService, EmailUtil emailUtil) {
-        this.emailService = emailService;
+    public EmailListener(NotificationService notificationService, EmailUtil emailUtil) {
+        this.notificationService = notificationService;
         this.emailUtil = emailUtil;
     }
 
@@ -30,7 +30,7 @@ public class EmailListener {
         User user = event.user();
         Email email = emailUtil.newUser(user, event.password());
 
-        emailService.send(email);
+        notificationService.send(email);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -39,7 +39,7 @@ public class EmailListener {
         User user = event.user();
         Email email = emailUtil.recoverPassword(user, event.token());
 
-        emailService.send(email);
+        notificationService.send(email);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -48,7 +48,7 @@ public class EmailListener {
         User user = event.user();
         Email email = emailUtil.resetPasswordByRecover(user);
 
-        emailService.send(email);
+        notificationService.send(email);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -57,7 +57,7 @@ public class EmailListener {
         User user = event.user();
         Email email = emailUtil.resetPasswordByRecover(user);
 
-        emailService.send(email);
+        notificationService.send(email);
     }
 
 }
