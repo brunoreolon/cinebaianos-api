@@ -1,6 +1,7 @@
-package com.brunoreolon.cinebaianosapi.domain.service;
+package com.brunoreolon.cinebaianosapi.infra.email;
 
 import com.brunoreolon.cinebaianosapi.domain.model.Email;
+import com.brunoreolon.cinebaianosapi.domain.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

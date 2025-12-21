@@ -1,15 +1,14 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.domain.event.PasswordRecoveredEvent;
 import com.brunoreolon.cinebaianosapi.domain.exception.ResetTokenException;
-import com.brunoreolon.cinebaianosapi.domain.model.Email;
 import com.brunoreolon.cinebaianosapi.domain.model.PasswordResetToken;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.PasswordResetTokenRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
-import com.brunoreolon.cinebaianosapi.util.EmailUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -20,13 +19,10 @@ import java.time.Instant;
 public class PasswordRecoveryService {
 
     private static final Duration TOKEN_TTL = Duration.ofMinutes(15);
-    private final EmailService emailService;
-    private final EmailUtil emailUtil;
+
     private final PasswordResetTokenRepository repository;
     private final UserRepository userRepository;
-
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    private final ApplicationEventPublisher publisher;
 
     /**
      * Inicia o fluxo de recuperação de senha.
@@ -36,9 +32,7 @@ public class PasswordRecoveryService {
     public void recover(String email) {
         userRepository.findByEmail(email).ifPresent(user -> {
             PasswordResetToken token = create(user);
-
-            Email mail = emailUtil.recoverPassword(user, token);
-            emailService.send(mail);
+            publisher.publishEvent(new PasswordRecoveredEvent(user, token.getToken()));
         });
     }
 

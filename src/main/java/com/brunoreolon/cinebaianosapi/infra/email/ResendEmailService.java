@@ -1,7 +1,8 @@
-package com.brunoreolon.cinebaianosapi.domain.service;
+package com.brunoreolon.cinebaianosapi.infra.email;
 
 import com.brunoreolon.cinebaianosapi.core.resend.ResendProperties;
 import com.brunoreolon.cinebaianosapi.domain.model.Email;
+import com.brunoreolon.cinebaianosapi.domain.service.EmailService;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;

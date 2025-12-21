@@ -3,20 +3,20 @@ package com.brunoreolon.cinebaianosapi.domain.service;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserStats;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
-import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
+import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByAdminEvent;
+import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByRecoverEvent;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
-import com.brunoreolon.cinebaianosapi.domain.model.Email;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserStatsRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserSummaryProjection;
-import com.brunoreolon.cinebaianosapi.util.EmailUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,12 +29,11 @@ public class UserService {
 
     private final UserRegistratioService userRegistratioService;
     private final VoteTypeRegistrationService voteTypeRegistrationService;
-    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final VoteService voteService;
-    private final EmailUtil emailUtil;
     private final UserStatsRepository userStatsRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher publisher;
 
     public List<Movie> getAllMovies(String discordId) {
         return userRepository.findAllMoviesByDiscordId(discordId);
@@ -138,17 +137,13 @@ public class UserService {
     @Transactional
     public void resetPasswordByRecover(String discordId, String newPassword) {
         User user = resetPassword(discordId, newPassword);
-
-        Email email = emailUtil.resetPasswordByRecover(user);
-        emailService.send(email);
+        publisher.publishEvent(new PasswordResetByRecoverEvent(user));
     }
 
     @Transactional
     public void resetPasswordByAdmin(String discordId, String newPassword) {
         User user = resetPassword(discordId, newPassword);
-
-        Email email = emailUtil.resetPasswordByAdmin(user, newPassword);
-        emailService.send(email);
+        publisher.publishEvent(new PasswordResetByAdminEvent(user, newPassword));
     }
 
     @Transactional

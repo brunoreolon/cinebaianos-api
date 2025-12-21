@@ -1,15 +1,14 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.domain.event.UserCreatedEvent;
 import com.brunoreolon.cinebaianosapi.domain.exception.EntityInUseException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
-import com.brunoreolon.cinebaianosapi.domain.model.Email;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
-import com.brunoreolon.cinebaianosapi.util.EmailUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,13 +22,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserRegistratioService implements OwnableService<User, String> {
 
-    private final EmailService emailService;
-    private final EmailUtil emailUtil;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public User create(User user) {
@@ -46,8 +41,7 @@ public class UserRegistratioService implements OwnableService<User, String> {
         user.activate();
         User newUser = userRepository.save(user);
 
-        Email email = emailUtil.newUser(newUser, newPassword);
-        emailService.send(email);
+        publisher.publishEvent(new UserCreatedEvent(newUser, newPassword));
 
         return newUser;
     }
