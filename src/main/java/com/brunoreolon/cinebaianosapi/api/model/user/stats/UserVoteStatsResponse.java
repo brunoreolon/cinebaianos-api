@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.model.user.stats;
 
-import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
+import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 public class UserVoteStatsResponse {
 
-    private UserSummaryResponse user;
+    private UserDetailResponse user;
     private List<VoteStatsResponse> votes;
 
 }

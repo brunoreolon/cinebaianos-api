@@ -57,7 +57,17 @@ public class UserService {
         List<VoteType> votesToConsider = getVotesToConsider(voteType);
 
         return new UserVoteStatsResponse(
-                new UserSummaryResponse(user.getDiscordId(), user.getName()),
+                new UserDetailResponse(
+                        user.getDiscordId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getAvatar(),
+                        user.getBiography(),
+                        user.getCreated(),
+                        user.isAdmin(),
+                        user.isBot(),
+                        user.isActive()
+                ),
                 getVoteReceivedSummaryForUser(user, votesToConsider)
         );
     }
@@ -73,7 +83,17 @@ public class UserService {
         List<VoteType> votesToConsider = getVotesToConsider(voteType);
 
         return new UserVoteStatsResponse(
-                new UserSummaryResponse(user.getDiscordId(), user.getName()),
+                new UserDetailResponse(
+                        user.getDiscordId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getAvatar(),
+                        user.getBiography(),
+                        user.getCreated(),
+                        user.isAdmin(),
+                        user.isBot(),
+                        user.isActive()
+                ),
                 getVoteGivenSummaryForUser(user, votesToConsider)
         );
     }
