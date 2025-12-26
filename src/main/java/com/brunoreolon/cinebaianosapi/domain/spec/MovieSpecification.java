@@ -1,8 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.spec;
 
-import com.brunoreolon.cinebaianosapi.domain.model.Movie;
-import com.brunoreolon.cinebaianosapi.domain.model.User;
-import com.brunoreolon.cinebaianosapi.domain.model.Vote;
+import com.brunoreolon.cinebaianosapi.domain.model.*;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -85,6 +83,28 @@ public class MovieSpecification {
         return (root, query, builder) -> {
             Join<Movie, User> chooser = root.join("chooser", JoinType.INNER);
             return builder.equal(chooser.get("discordId"), discordId);
+        };
+    }
+
+    public static Specification<Movie> withVote(String voteTypeId) {
+        if (voteTypeId == null || voteTypeId.isBlank()) return null;
+
+        return (root, query, builder) -> {
+            query.distinct(true);
+
+            Join<Movie, Vote> voteJoin = root.join("votes", JoinType.INNER);
+            Join<Vote, VoteType> voteTypeJoin = voteJoin.join("vote", JoinType.INNER);
+
+            return builder.equal(voteTypeJoin.get("id"), voteTypeId);
+        };
+    }
+
+    public static Specification<Movie> withGenre(String genreId) {
+        if (genreId == null || genreId.isBlank()) return null;
+
+        return (root, query, builder) -> {
+            Join<Movie, Genre> genres = root.join("genres", JoinType.INNER);
+            return builder.equal(genres.get("id"), genreId);
         };
     }
 

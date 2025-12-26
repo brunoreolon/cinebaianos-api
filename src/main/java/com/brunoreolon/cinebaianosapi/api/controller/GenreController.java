@@ -1,8 +1,10 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.GenreConverter;
+import com.brunoreolon.cinebaianosapi.api.model.genre.GenreResponse;
 import com.brunoreolon.cinebaianosapi.api.model.genre.stats.GenreStatsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.GenreVoteBreakdownResponse;
+import com.brunoreolon.cinebaianosapi.domain.model.Genre;
 import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.service.GenreService;
 import lombok.AllArgsConstructor;
@@ -42,6 +44,13 @@ public class GenreController {
     public ResponseEntity<List<GenreStatsResponse>> getGenresByUser(@PathVariable String discordId) {
         Map<String, Integer> genreCount = genreService.getGenreRankingsByUser(discordId);
         return ResponseEntity.ok().body(genreConverter.toResponseList(genreCount));
+    }
+
+    @GetMapping()
+    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    public ResponseEntity<List<GenreResponse>> getAllGenres() {
+        List<Genre> genres = genreService.getAllGenres();
+        return ResponseEntity.ok().body(genreConverter.toDetailResponseList(genres));
     }
 
 }

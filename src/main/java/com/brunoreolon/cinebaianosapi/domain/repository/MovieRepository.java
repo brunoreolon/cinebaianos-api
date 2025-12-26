@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.repository;
 
+import com.brunoreolon.cinebaianosapi.domain.model.Genre;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -51,7 +52,10 @@ public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecific
                 JOIN m.genres g
                 ORDER BY g.name
             """)
-    List<String> findAllGenres();
+    List<String> findAllNameGenres();
+
+    @Query("SELECT g FROM Genre g ORDER BY g.id")
+    List<Genre> findAllGenres();
 
     @Query("""
                 SELECT g.name
