@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.model.movie.response;
 
-import com.brunoreolon.cinebaianosapi.api.model.GenreResponse;
+import com.brunoreolon.cinebaianosapi.api.model.genre.GenreResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

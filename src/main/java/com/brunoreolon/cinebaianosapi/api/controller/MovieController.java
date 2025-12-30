@@ -3,6 +3,7 @@ package com.brunoreolon.cinebaianosapi.api.controller;
 import com.brunoreolon.cinebaianosapi.api.converter.MovieConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.TmdbConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
+import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.MoviePage;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVoteDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieIdRequest;
@@ -24,6 +25,9 @@ import com.brunoreolon.cinebaianosapi.domain.service.MovieService;
 import com.brunoreolon.cinebaianosapi.domain.service.TmdbService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,11 +36,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,13 +72,19 @@ public class MovieController {
     @Operation(summary = "Adicionar filme pelo TMDb ID",
             description = "Recebe o TMDb ID de um filme, obtém os dados diretamente da API do TMDb e realiza o cadastro no sistema.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Filme cadastrado com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para adicionar filmes para outro usuário"),
-            @ApiResponse(responseCode = "404", description = "Filme não encontrado no TMDb")
+            @ApiResponse(responseCode = "201", description = "Filme cadastrado com sucesso", content = @Content(schema = @Schema(implementation = MovieWithChooserResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para adicionar filmes para outro usuário", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado no TMDb", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
-    public ResponseEntity<MovieWithChooserResponse> addById(@Valid @RequestBody MovieIdRequest movieIdRequest,
-                                                           @RequestParam(name = "language", required = false) String language) {
+    public ResponseEntity<MovieWithChooserResponse> addById(
+            @Valid @RequestBody MovieIdRequest movieIdRequest,
+
+            @Parameter(
+                    description = "Idioma usado nas consultas ao TMDb. Se não informado, utiliza o idioma padrão do sistema.",
+                    example = "pt-BR"
+            )
+            @RequestParam(name = "language", required = false) String language) {
         if (language == null) {
             language = tmdbProperties.getLanguage();
         }
@@ -90,19 +102,28 @@ public class MovieController {
     @PostMapping("/candidates")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(summary = "Adicionar filme informando título e ano",
-            description = "Realiza uma busca no TMDb utilizando título e ano. "
-                    + "Caso apenas um resultado seja encontrado, o filme é cadastrado. "
-                    + "Se múltiplos resultados forem encontrados, uma exceção contendo as opções será retornada."
+            description = """
+                    Realiza uma busca no TMDb utilizando título e ano.
+                    - Se apenas um resultado for encontrado, o filme será cadastrado automaticamente.
+                    - Se múltiplos resultados forem encontrados, a requisição falha com status 409,
+                      retornando as opções encontradas.
+                    """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Filme cadastrado com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para adicionar filmes para outro usuário"),
-            @ApiResponse(responseCode = "404", description = "Nenhum filme correspondente encontrado no TMDb"),
-            @ApiResponse(responseCode = "409", description = "Mais de um filme encontrado para os critérios informados")
+            @ApiResponse(responseCode = "201", description = "Filme cadastrado com sucesso", content = @Content(schema = @Schema(implementation = MovieVoteDetailResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para adicionar filmes para outro usuário", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado no TMDb", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Conflito de negócio (ex: múltiplos filmes encontrados ao pesquisar pelo título/ano)", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
-    public ResponseEntity<MovieVoteDetailResponse> searchAndAddMovie(@Valid @RequestBody MovieSearchRequest movieSearchRequest,
-                                                                     @RequestParam(name = "language", required = false) String language) {
+    public ResponseEntity<MovieVoteDetailResponse> searchAndAddMovie(
+            @Valid @RequestBody MovieSearchRequest movieSearchRequest,
+
+            @Parameter(
+                    description = "Idioma usado nas consultas ao TMDb. Se não informado, utiliza o idioma padrão do sistema.",
+                    example = "pt-BR"
+            )
+            @RequestParam(name = "language", required = false) String language) {
         if (language == null) {
             language = tmdbProperties.getLanguage();
         }
@@ -137,14 +158,26 @@ public class MovieController {
             description = "Retorna uma lista paginada de filmes cadastrados, com suporte a filtros, ordenação e paginação."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Lista de filmes retornada com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
+            @ApiResponse(responseCode = "200", description = "Lista de filmes retornada com sucesso", content = @Content(schema = @Schema(implementation = MoviePage.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<MoviePage> getAll(
+            @ParameterObject
             MovieQueryFilter queryFilter,
+
+            @Parameter(description = "Número da página (inicia em 0)", example = "0")
             @RequestParam(name = "page", defaultValue = "0", required = false) @PositiveOrZero Integer page,
+
+            @Parameter(description = "Quantidade de registros por página", example = "10")
             @RequestParam(name = "size", defaultValue = "10", required = false) @Positive Integer size,
+
+            @Parameter(
+                    description = "Campo principal usado para ordenação. A ordenação sempre aplica um segundo critério por nome do usuário.",
+                    example = "dateAdded"
+            )
             @RequestParam(name = "sortBy", defaultValue = "dateAdded", required = false) String sortBy,
+
+            @Parameter(description = "Direção da ordenação (asc ou desc)", example = "desc")
             @RequestParam(name = "sortDir", defaultValue = "desc", required = false) String sortDir
     ) {
         Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
@@ -166,11 +199,16 @@ public class MovieController {
             description = "Retorna os detalhes completos de um filme cadastrado no sistema, incluindo avaliador e informações adicionais."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Filme encontrado"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "404", description = "Filme não encontrado")
+            @ApiResponse(responseCode = "200", description = "Filme encontrado", content = @Content(schema = @Schema(implementation = MovieWithChooserResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
-    public ResponseEntity<MovieWithChooserResponse> get(@PathVariable("movieId") Long movieId) {
+    public ResponseEntity<MovieWithChooserResponse> get(
+            @Parameter(
+                    description = "Identificador único do filme",
+                    example = "42"
+            )
+            @PathVariable("movieId") Long movieId) {
         Movie movie = movieService.get(movieId);
         return ResponseEntity.ok().body(movieConverter.toWithChooserResponse(movie));
     }
@@ -183,11 +221,16 @@ public class MovieController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Filme excluído com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir filmes de outros usuários"),
-            @ApiResponse(responseCode = "404", description = "Filme não encontrado")
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir filmes de outros usuários", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
-    public ResponseEntity<Void> delete(@PathVariable @ResourceKey Long movieId) {
+    public ResponseEntity<Void> delete(
+            @Parameter(
+                    description = "Identificador único do filme",
+                    example = "42"
+            )
+            @PathVariable @ResourceKey Long movieId) {
         movieService.delete(movieId);
         return ResponseEntity.noContent().build();
     }
@@ -199,11 +242,16 @@ public class MovieController {
             description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu Discord ID."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Filmes retornados com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "200", description = "Filmes retornados com sucesso", content = @Content(schema = @Schema(implementation = UserWithMoviesResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
-    public ResponseEntity<UserWithMoviesResponse> getMoviesByUser(@PathVariable String discordId) {
+    public ResponseEntity<UserWithMoviesResponse> getMoviesByUser(
+            @Parameter(
+                    description = "Identificador único do usuário",
+                    example = "987654321098765432"
+            )
+            @PathVariable String discordId) {
         User user = userService.getWithMovies(discordId);
         UserWithMoviesResponse response = userConverter.toWithMoviesResponse(user);
 
@@ -213,19 +261,27 @@ public class MovieController {
     @GetMapping("/awaiting-review")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
-            summary = "Listar filmes por usuário",
-            description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu Discord ID."
+            summary = "Listar filmes aguardando avaliação",
+            description = "Retorna uma lista paginada de filmes que ainda não receberam avaliação."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Filmes retornados com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "200", description = "Filmes retornados com sucesso", content = @Content(schema = @Schema(implementation = MoviePage.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<MoviePage> getMoviesAwaitingReview(
+            @ParameterObject
             MovieQueryFilter queryFilter,
+
+            @Parameter(description = "Número da página (inicia em 0)", example = "0")
             @RequestParam(name = "page", defaultValue = "0", required = false) @PositiveOrZero Integer page,
+
+            @Parameter(description = "Quantidade de registros por página", example = "10")
             @RequestParam(name = "size", defaultValue = "10", required = false) @Positive Integer size,
+
+            @Parameter(description = "Campo usado para ordenação", example = "dateAdded")
             @RequestParam(name = "sortBy", defaultValue = "dateAdded", required = false) String sortBy,
+
+            @Parameter(description = "Direção da ordenação (asc ou desc)", example = "desc")
             @RequestParam(name = "sortDir", defaultValue = "desc", required = false) String sortDir
     ) {
         Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;

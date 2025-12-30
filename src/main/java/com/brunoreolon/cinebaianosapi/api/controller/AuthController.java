@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
+import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.auth.request.LoginRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.request.PasswordRecoveryRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.request.ResetPasswordRequest;
@@ -16,6 +17,13 @@ import com.brunoreolon.cinebaianosapi.domain.service.JwtBlacklistService;
 import com.brunoreolon.cinebaianosapi.domain.service.PasswordRecoveryService;
 import com.brunoreolon.cinebaianosapi.domain.service.RefreshTokenService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +37,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/auth")
 @AllArgsConstructor
+@Tag(name = "Autenticação", description = "Operações relacionadas à autenticação e recuperação de senha.")
 public class AuthController {
 
     private final RefreshTokenService refreshTokenService;
@@ -40,7 +49,14 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody @Valid LoginRequest req) {
+    @Operation(summary = "Login do usuário", description = "Autentica um usuário e retorna tokens de acesso e refresh.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Autenticação bem-sucedida", content = @Content(schema = @Schema(implementation = TokenResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Credenciais inválidas", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<TokenResponse> login(
+            @Parameter(description = "Dados de login do usuário")
+            @RequestBody @Valid LoginRequest req) {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
         );
@@ -59,7 +75,14 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refresh(@RequestBody @Valid RefreshRequest request) {
+    @Operation(summary = "Atualizar token de acesso", description = "Gera um novo token de acesso e refresh usando o refresh token válido.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Tokens renovados com sucesso", content = @Content(schema = @Schema(implementation = TokenResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Refresh token inválido ou expirado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<TokenResponse> refresh(
+            @Parameter(description = "Refresh token do usuário")
+            @RequestBody @Valid RefreshRequest request) {
         RefreshToken oldToken = refreshTokenService.findByToken(request.getRefreshToken())
                 .orElseThrow(() -> new InvalidRefreshTokenException("The refresh token is invalid"));
 
@@ -83,8 +106,17 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody @Valid RefreshRequest request,
-                                       @RequestHeader(value = "Authorization", required = false) String authorization) {
+    @Operation(summary = "Logout do usuário", description = "Desativa o refresh token e coloca o access token na blacklist.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Logout realizado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Refresh token inválido", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> logout(
+            @Parameter(description = "Refresh token do usuário")
+            @RequestBody @Valid RefreshRequest request,
+
+            @Parameter(description = "Access token do usuário (Authorization header)")
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
         refreshTokenService.findByToken(request.getRefreshToken())
                 .ifPresent(refreshTokenService::deactivateToken);
 
@@ -97,13 +129,28 @@ public class AuthController {
     }
 
     @PostMapping("/recover")
-    public ResponseEntity<Void> recoverPassword(@RequestBody @Valid PasswordRecoveryRequest recoveryRequest) {
+    @Operation(summary = "Recuperação de senha", description = "Envia email para o usuário com token para redefinir senha.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Email de recuperação enviado"),
+            @ApiResponse(responseCode = "404", description = "Email não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> recoverPassword(
+            @Parameter(description = "Email do usuário para recuperação de senha")
+            @RequestBody @Valid PasswordRecoveryRequest recoveryRequest) {
         recoveryService.recover(recoveryRequest.getEmail());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    @Operation(summary = "Redefinir senha", description = "Redefine a senha do usuário utilizando o token recebido no email de recuperação.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Senha redefinida com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Token inválido ou expirado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> resetPassword(
+            @Parameter(description = "Token de recuperação e nova senha")
+            @RequestBody @Valid ResetPasswordRequest request) {
         PasswordResetToken resetToken =
                 recoveryService.validate(request.getToken());
 

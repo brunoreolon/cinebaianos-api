@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.domain.spec;
+package com.brunoreolon.cinebaianosapi.infra.repository.spec;
 
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import jakarta.persistence.criteria.*;
@@ -32,16 +32,16 @@ public class MovieSpecification {
     }
 
     public static Specification<Movie> notVotedBy(String discordId) {
-        return (root, query, cb) -> {
+        return (root, query, builder) -> {
             Subquery<Vote> subquery = query.subquery(Vote.class);
             Root<Vote> voteRoot = subquery.from(Vote.class);
             subquery.select(voteRoot);
             subquery.where(
-                    cb.equal(voteRoot.get("id").get("voterId"), discordId),
-                    cb.equal(voteRoot.get("id").get("movieId"), root.get("id"))
+                    builder.equal(voteRoot.get("id").get("voterId"), discordId),
+                    builder.equal(voteRoot.get("id").get("movieId"), root.get("id"))
             );
 
-            return cb.not(cb.exists(subquery));
+            return builder.not(builder.exists(subquery));
         };
     }
 

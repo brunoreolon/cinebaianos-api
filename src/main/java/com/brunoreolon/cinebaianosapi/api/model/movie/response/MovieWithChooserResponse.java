@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.model.movie.response;
 
-import com.brunoreolon.cinebaianosapi.api.model.GenreResponse;
+import com.brunoreolon.cinebaianosapi.api.model.genre.GenreResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
 import lombok.AllArgsConstructor;
