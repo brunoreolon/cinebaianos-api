@@ -57,7 +57,7 @@ public class UserContextService {
 
     public User requireLoggedUser() {
         return getLoggedUser().orElseThrow(() ->
-                new OwnershipAccessDeniedException("User not authenticated"));
+                new OwnershipAccessDeniedException("auth.user_not_authenticated"));
     }
 
 }

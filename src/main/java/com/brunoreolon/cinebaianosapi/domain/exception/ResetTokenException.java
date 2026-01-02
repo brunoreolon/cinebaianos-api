@@ -4,12 +4,11 @@ import org.springframework.http.HttpStatus;
 
 public class ResetTokenException extends BusinessException{
 
-    private static final String DEFAULT_TITLE = "Token inválido";
-    private static final String DEFAULT_MESSAGE =
-            "O token de redefinição de senha é inválido, expirado ou já foi utilizado.";
+    private static final String DEFAULT_TITLE = "invalid.reset.token.title";
+    private static final String DEFAULT_MESSAGE = "invalid.reset.token.message";
 
     public ResetTokenException() {
-        super(DEFAULT_MESSAGE, HttpStatus.BAD_REQUEST, DEFAULT_TITLE);
+        super(DEFAULT_TITLE, DEFAULT_MESSAGE, HttpStatus.BAD_REQUEST);
     }
 
 }

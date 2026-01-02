@@ -43,8 +43,7 @@ public class VoteService implements OwnableService<Vote, VoteId> {
         Movie movie = movieService.get(movieId);
 
         if (voteRepository.existsById(new VoteId(movieId, discordId))) {
-            throw new VoteAlreadyRegisteredException(String.format("Vote has already been registered for user '%s' and movie '%s'",
-                    discordId, movieId));
+            throw new VoteAlreadyRegisteredException("vote.already.registered.message", new Object[]{discordId, movieId});
         }
 
         return save(voter, movie, voteId);
@@ -65,11 +64,11 @@ public class VoteService implements OwnableService<Vote, VoteId> {
         );
 
         if (daysElapsed > voteUpdateLimitDays) {
-            throw new BusinessException(String.format(
-                    "This vote was created %d days ago and can no longer be modified. The maximum allowed time to change a vote is %d days after it was created.",
-                        daysElapsed, voteUpdateLimitDays),
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "Vote modification period expired"
+            throw new BusinessException(
+                    "vote.modification.expired.title",
+                    "vote.modification.expired.message",
+                    new Object[]{daysElapsed, voteUpdateLimitDays},
+                    HttpStatus.UNPROCESSABLE_ENTITY
             );
         }
 
@@ -81,8 +80,7 @@ public class VoteService implements OwnableService<Vote, VoteId> {
 
     public Vote getVote(String discordId, Long movieId) {
         return voteRepository.findByIdWithMovieAndVoter(new VoteId(movieId, discordId))
-                .orElseThrow(() -> new VoteNotFoundException(String.format("Vote not found for user '%s' and movie '%s'",
-                        discordId, movieId)));
+                .orElseThrow(() -> new VoteNotFoundException("vote.not.found.message", new Object[]{discordId, movieId}));
     }
 
     public Long countVotesReceivedByTypeForUser(VoteType voteType, User user) {
@@ -106,16 +104,18 @@ public class VoteService implements OwnableService<Vote, VoteId> {
     private Vote save(User voter, Movie movie, Long voteId) {
         VoteType voteType = voteTypeRegistrationService.getOptional(voteId)
                 .orElseThrow(() -> new BusinessException(
-                        String.format("The vote type with id '%d' does not exist", voteId),
+                        "vote.type.not.found.title",
+                        "vote.type.not.found.message",
+                        new Object[]{voteId},
                         HttpStatus.BAD_REQUEST,
-                        "Inactive Vote",
                         ApiErrorCode.VOTE_TYPE_NOT_FOUND.asMap()));
 
         if (!voteType.isActive()) {
             throw new BusinessException(
-                    String.format("The vote type with id '%d' is inactive and cannot be used", voteId),
+                    "vote.type.inactive.title",
+                    "vote.type.inactive.message",
+                    new Object[]{voteId},
                     HttpStatus.BAD_REQUEST,
-                    "Inactive Vote Type",
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap()
             );
         }

@@ -7,6 +7,7 @@ import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryRes
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByAdminEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByRecoverEvent;
+import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
@@ -14,9 +15,9 @@ import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserStatsRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserSummaryProjection;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,7 @@ public class UserService {
     public User getWithMovies(String discordId) {
         return userRepository.findByDiscordIdWithMovies(discordId)
                 .filter(u -> !u.getIsBot())
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with discordId '%s' not found", discordId)));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{discordId}));
     }
 
     public List<UserVoteStatsResponse> getVotesReceived(Long voteTypeId) {
@@ -158,8 +159,19 @@ public class UserService {
     }
 
     @Transactional
-    public void updateStatusAdmin(String discordId, @NotNull Boolean active) {
-        User user = userRegistratioService.get(discordId);
+    public void updateStatusAdmin(String loggedUserIdentifier, String targetDiscordId, Boolean active) {
+        User loggedUser = userRepository.findByEmail(loggedUserIdentifier)
+                .orElseThrow(() -> new IllegalStateException("Logged user not found"));
+
+        if (loggedUser.getDiscordId().equals(targetDiscordId)) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.cannot_remove_own_admin.message",
+                    HttpStatus.FORBIDDEN
+            );
+        }
+
+        User user = userRegistratioService.get(targetDiscordId);
 
         if (active) {
             user.AddAdmin();

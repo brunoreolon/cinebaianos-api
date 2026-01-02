@@ -9,11 +9,8 @@ import java.util.Map;
 
 public class MultipleMoviesFoundException extends BusinessException {
 
-    public static final String MULTIPLE_MOVIES_TITLE = "Multiple Movies Found";
-    public static final String MULTIPLE_MOVIES_DETAIL = "More than one movie found. Choose the correct one to add.";
-
     public MultipleMoviesFoundException(List<TmdbMovieResponse> movies) {
-        super(MULTIPLE_MOVIES_DETAIL, HttpStatus.CONFLICT, MULTIPLE_MOVIES_TITLE,
+        super("multiple.movies.found.title", "multiple.movies.found.detail", HttpStatus.CONFLICT,
                 Map.of("options", movies, "errorCode", ApiErrorCode.MULTIPLE_MOVIES_FOUND.getCode()));
     }
 

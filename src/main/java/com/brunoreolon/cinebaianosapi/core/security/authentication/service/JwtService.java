@@ -11,7 +11,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.Key;
 import java.security.KeyStore;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Base64;
@@ -47,7 +46,7 @@ public class JwtService {
                 }
             }
 
-            this.privateKey = (PrivateKey) keyStore.getKey(jwtProperties.getAlias(), jwtProperties.getKeypass().toCharArray());
+            this.privateKey = keyStore.getKey(jwtProperties.getAlias(), jwtProperties.getKeypass().toCharArray());
             this.publicKey = keyStore.getCertificate(jwtProperties.getAlias()).getPublicKey();
 
         } catch (Exception e) {

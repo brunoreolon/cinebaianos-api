@@ -5,19 +5,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.LocaleResolver;
 
 import java.io.IOException;
+import java.util.Locale;
 
 @Component
 @AllArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
+    private final MessageSource messageSource;
+    private final LocaleResolver localeResolver;
+
+    private String msg(HttpServletRequest request, String code) {
+        Locale locale = localeResolver.resolveLocale(request);
+        return messageSource.getMessage(code, null, locale);
+    }
 
     @Override
     public void commence(HttpServletRequest request,
@@ -31,9 +41,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         }
 
         ProblemDetail problemDetail = ExceptionUtil.getProblemDetail(
+                msg(request, reason.getTitleKey()),
+                msg(request, reason.getMessageKey()),
                 HttpStatus.UNAUTHORIZED,
-                reason.getTitle(),
-                reason.getDefaultDetail(),
                 reason.getCodeAsMap(),
                 null
         );

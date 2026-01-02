@@ -18,10 +18,10 @@ public class BusinessPermissionService {
      */
     public void checkCanAddMovieFor(String chooserDiscordId) {
         User logged = userContextService.getLoggedUser()
-                .orElseThrow(() -> new OwnershipAccessDeniedException("User not authenticated"));
+                .orElseThrow(() -> new OwnershipAccessDeniedException("auth.user_not_authenticated"));
 
         if (!userContextService.isBot() && !Objects.equals(logged.getDiscordId(), chooserDiscordId)) {
-            throw new OwnershipAccessDeniedException("You cannot add movies for other users");
+            throw new OwnershipAccessDeniedException("auth.cannot_add_movie_for_other");
         }
     }
 
@@ -30,10 +30,10 @@ public class BusinessPermissionService {
      */
     public void checkCanVoteFor(String voterDiscordId) {
         User logged = userContextService.getLoggedUser()
-                .orElseThrow(() -> new OwnershipAccessDeniedException("User not authenticated"));
+                .orElseThrow(() -> new OwnershipAccessDeniedException("auth.user_not_authenticated"));
 
         if (!userContextService.isBot() && !Objects.equals(logged.getDiscordId(), voterDiscordId)) {
-            throw new OwnershipAccessDeniedException("You cannot vote on behalf of another user");
+            throw new OwnershipAccessDeniedException("auth.cannot_vote_for_other");
         }
     }
 

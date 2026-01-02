@@ -9,13 +9,13 @@ import java.util.Map;
 @Getter
 public enum AuthErrorReason {
 
-    MISSING_TOKEN("Missing Token", "The access token is missing from the request", "token_missing"),
-    BLACKLISTED("Token Blacklisted", "The provided token has been revoked", "token_blacklisted"),
-    EXPIRED("Token Expired", "The access token has expired", "token_expired"),
-    INVALID("Invalid Token", "The access token is invalid", "token_invalid");
+    MISSING_TOKEN("auth.token_missing.title", "auth.token_missing.message", "token_missing"),
+    BLACKLISTED("auth.token_blacklisted.title", "auth.token_blacklisted.message", "token_blacklisted"),
+    EXPIRED("auth.token_expired.title", "auth.token_expired.message", "token_expired"),
+    INVALID("auth.token_invalid.title", "auth.token_invalid.message", "token_invalid");
 
-    private final String title;
-    private final String defaultDetail;
+    private final String titleKey;
+    private final String messageKey;
     private final String code;
 
     public Map<String, Object> getCodeAsMap() {

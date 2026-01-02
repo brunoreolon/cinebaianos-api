@@ -84,10 +84,10 @@ public class AuthController {
             @Parameter(description = "Refresh token do usuário")
             @RequestBody @Valid RefreshRequest request) {
         RefreshToken oldToken = refreshTokenService.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new InvalidRefreshTokenException("The refresh token is invalid"));
+                .orElseThrow(() -> new InvalidRefreshTokenException("invalid.refresh.token.message"));
 
         if (!refreshTokenService.isValid(oldToken)) {
-            throw new ExpiredRefreshTokenException("The refresh token is expired or inactive");
+            throw new ExpiredRefreshTokenException("expired.refresh.token.message");
         }
 
         User user = oldToken.getUser();

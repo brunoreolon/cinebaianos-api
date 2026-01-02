@@ -8,6 +8,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Own
 import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,11 +31,12 @@ public class UserRegistratioService implements OwnableService<User, String> {
 
     @Transactional
     public User create(User user) {
+        validateEmail(user);
+
         boolean existsById = userRepository.existsById(user.getDiscordId());
 
         if (existsById)
-            throw new UserAlreadyRegisteredException(String.format("There is already a user registered with the discord id '%s'",
-                    user.getDiscordId()));
+            throw new UserAlreadyRegisteredException("user.discordid.already.registered.message", new Object[]{user.getDiscordId()});
 
         String newPassword = generateRandomPassword(8);
 
@@ -68,8 +70,7 @@ public class UserRegistratioService implements OwnableService<User, String> {
                 .isPresent();
 
         if (emailAlreadyExists)
-            throw new UserAlreadyRegisteredException(String.format("There is already a user registered with the email '%s'",
-                    user.getEmail()));
+            throw new UserAlreadyRegisteredException("user.email.registered.message", new Object[]{user.getEmail()});
     }
 
     @Transactional
@@ -88,14 +89,14 @@ public class UserRegistratioService implements OwnableService<User, String> {
             userRepository.delete(user);
             userRepository.flush();
         } catch (DataIntegrityViolationException ex) {
-            throw new EntityInUseException(String.format("Cannot delete user with id '%s' because it has associated movies.", discordId));
+            throw new EntityInUseException("user.in.use.title", new Object[]{discordId}, ApiErrorCode.USER_IN_USE);
         }
     }
 
     @Override
     public User get(String discordId) {
         return userRepository.findByDiscordId(discordId)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with discordId '%s' not found", discordId)));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{discordId}));
     }
 
 }

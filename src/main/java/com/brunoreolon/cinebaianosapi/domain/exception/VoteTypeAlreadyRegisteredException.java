@@ -4,8 +4,8 @@ import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 
 public class VoteTypeAlreadyRegisteredException extends EntityAlreadyRegisteredException {
 
-    public VoteTypeAlreadyRegisteredException(String message) {
-        super(message, ApiErrorCode.VOTE_TYPE_ALREADY_REGISTERED);
+    public VoteTypeAlreadyRegisteredException(String message, Object[] args) {
+        super(message, args, ApiErrorCode.VOTE_TYPE_ALREADY_REGISTERED);
     }
 
 }

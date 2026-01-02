@@ -4,8 +4,8 @@ import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 
 public class VoteNotFoundException extends EntityNotFoundException {
 
-    public VoteNotFoundException(String message) {
-        super(message, ApiErrorCode.INVALID_VOTE);
+    public VoteNotFoundException(String message, Object[] args) {
+        super(message, args, ApiErrorCode.INVALID_VOTE);
     }
 
 }

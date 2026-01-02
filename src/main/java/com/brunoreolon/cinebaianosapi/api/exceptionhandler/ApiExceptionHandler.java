@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,6 +19,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.brunoreolon.cinebaianosapi.util.ExceptionUtil.*;
 
@@ -25,21 +27,38 @@ import static com.brunoreolon.cinebaianosapi.util.ExceptionUtil.*;
 @AllArgsConstructor
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
-    public static final String INVALID_FIELDS_TITLE = "One or more fields are invalid";
-    public static final String INVALID_FIELDS_DETAIL = "Check the 'fields' property for details";
+    public static final String INVALID_FIELDS_TITLE = "validation.failed.title";
+    public static final String INVALID_FIELDS_DETAIL = "validation.failed.detail";
 
     private static final Logger logger = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     private final MessageSource messageSource;
 
+    private String msg(String code, Object[] args) {
+        return messageSource.getMessage(
+                code,
+                args,
+                LocaleContextHolder.getLocale()
+        );
+    }
+
+    private Map<String, Object> translateInvalidFields(Map<String, Object> fields) {
+        return fields.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> msg(entry.getValue().toString(), null)
+                ));
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers,
                                                                   HttpStatusCode status, WebRequest request) {
-        Map<String, Object> invalidFields = getInvalidFields(ex, messageSource);
+        Map<String, Object> invalidFields = translateInvalidFields(ExceptionUtil.getInvalidFields(ex));
+
         ProblemDetail problemDetail = getProblemDetail(
+                msg(INVALID_FIELDS_TITLE, null),
+                msg(INVALID_FIELDS_DETAIL, null),
                 status,
-                INVALID_FIELDS_TITLE,
-                INVALID_FIELDS_DETAIL,
                 null,
                 invalidFields
         );
@@ -50,11 +69,12 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        Map<String, Object> invalidFields = getInvalidFields(ex, messageSource);
+        Map<String, Object> invalidFields = translateInvalidFields(ExceptionUtil.getInvalidFields(ex));
+
         ProblemDetail problem = getProblemDetail(
+                msg(INVALID_FIELDS_TITLE, null),
+                msg(INVALID_FIELDS_DETAIL, null),
                 HttpStatus.BAD_REQUEST,
-                INVALID_FIELDS_TITLE,
-                INVALID_FIELDS_DETAIL,
                 null,
                 invalidFields
         );
@@ -68,9 +88,9 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         logger.warn("Business exception occurred: {}", ex.getMessage());
 
         ProblemDetail problemDetail = getProblemDetail(
+                msg(ex.getTitleKey(), null),
+                msg(ex.getMessageKey(), ex.getArgs()),
                 ex.getStatus(),
-                ex.getTitle(),
-                ex.getMessage(),
                 ex.getProperties(),
                 null
         );
@@ -83,9 +103,9 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         logger.warn("OwnershipAccessDeniedException exception occurred: {}", ex.getMessage());
 
         ProblemDetail problemDetail = getProblemDetail(
+                msg(ex.getTitleKey(), null),
+                msg(ex.getMessageKey(), null),
                 ex.getStatus(),
-                ex.getTitle(),
-                ex.getMessage(),
                 ex.getErrorCode(),
                 null
         );
@@ -98,12 +118,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         logger.warn("Invalid credentials attempt: {}", ex.getMessage());
 
         ProblemDetail problemDetail = ExceptionUtil.getProblemDetail(
+                msg("auth.invalid_credentials.title", null),
+                msg("auth.invalid_credentials.message", null),
                 HttpStatus.UNAUTHORIZED,
-                "Invalid credentials",
-                ex.getMessage(),
                 ApiErrorCode.INVALID_CREDENTIALS.asMap(),
                 null
         );
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
 
@@ -112,12 +133,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         logger.error("Unexpected exception occurred", ex);
 
         ProblemDetail problem = getProblemDetail(
+                msg("internal.error.title", null),
+                msg(ex.getMessage(), null),
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "Internal Server Error",
-                "An unexpected error occurred",
                 ApiErrorCode.UNEXPECTED_ERROR.asMap(),
                 null
         );
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
 

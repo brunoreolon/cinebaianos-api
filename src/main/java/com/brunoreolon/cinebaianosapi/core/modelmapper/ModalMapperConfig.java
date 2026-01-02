@@ -23,6 +23,8 @@ public class ModalMapperConfig {
 
         modelMapper.typeMap(User.class, User.class).addMappings(mapper -> {
             mapper.skip(User::setMovies);
+            mapper.skip(User::setActive);
+            mapper.skip(User::setIsBot);
         });
 
         modelMapper.createTypeMap(ClientMovieDetailsResponse.class, Movie.class)

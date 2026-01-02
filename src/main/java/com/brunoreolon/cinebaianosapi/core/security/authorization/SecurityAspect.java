@@ -35,7 +35,7 @@ public class SecurityAspect {
     @Before("@annotation(requireRole)")
     public void checkRole(JoinPoint joinPoint, CheckSecurity.RequireRole requireRole) {
         if (!authorizationService.hasAnyRole(requireRole.roles()) && !(requireRole.allowBot() && authorizationService.isBot())) {
-            throw new OwnershipAccessDeniedException("User does not have required role");
+            throw new OwnershipAccessDeniedException("auth.required_role.message");
         }
     }
 
@@ -48,7 +48,7 @@ public class SecurityAspect {
         boolean authorized = authorize(service, id, checkOwner);
 
         if (!authorized) {
-            throw new OwnershipAccessDeniedException("You are not allowed to modify this resource");
+            throw new OwnershipAccessDeniedException("auth.resource_not_owned.message");
         }
     }
 

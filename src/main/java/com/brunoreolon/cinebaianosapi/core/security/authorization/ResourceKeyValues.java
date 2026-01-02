@@ -47,9 +47,8 @@ public class ResourceKeyValues {
                  InvocationTargetException |
                  NoSuchMethodException |
                  java.beans.IntrospectionException e) {
-            throw new IllegalStateException(
-                    "Error constructing ID of type " + type.getSimpleName(), e
-            );
+//            throw new IllegalStateException("Error constructing ID of type " + type.getSimpleName(), e);
+            throw new IllegalStateException("id.constructor.error");
         }
     }
 

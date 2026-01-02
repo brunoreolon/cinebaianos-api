@@ -85,9 +85,9 @@ public class User implements Ownable<String> {
     public void activate() {
         if (!this.canActivate())
             throw new BusinessException(
-                    "You cannot activate a user that is already active.",
+                    "user.cannot.activate.title",
+                    "user.cannot.activate.message",
                     HttpStatus.BAD_REQUEST,
-                    "User cannot be activated",
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap());
 
         this.active = true;
@@ -96,9 +96,9 @@ public class User implements Ownable<String> {
     public void disable() {
         if (!this.canDisable())
             throw new BusinessException(
-                    "You cannot deactivate a user that is already deactivated.",
+                    "user.cannot.disable.title",
+                    "user.cannot.disable.message",
                     HttpStatus.BAD_REQUEST,
-                    "User cannot be disabled",
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap());
 
         this.active = false;

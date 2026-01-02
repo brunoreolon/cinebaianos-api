@@ -18,6 +18,7 @@ public enum ApiErrorCode {
     USER_NOT_AUTHORIZED("user_not_authorized"),
     USER_NOT_FOUND("user_not_found"),
     USER_ALREADY_REGISTERED("user_already_registered"),
+    USER_IN_USE("user_in_use"),
 
     // Movies
     MOVIE_NOT_FOUND("movie_not_found"),
@@ -30,6 +31,7 @@ public enum ApiErrorCode {
     VOTE_INVALID_STATUS("vote_invalid_status"),
     VOTE_TYPE_ALREADY_REGISTERED("vote_type_already_registered"),
     VOTE_TYPE_NOT_FOUND("vote_type_not_found"),
+    VOTE_TYPE_IN_USE("vote_type_in_use"),
 
     // Tmdb
     TMDB_API_COMMUNICATION_ERROR("tmdb_api_communication_error"),

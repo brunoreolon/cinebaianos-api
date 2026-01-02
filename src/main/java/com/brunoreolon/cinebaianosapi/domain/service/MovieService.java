@@ -35,16 +35,15 @@ public class MovieService implements OwnableService<Movie, Long> {
                 .isPresent();
 
         if (tmdbIdAlreadyExists)
-            throw new MovieAlreadyRegisteredException(String.format("there is already a movie registered with the tmdb id '%s'",
-                    movie.getTmdbId()));
+            throw new MovieAlreadyRegisteredException("movie.already.registered.message", new Object[]{movie.getTmdbId()});
 
         User chooser = userRegistratioService.get(chooserID);
 
         if (chooser.getIsBot())
             throw new BusinessException(
-                    "Bot users cannot have movies added.",
+                    "action.not.allowed.title",
+                    "action.not.allowed.message",
                     HttpStatus.FORBIDDEN,
-                    "Action Not Allowed",
                     ApiErrorCode.BOT_USER_FORBIDDEN.asMap());
 
         movie.setChooser(chooser);
@@ -92,7 +91,7 @@ public class MovieService implements OwnableService<Movie, Long> {
     @Override
     public Movie get(Long movieId) {
         return movieRepository.findByIdWithGenres(movieId)
-                .orElseThrow(() -> new MovieNotFoundException(String.format("Movie with id '%d' not found", movieId)));
+                .orElseThrow(() -> new MovieNotFoundException("movie.not.found.message", new Object[]{movieId}));
     }
 
 }

@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.domain.exception.VoteTypeAlreadyRegistered
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteTypeNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.VoteTypeRepository;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
@@ -23,15 +24,14 @@ public class VoteTypeRegistrationService {
     @Transactional
     public VoteType save(VoteType voteType) {
         if (voteType.getId() != null && !voteTypeRepository.existsById(voteType.getId()))
-            throw new VoteTypeNotFoundException(String.format("VoteType with id '%d' not found", voteType.getId()));
+            throw new VoteTypeNotFoundException("vote.type.not.found.message", new Object[]{voteType.getId()});
 
         boolean nameAlreadyExists = voteTypeRepository.findByName(voteType.getName())
                 .filter(type -> !type.equals(voteType))
                 .isPresent();
 
         if (nameAlreadyExists)
-            throw new VoteTypeAlreadyRegisteredException(String.format("there is already a VoteType registered with the name '%s'",
-                    voteType.getName()));
+            throw new VoteTypeAlreadyRegisteredException("vote-type.already.registered.message", new Object[]{voteType.getName()});
 
         voteType.activate();
 
@@ -50,7 +50,7 @@ public class VoteTypeRegistrationService {
 
     public VoteType get(Long id) {
         return getOptional(id)
-                .orElseThrow(() -> new VoteTypeNotFoundException(String.format("VoteType with id '%d' not found", id)));
+                .orElseThrow(() -> new VoteTypeNotFoundException("vote.type.not.found.message", new Object[]{id}));
     }
 
     public List<VoteType> getAll(Boolean active) {
@@ -68,7 +68,7 @@ public class VoteTypeRegistrationService {
             voteTypeRepository.delete(voteType);
             voteTypeRepository.flush();
         } catch (DataIntegrityViolationException ex) {
-            throw new EntityInUseException(String.format("Cannot delete vote type with id '%d' because it has associated votes.", id));
+            throw new EntityInUseException("vote-type.in.use.title", new Object[]{id}, ApiErrorCode.VOTE_TYPE_IN_USE);
         }
     }
 

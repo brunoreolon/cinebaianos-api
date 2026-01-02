@@ -36,7 +36,7 @@ public interface OwnableService<T extends Ownable, ID> {
      * @return identificador construído
      */
     default ID buildId(ResourceKeyValues keyValues) {
-        throw new UnsupportedOperationException("Composite ID not supported here");
+        throw new UnsupportedOperationException("ownable.buildid.composite_not_supported");
     }
 
 }
