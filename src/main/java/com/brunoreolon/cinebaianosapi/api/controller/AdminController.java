@@ -22,6 +22,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -56,7 +58,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/users/{discordId}/activation")
+    @PostMapping("/users/{discordId}/activation")
     @CheckSecurity.RequireRole(roles = {Role.ADMIN})
     @Operation(
             summary = "Ativar/Desativar usuário",
@@ -78,7 +80,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/users/{discordId}/admin")
+    @PostMapping("/users/{discordId}/admin")
     @CheckSecurity.RequireRole(roles = {Role.ADMIN})
     @Operation(
             summary = "Conceder/Remover privilégios de administrador",
@@ -95,12 +97,15 @@ public class AdminController {
             @PathVariable String discordId,
 
             @Parameter(description = "Objeto contendo o novo status de administrador")
-            @Valid @RequestBody UserStatusAdminUpdateRequest admin) {
-        userService.updateStatusAdmin(discordId, admin.getAdmin());
+            @Valid @RequestBody UserStatusAdminUpdateRequest admin,
+
+            @Parameter(description = "Usuário autenticado (injetado pelo Spring Security)")
+            @AuthenticationPrincipal UserDetails userDetails) {
+        userService.updateStatusAdmin(userDetails.getUsername(), discordId, admin.getAdmin());
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/vote-types/{typeVoteId}/activation")
+    @PostMapping("/vote-types/{typeVoteId}/activation")
     @CheckSecurity.RequireRole(roles = {Role.ADMIN})
     @Operation(
             summary = "Ativar/Desativar tipo de voto",
