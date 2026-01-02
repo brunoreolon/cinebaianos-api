@@ -6,6 +6,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
 ![Maven](https://img.shields.io/badge/Maven-3.9.4-red)
 
+Este é um projeto pessoal feito para organizar, votar e ranquear os filmes que assistimos juntos.
 A **Cinebaianos API** é uma aplicação backend construída em **Java com Spring Boot**, responsável por gerenciar informações de filmes, votos de usuários e autenticação via JWT.
 A API se integra com o serviço externo **TMDb (The Movie Database)** para fornecer informações detalhadas sobre filmes.
 
@@ -149,54 +150,62 @@ A API se integra com o serviço externo **TMDb (The Movie Database)** para forne
   ]
 }
 ```
----
-
-## 📦 Docker
-
-### 1️⃣ Criar a imagem Docker
-
-```bash
-docker build -t cinebaianos-api -f docker/Dockerfile .
-```
-
-### 2️⃣ Rodar o container
-
-```bash
-docker run -d --name cinebaianos-api -p 8080:8080 cinebaianos-api
-```
 
 ---
 
-## 🔧 Variáveis de ambiente
+## 🔧 Variáveis de Ambiente
 
+Configuração das variáveis para rodar a API.
+
+---
+
+### 🗄 Banco de Dados
 ```bash
-# =======================
-# Banco de dados
-# =======================
 DB_URL=jdbc:postgresql://localhost:5432/cinebaianosdb
 DB_USER=postgres
 DB_PASSWORD=
+```
 
-# =======================
-# TMDb API
-# =======================
+### 🎬 TMDb API
+```bash
 BASE_URL=https://api.themoviedb.org/3
 API_KEY=
 POSTER_PATH=https://image.tmdb.org/t/p/original
+```
 
-# =======================
-# E-mail
-# =======================
+### 📧 E-mail
+```bash
+# Ambiente de Desenvolvimento (DEV)
 MAIL_HOST=
 MAIL_PORT=
 MAIL_USERNAME=
 MAIL_PASSWORD=
 
-# =======================
-# JWT
-# =======================
+# Ambiente de Produção (PROD)
+RESEND_API_KEY=
+RESEND_API_FROM=CineBaianos <no-reply@cinebaianos.com.br>
+```
+
+### 🔑 JWT (Autenticação)
+```bash
+ACCESS_TOKEN_EXPIRATION=60
+REFRESH_TOKEN_EXPIRATION=4320
 JWT_KEYSTORE_PATH=jwt.jks
 JWT_KEYSTORE_PASSWORD=
 JWT_KEY_PASSWORD=
 JWT_ALIAS=jwt
+
+# Apenas para produção
+JWT_KEYSTORE_BASE64=
+```
+
+### 🌐 Frontend & CORS
+```bash
+FRONTEND_URL=http://localhost:3000
+CORS_ALLOWED_ORIGINS=
+```
+
+### ⏱ Configuração de Votos
+```bash
+VOTE_UPDATE_LIMIT_DAYS=7
 ```
