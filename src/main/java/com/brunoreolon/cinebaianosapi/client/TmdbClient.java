@@ -22,6 +22,8 @@ public interface TmdbClient {
     @GetMapping("/movie/{movieId}")
     ClientMovieDetailsResponse getMovieDetails(@PathVariable(name = "movieId") Long movieId,
                                                @RequestParam("api_key") String apiKey,
-                                               @RequestParam("language") String language);
+                                               @RequestParam("language") String language,
+                                               @RequestParam(value = "append_to_response",
+                                                       required = false, defaultValue = "credits") String appendToResponse);
 
 }

@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 public class UserWithMoviesResponse {
 
-    private UserSummaryResponse user;
+    private UserDetailResponse user;
     private List<MovieDetailResponse> movies;
 
 }

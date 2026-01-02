@@ -1,26 +1,33 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
-import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteKey;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.VoteRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
-public class VoteService implements OwnableService<Vote, VoteKey> {
+public class VoteService implements OwnableService<Vote, VoteId> {
 
     private final MovieService movieService;
     private final UserRegistratioService userRegistratioService;
     private final VoteTypeRegistrationService voteTypeRegistrationService;
     private final VoteRepository voteRepository;
+
+    @Value("${vote.update-limit-days}")
+    private int voteUpdateLimitDays;
 
     public VoteService(@Lazy MovieService movieService, UserRegistratioService userRegistratioService,
                        VoteTypeRegistrationService voteTypeRegistrationService, VoteRepository voteRepository) {
@@ -36,8 +43,7 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
         Movie movie = movieService.get(movieId);
 
         if (voteRepository.existsById(new VoteId(movieId, discordId))) {
-            throw new VoteAlreadyRegisteredException(String.format("Vote has already been registered for user '%s' and movie '%s'",
-                    discordId, movieId));
+            throw new VoteAlreadyRegisteredException("vote.already.registered.message", new Object[]{discordId, movieId});
         }
 
         return save(voter, movie, voteId);
@@ -52,6 +58,20 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
     public Vote update(String discordId, Long movieId, Long voteId) {
         Vote existingVote = getVote(discordId, movieId);
 
+        long daysElapsed = ChronoUnit.DAYS.between(
+                existingVote.getCreated(),
+                LocalDateTime.now()
+        );
+
+        if (daysElapsed > voteUpdateLimitDays) {
+            throw new BusinessException(
+                    "vote.modification.expired.title",
+                    "vote.modification.expired.message",
+                    new Object[]{daysElapsed, voteUpdateLimitDays},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
         VoteType voteType = voteTypeRegistrationService.get(voteId);
         existingVote.setVote(voteType);
 
@@ -59,20 +79,23 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
     }
 
     public Vote getVote(String discordId, Long movieId) {
-        return voteRepository.findById(new VoteId(movieId, discordId))
-                .orElseThrow(() -> new VoteNotFoundException(String.format("Vote not found for user '%s' and movie '%s'",
-                        discordId, movieId)));
+        return voteRepository.findByIdWithMovieAndVoter(new VoteId(movieId, discordId))
+                .orElseThrow(() -> new VoteNotFoundException("vote.not.found.message", new Object[]{discordId, movieId}));
     }
 
-    public Long countVotesByTypeAndUser(VoteType voteType, User user) {
+    public Long countVotesReceivedByTypeForUser(VoteType voteType, User user) {
         return voteRepository.countAllByVoteTypeAndReceiver(voteType, user);
     }
 
-    public List<Vote> getVotesByUser(String discordId) {
-        List<Vote> byVoterDiscordId = voteRepository.findByVoterWithMovie(discordId);
-        return byVoterDiscordId;
+    public Long countVotesGivenByTypeForUser(VoteType voteType, User user) {
+        return voteRepository.countAllByVoteTypeAndGiver(voteType, user);
     }
 
+    public List<Vote> getVotesByUser(String discordId) {
+        return voteRepository.findByVoterWithMovie(discordId);
+    }
+
+    @Transactional
     public void delete(String discordId, Long movieId) {
         Vote vote = getVote(discordId, movieId);
         voteRepository.delete(vote);
@@ -81,16 +104,18 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
     private Vote save(User voter, Movie movie, Long voteId) {
         VoteType voteType = voteTypeRegistrationService.getOptional(voteId)
                 .orElseThrow(() -> new BusinessException(
-                        String.format("The vote type with id '%d' does not exist", voteId),
+                        "vote.type.not.found.title",
+                        "vote.type.not.found.message",
+                        new Object[]{voteId},
                         HttpStatus.BAD_REQUEST,
-                        "Inactive Vote",
                         ApiErrorCode.VOTE_TYPE_NOT_FOUND.asMap()));
 
         if (!voteType.isActive()) {
             throw new BusinessException(
-                    String.format("The vote type with id '%d' is inactive and cannot be used", voteId),
+                    "vote.type.inactive.title",
+                    "vote.type.inactive.message",
+                    new Object[]{voteId},
                     HttpStatus.BAD_REQUEST,
-                    "Inactive Vote Type",
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap()
             );
         }
@@ -113,8 +138,13 @@ public class VoteService implements OwnableService<Vote, VoteKey> {
     }
 
     @Override
-    public Vote get(VoteKey key) {
-        return getVote(key.getDiscordId(), key.getMovieId());
+    public Vote get(VoteId key) {
+        return getVote(key.getVoterId(), key.getMovieId());
+    }
+
+    @Override
+    public VoteId buildId(ResourceKeyValues keyValues) {
+        return keyValues.as(VoteId.class);
     }
 
 }

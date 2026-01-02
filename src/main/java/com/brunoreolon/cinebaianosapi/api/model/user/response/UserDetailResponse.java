@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -14,5 +16,11 @@ public class UserDetailResponse {
     private String discordId;
     private String name;
     private String email;
+    private String avatar;
+    private String biography;
+    private LocalDateTime Joined;
+    private boolean isAdmin;
+    private boolean isBot;
+    private boolean active;
 
 }

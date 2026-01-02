@@ -1,10 +1,13 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.domain.exception.EntityInUseException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteTypeAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteTypeNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.VoteTypeRepository;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,15 +24,19 @@ public class VoteTypeRegistrationService {
     @Transactional
     public VoteType save(VoteType voteType) {
         if (voteType.getId() != null && !voteTypeRepository.existsById(voteType.getId()))
-            throw new VoteTypeNotFoundException(String.format("VoteType with id '%d' not found", voteType.getId()));
+            throw new VoteTypeNotFoundException("vote.type.not.found.message", new Object[]{voteType.getId()});
 
         boolean nameAlreadyExists = voteTypeRepository.findByName(voteType.getName())
                 .filter(type -> !type.equals(voteType))
                 .isPresent();
 
         if (nameAlreadyExists)
-            throw new VoteTypeAlreadyRegisteredException(String.format("there is already a VoteType registered with the name '%s'",
-                    voteType.getName()));
+            throw new VoteTypeAlreadyRegisteredException("vote-type.already.registered.message", new Object[]{voteType.getName()});
+
+        voteType.activate();
+
+        if (voteType.getColor() == null || voteType.getColor().isBlank())
+            voteType.setColor("#9810fa");
 
         if (voteType.getEmoji() == null || voteType.getEmoji().isBlank())
             voteType.setEmoji("⭐");
@@ -43,7 +50,7 @@ public class VoteTypeRegistrationService {
 
     public VoteType get(Long id) {
         return getOptional(id)
-                .orElseThrow(() -> new VoteTypeNotFoundException(String.format("VoteType with id '%d' not found", id)));
+                .orElseThrow(() -> new VoteTypeNotFoundException("vote.type.not.found.message", new Object[]{id}));
     }
 
     public List<VoteType> getAll(Boolean active) {
@@ -56,7 +63,13 @@ public class VoteTypeRegistrationService {
     @Transactional
     public void delete(Long id) {
         VoteType voteType = get(id);
-        voteTypeRepository.delete(voteType);
+
+        try {
+            voteTypeRepository.delete(voteType);
+            voteTypeRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new EntityInUseException("vote-type.in.use.title", new Object[]{id}, ApiErrorCode.VOTE_TYPE_IN_USE);
+        }
     }
 
 }

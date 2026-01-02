@@ -3,6 +3,7 @@ package com.brunoreolon.cinebaianosapi.domain.service;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.GenreVoteBreakdownResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
+import com.brunoreolon.cinebaianosapi.domain.model.Genre;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.GenreCountProjection;
 import com.brunoreolon.cinebaianosapi.domain.repository.GenreVoteTypeCountProjection;
@@ -25,12 +26,14 @@ public class GenreService {
     private final MovieRepository movieRepository;
 
     public Map<String, Integer> getGenreRankings() {
-        return movieRepository.findGenreCountsProjections().stream()
+        List<GenreCountProjection> projections = movieRepository.findGenreCountsProjections();
+        return projections.stream()
+                .filter(p -> p.getGenre() != null)
                 .collect(Collectors.toMap(
-                                GenreCountProjection::getGenre,
-                                GenreCountProjection::getCount
-                        )
-                );
+                        GenreCountProjection::getGenre,
+                        GenreCountProjection::getCount,
+                        Integer::sum
+                ));
     }
 
     public Map<String, Integer> getGenreRankingsByUser(String discordId) {
@@ -48,7 +51,7 @@ public class GenreService {
         Map<String, Map<String, Long>> votesMap = getStringMapMap(votes);
 
         // busca todos os gêneros e tipos de voto
-        List<String> allGenres = movieRepository.findAllGenres();
+        List<String> allGenres = movieRepository.findAllNameGenres();
         List<VoteType> allVoteTypes = getVoteTypes(voteTypeId);
 
         // mapeia cada gênero para o DTO
@@ -97,6 +100,10 @@ public class GenreService {
         return (GenreVoteBreakdownResponse g) -> g.getVotes().stream()
                 .mapToLong(VoteStatsResponse::getTotalVotes)
                 .sum();
+    }
+
+    public List<Genre> getAllGenres() {
+        return movieRepository.findAllGenres();
     }
 
 }

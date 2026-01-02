@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.client.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,12 +19,20 @@ public class ClientMovieDetailsResponse {
     private Long id;
     private List<GenreResponse> genres;
     private String title;
-    private String overview;
+
+    @JsonProperty("overview")
+    private String synopsis;
 
     @JsonProperty("release_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate releaseDate;
 
     @JsonProperty("poster_path")
     private String posterPath;
+
+    @JsonProperty("runtime")
+    private Integer duration;
+
+    private CreditsResponse credits;
 
 }

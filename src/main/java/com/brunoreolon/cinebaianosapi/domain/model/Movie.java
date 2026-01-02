@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,8 +8,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @NoArgsConstructor
@@ -32,8 +32,14 @@ public class Movie implements Ownable {
     @NotBlank
     private String title;
 
-    @NotBlank
-    private String genre;
+    @ManyToMany
+    @JoinTable(
+            name = "movie_genres",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    @OrderBy("name ASC")
+    private Set<Genre> genres = new LinkedHashSet<>();
 
     @NotBlank
     private String year;
@@ -48,7 +54,16 @@ public class Movie implements Ownable {
     private LocalDateTime dateAdded;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    public List<Vote> votes = new ArrayList<>();
+    public Set<Vote> votes = new LinkedHashSet<>();
+
+    @NotBlank
+    private String synopsis;
+
+    @NotBlank
+    private String director;
+
+    @NotNull
+    private Integer duration;
 
     @Override
     public String getOwnerId() {

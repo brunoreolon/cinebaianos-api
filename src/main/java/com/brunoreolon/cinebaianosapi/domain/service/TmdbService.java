@@ -24,7 +24,9 @@ public class TmdbService {
 
             if (response == null || response.getResults().isEmpty())
                 throw new ClientException(
-                        String.format("Movie with title '%s' not found", title),
+                        "client.movie.not.found.title",
+                        "client.movie.not.found.message",
+                        new Object[]{title},
                         HttpStatus.NOT_FOUND,
                         ApiErrorCode.MOVIE_NOT_FOUND);
 
@@ -37,11 +39,13 @@ public class TmdbService {
 
     public ClientMovieDetailsResponse getMovieDetails(Long movieId, String language) {
         try {
-            return tmdbClient.getMovieDetails(movieId, tmdbProperties.getApiKey(), language);
+            return tmdbClient.getMovieDetails(movieId, tmdbProperties.getApiKey(), language, "credits");
         } catch (FeignException e) {
             if (e instanceof FeignException.NotFound) {
                 throw new ClientException(
-                        String.format("Movie with id '%s' not found", movieId),
+                        "client.movie.details.not.found.title",
+                        "client.movie.details.not.found.message",
+                        new Object[]{movieId},
                         HttpStatus.NOT_FOUND,
                         ApiErrorCode.MOVIE_NOT_FOUND);
             }
@@ -50,7 +54,8 @@ public class TmdbService {
             return null;
         } catch (Exception e) {
             throw new ClientException(
-                    "Unexpected error getting movie details",
+                    "client.unexpected.error.title",
+                    "client.unexpected.error.message",
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     ApiErrorCode.UNEXPECTED_ERROR);
         }
@@ -59,19 +64,22 @@ public class TmdbService {
     private void handleFeignException(FeignException e) {
         if (e instanceof FeignException.Unauthorized) {
             throw new ClientException(
-                    "Invalid or unauthorized API key",
+                    "client.tmdb.api.unauthorized.title",
+                    "client.tmdb.api.unauthorized.message",
                     HttpStatus.UNAUTHORIZED,
                     ApiErrorCode.TMDB_API_UNAUTHORIZED);
         }
         if (e instanceof FeignException.BadRequest) {
             throw new ClientException(
-                    "Invalid request to the TMDb API",
+                    "client.tmdb.api.badrequest.title",
+                    "client.tmdb.api.badrequest.message",
                     HttpStatus.BAD_REQUEST,
                     ApiErrorCode.TMDB_API_BAD_REQUEST);
         }
 
         throw new ClientException(
-                "Error communicating with the TMDb API",
+                "client.tmdb.api.communication.title",
+                "client.tmdb.api.communication.message",
                 HttpStatus.SERVICE_UNAVAILABLE,
                 ApiErrorCode.TMDB_API_COMMUNICATION_ERROR);
     }

@@ -1,0 +1,4 @@
+ALTER TABLE movie
+ADD COLUMN synopsis TEXT NOT NULL DEFAULT 'Sinopse não disponível',
+ADD COLUMN director VARCHAR(255) NOT NULL DEFAULT 'Desconhecido',
+ADD COLUMN duration INT NOT NULL DEFAULT 0;

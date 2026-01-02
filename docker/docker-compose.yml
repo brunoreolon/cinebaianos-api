@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD:
+      POSTGRES_DB: cinebaianosdb
+      TZ: America/Sao_Paulo
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - local
+
+  api:
+    image: cinebaianos-api:latest
+    container_name: cinebaianos-api
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/cinebaianosdb
+      DB_USER: postgres
+      DB_PASSWORD:
+      BASE_URL: https://api.themoviedb.org/3
+      API_KEY:
+      POSTER_PATH: https://image.tmdb.org/t/p/original
+      MAIL_HOST:
+      MAIL_PORT:
+      MAIL_USERNAME:
+      MAIL_PASSWORD:
+      JWT_KEYSTORE_PATH: jwt.jks
+      JWT_KEYSTORE_PASSWORD: changeit
+      JWT_KEY_PASSWORD: changeit
+      JWT_ALIAS: jwt
+    ports:
+      - "8080:8080"
+    networks:
+      - local
+
+  bot:
+    image: cinebaianos-bot:latest
+    container_name: cinebaianos-bot
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      PYTHONPATH: .
+      DISCORD_TOKEN:
+      BOT_USERNAME:
+      BOT_PASSWORD:
+      AUTHORIZED_DISCORD_IDS: 000000000000000001,000000000000000002
+      API_BASE_URL: http://api:8080/api
+    networks:
+      - local
+    
+  web:
+    image: cinebaianos-web:latest
+    container_name: cinebaianos-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+        API_BASE_URL: http://api:8080/api
+    ports:
+      - "3000:80"
+    networks:
+      - local
+
+networks:
+  local:
+    external: true
+
+volumes:
+  postgres-data:

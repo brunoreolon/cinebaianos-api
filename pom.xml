@@ -10,27 +10,46 @@
     </parent>
     <groupId>com.brunoreolon</groupId>
     <artifactId>cinebaianos-api</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <name>cinebaianos-api</name>
     <description>cinebaianos-api</description>
-    <url/>
+
+    <url>https://github.com/brunoreolon/cinebaianos-api</url>
+
     <licenses>
-        <license/>
+        <license>
+            <name>Licença proprietária</name>
+        </license>
     </licenses>
+
     <developers>
-        <developer/>
+        <developer>
+            <id>bruno</id>
+            <name>Bruno Neres Reolon</name>
+            <email>bruno.reolonn@gmail.com</email>
+            <organization></organization>
+            <organizationUrl></organizationUrl>
+        </developer>
     </developers>
+
     <scm>
         <connection/>
         <developerConnection/>
         <tag/>
         <url/>
     </scm>
+
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
     </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>LATEST</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -54,12 +73,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -111,7 +124,13 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.14</version>
+        </dependency>
     </dependencies>
+    
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -159,5 +178,18 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-devtools</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

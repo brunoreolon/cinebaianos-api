@@ -13,7 +13,7 @@ public class VoteTypeService {
 
     @Transactional
     public void updateStatus(Long id, boolean active) {
-        if ((active == true)) {
+        if (active) {
             activate(id);
         } else {
             disable(id);

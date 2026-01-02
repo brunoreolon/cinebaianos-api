@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
-import com.brunoreolon.cinebaianosapi.core.security.JwtProperties;
+import com.brunoreolon.cinebaianosapi.core.security.authentication.JwtProperties;
 import com.brunoreolon.cinebaianosapi.domain.model.RefreshToken;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.RefreshTokenRepository;

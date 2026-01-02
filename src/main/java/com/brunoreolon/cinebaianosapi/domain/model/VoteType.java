@@ -48,9 +48,9 @@ public class VoteType {
     public void activate() {
         if (!this.canActivate())
             throw new BusinessException(
-                    "You cannot activate a vote that is already active.",
+                    "vote.type.cannot.activate.title",
+                    "vote.type.cannot.activate.message",
                     HttpStatus.BAD_REQUEST,
-                    "Vote cannot be activated",
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap());
 
         this.active = true;
@@ -59,9 +59,9 @@ public class VoteType {
     public void disable() {
         if (!this.canDisable())
             throw new BusinessException(
-                    "You cannot deactivate a vote that is already deactivated.",
+                    "vote.type.cannot.disable.title",
+                    "vote.type.cannot.disable.message",
                     HttpStatus.BAD_REQUEST,
-                    "Vote cannot be disabled",
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap());
 
         this.active = false;

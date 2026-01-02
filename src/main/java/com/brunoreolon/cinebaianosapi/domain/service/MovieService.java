@@ -1,26 +1,30 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieNotFoundException;
-import com.brunoreolon.cinebaianosapi.domain.model.Movie;
-import com.brunoreolon.cinebaianosapi.domain.model.OwnableService;
-import com.brunoreolon.cinebaianosapi.domain.model.User;
-import com.brunoreolon.cinebaianosapi.domain.model.Vote;
+import com.brunoreolon.cinebaianosapi.domain.model.*;
+import com.brunoreolon.cinebaianosapi.domain.repository.GenreRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class MovieService implements OwnableService<Movie, Long> {
 
     private final MovieRepository movieRepository;
+    private final GenreRepository genreRepository;
     private final UserRegistratioService userRegistratioService;
     private final VoteService voteService;
 
@@ -31,19 +35,28 @@ public class MovieService implements OwnableService<Movie, Long> {
                 .isPresent();
 
         if (tmdbIdAlreadyExists)
-            throw new MovieAlreadyRegisteredException(String.format("there is already a movie registered with the tmdb id '%s'",
-                    movie.getTmdbId()));
+            throw new MovieAlreadyRegisteredException("movie.already.registered.message", new Object[]{movie.getTmdbId()});
 
         User chooser = userRegistratioService.get(chooserID);
 
-        if (chooser.isBot())
+        if (chooser.getIsBot())
             throw new BusinessException(
-                    "Bot users cannot have movies added.",
+                    "action.not.allowed.title",
+                    "action.not.allowed.message",
                     HttpStatus.FORBIDDEN,
-                    "Action Not Allowed",
                     ApiErrorCode.BOT_USER_FORBIDDEN.asMap());
 
         movie.setChooser(chooser);
+        movie.setGenres(getGenres(movie));
+
+        if (movie.getSynopsis() == null || movie.getSynopsis().isEmpty())
+            movie.setSynopsis("Filme não possui sinopse");
+
+        if (movie.getDirector() == null || movie.getDirector().isEmpty())
+            movie.setSynopsis("Diretor não encontrado");
+
+        if (movie.getDuration() == null)
+            movie.setDuration(0);
 
         Movie newMovie = movieRepository.save(movie);
 
@@ -55,19 +68,30 @@ public class MovieService implements OwnableService<Movie, Long> {
         return newMovie;
     }
 
-    @Override
-    public Movie get(Long movieId) {
-        return movieRepository.findById(movieId)
-                .orElseThrow(() -> new MovieNotFoundException(String.format("Movie with id '%d' not found",  movieId)));
+    private Set<Genre> getGenres(Movie movie) {
+        return movie.getGenres().stream()
+                .map(g -> genreRepository.findById(g.getId())
+                        .orElseGet(() -> {
+                            Genre genre = new Genre(g.getId(), g.getName());
+                            return genreRepository.save(genre);
+                        }))
+                .collect(Collectors.toSet());
     }
 
-    public List<Movie> getAll() {
-        return movieRepository.findAll();
+    public Page<Movie> getAll(Specification<Movie> specification, Pageable pageable) {
+        return movieRepository.findAll(specification, pageable);
     }
 
+    @Transactional
     public void delete(Long movieId) {
         Movie movie = get(movieId);
         movieRepository.delete(movie);
+    }
+
+    @Override
+    public Movie get(Long movieId) {
+        return movieRepository.findByIdWithGenres(movieId)
+                .orElseThrow(() -> new MovieNotFoundException("movie.not.found.message", new Object[]{movieId}));
     }
 
 }
