@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.brunoreolon</groupId>
     <artifactId>cinebaianos-api</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <name>cinebaianos-api</name>
     <description>cinebaianos-api</description>
 
