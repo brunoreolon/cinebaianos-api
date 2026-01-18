@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TmdbService {
@@ -35,6 +37,13 @@ public class TmdbService {
             handleFeignException(e);
             return null;
         }
+    }
+
+    public List<ClientMovieDetailsResponse> searchWithDetail(String title, String year, String language) {
+        ClientResultsResponse search = search(title, year, language);
+        return search.getResults().stream()
+                .map(s -> getMovieDetails(s.getId(), language))
+                .toList();
     }
 
     public ClientMovieDetailsResponse getMovieDetails(Long movieId, String language) {

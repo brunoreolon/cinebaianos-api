@@ -37,6 +37,16 @@ public class TmdbConverter {
         return map;
     }
 
+    public List<TmdbMovieDetailsResponse> toMovieDetailsResponseList(List<ClientMovieDetailsResponse> list) {
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return list.stream()
+                .map(this::toMovieDetailsResponse)
+                .toList();
+    }
+
     public List<TmdbMovieResponse> toMovieResponseList(List<ResultResponse> results) {
         if (results == null || results.isEmpty()) {
             return Collections.emptyList();
