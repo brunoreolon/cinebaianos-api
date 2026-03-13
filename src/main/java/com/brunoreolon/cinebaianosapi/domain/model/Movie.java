@@ -19,15 +19,20 @@ import java.util.*;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Movie implements Ownable {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
 
+    @NotNull
     @ManyToOne()
     @JoinColumn(name = "chooser_id")
-    @NotNull
     private User chooser;
+
+    @NotNull
+    @ManyToOne()
+    @JoinColumn(name = "group_id")
+    private Group group;
 
     @NotBlank
     private String title;
@@ -41,16 +46,17 @@ public class Movie implements Ownable {
     @OrderBy("name ASC")
     private Set<Genre> genres = new LinkedHashSet<>();
 
-    @NotBlank
-    private String year;
+    @NotNull
+    private Long year;
 
     @NotNull
-    private String tmdbId;
+    @Column(unique = true)
+    private Long tmdbId;
 
-    @NotBlank
     private String posterPath;
 
     @CreationTimestamp
+    @Column(updatable = false, nullable = false)
     private LocalDateTime dateAdded;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)

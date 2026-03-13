@@ -23,15 +23,22 @@ public class Vote implements Ownable {
     @Valid
     private VoteId voteId;
 
+    @NotNull
+    @MapsId("groupId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private Group group;
+
+    @NotNull
     @MapsId("movieId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
+    @NotNull
     @MapsId("voterId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voter_id")
-    @NotNull
     private User voter;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,10 +47,11 @@ public class Vote implements Ownable {
     private VoteType vote;
 
     @CreationTimestamp
-    @Column(updatable = false)
+    @Column(updatable = false, nullable = false)
     private LocalDateTime created;
 
     @UpdateTimestamp
+    @Column(nullable = false)
     private LocalDateTime updated;
 
     @Override

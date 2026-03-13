@@ -21,6 +21,7 @@ public class Genre {
     private Long id;
 
     @NotBlank
+    @Column(unique = true)
     private String name;
 
     @ManyToMany(mappedBy = "genres")

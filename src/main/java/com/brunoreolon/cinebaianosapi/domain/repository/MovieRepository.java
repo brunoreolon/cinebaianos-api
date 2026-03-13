@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecificationExecutor<Movie> {
 
-    Optional<Movie> findByTmdbId(String tmdbId);
+    Optional<Movie> findByTmdbId(Long tmdbId);
 
     @Query("""
                 SELECT m FROM Movie m 

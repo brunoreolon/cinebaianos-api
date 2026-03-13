@@ -19,52 +19,84 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-@Entity
-@Table(name = "users")
-@DynamicUpdate
-@NoArgsConstructor
-@AllArgsConstructor
+
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@DynamicUpdate
+@Entity
+@Table(name = "users")
 public class User implements Ownable<String> {
 
-    @Id
     @EqualsAndHashCode.Include
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true)
     private String discordId;
 
     @NotBlank
     private String name;
 
-    @Column(unique = true)
     @NotBlank
     @Email
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Size(min = 8)
+    @Size(min = 16)
     private String password;
 
     @CreationTimestamp()
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime created;
 
     @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updated;
 
     @OneToMany(mappedBy = "chooser")
-    List<Movie> movies = new ArrayList<>();
+    private List<Movie> movies = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name="user_roles", joinColumns=@JoinColumn(name="discord_id"))
+    @CollectionTable(name="user_roles", joinColumns=@JoinColumn(name="user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new LinkedHashSet<>();
 
     private Boolean isBot = false;
     private String avatar;
     private String biography;
-    private Boolean active = false;
+    private Boolean active = true;
+
+    private LocalDateTime bannedAt;
+
+    @ManyToOne
+    private User bannedBy;
+
+    private String banReason;
+    private LocalDateTime expiresAt;
+
+    @OneToMany(mappedBy = "owner")
+    private List<Group> ownedGroups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "createdBy")
+    private List<GroupInvite> invites = new ArrayList<>();
+
+    @OneToMany(mappedBy = "invitedUser")
+    private List<GroupInvite> invitedUsers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<UserGuildContext> userGuildContexts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<GroupJoinRequest> groupJoinRequests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "createdBy")
+    private List<GroupGuildLinkRequest> groupGuildLinkRequests = new ArrayList<>();
 
     public Boolean hasRole(Role role) {
         return roles.contains(role);

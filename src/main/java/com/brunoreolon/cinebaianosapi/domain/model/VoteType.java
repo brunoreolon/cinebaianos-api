@@ -4,9 +4,13 @@ import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.http.HttpStatus;
+
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
@@ -23,6 +27,10 @@ public class VoteType {
     @EqualsAndHashCode.Include
     private Long id;
 
+    @ManyToOne()
+    @JoinColumn(name = "group_id")
+    private Group group;
+
     @NotBlank
     @Column(unique = true)
     private String name;
@@ -36,6 +44,11 @@ public class VoteType {
     private String emoji;
 
     private boolean active;
+//    private Boolean active = true;
+
+    @CreationTimestamp()
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private LocalDateTime created;
 
     public boolean canActivate() {
         return !this.isActive();

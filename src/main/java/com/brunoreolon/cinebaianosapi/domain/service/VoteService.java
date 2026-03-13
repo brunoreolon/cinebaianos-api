@@ -39,10 +39,11 @@ public class VoteService implements OwnableService<Vote, VoteId> {
 
     @Transactional
     public Vote register(String discordId, Long movieId, Long voteId) {
+        Group group = null;
         User voter = userRegistratioService.get(discordId);
         Movie movie = movieService.get(movieId);
 
-        if (voteRepository.existsById(new VoteId(movieId, discordId))) {
+        if (voteRepository.existsById(new VoteId(null, movieId, discordId))) {
             throw new VoteAlreadyRegisteredException("vote.already.registered.message", new Object[]{discordId, movieId});
         }
 
@@ -79,7 +80,7 @@ public class VoteService implements OwnableService<Vote, VoteId> {
     }
 
     public Vote getVote(String discordId, Long movieId) {
-        return voteRepository.findByIdWithMovieAndVoter(new VoteId(movieId, discordId))
+        return voteRepository.findByIdWithMovieAndVoter(new VoteId(null, movieId, discordId))
                 .orElseThrow(() -> new VoteNotFoundException("vote.not.found.message", new Object[]{discordId, movieId}));
     }
 
@@ -121,7 +122,7 @@ public class VoteService implements OwnableService<Vote, VoteId> {
         }
 
         Vote newVote = Vote.builder()
-                .voteId(new VoteId(movie.getId(), voter.getDiscordId()))
+                .voteId(new VoteId(null, movie.getId(), voter.getDiscordId()))
                 .movie(movie)
                 .voter(voter)
                 .vote(voteType)

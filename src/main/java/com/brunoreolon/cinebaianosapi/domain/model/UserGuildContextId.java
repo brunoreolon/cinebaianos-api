@@ -4,24 +4,20 @@ import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-@Embeddable
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class VoteId {
+@Embeddable
+public class UserGuildContextId {
 
     @NotNull
     @EqualsAndHashCode.Include
-    private Long groupId;
+    private Long userId;
 
     @NotNull
     @EqualsAndHashCode.Include
-    private Long movieId;
-
-    @NotNull
-    @EqualsAndHashCode.Include
-    private String voterId;
+    private Long guildId;
 
 }
