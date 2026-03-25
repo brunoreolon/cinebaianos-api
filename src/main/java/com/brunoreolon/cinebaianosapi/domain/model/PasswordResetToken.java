@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity
-@Getter
 @NoArgsConstructor
+@Getter
+@Entity
 public class PasswordResetToken {
 
     @Id

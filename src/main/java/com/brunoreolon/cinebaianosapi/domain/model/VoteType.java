@@ -4,44 +4,44 @@ import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
 public class VoteType {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "group_id")
     private Group group;
 
     @NotBlank
-    @Column(unique = true)
     private String name;
 
     @NotBlank
     private String description;
 
-    @Pattern(regexp = "^#[A-Fa-f0-9]{6}$", message = "Color must be a valid hex code, e.g. #00FF00")
-    private String color;
-
+    @Size(max = 10)
     private String emoji;
+
+    @Pattern(regexp = "^#[A-Fa-f0-9]{6}$", message = "Color must be a valid hex code, e.g. #00FF00")
+    @Size(max = 7)
+    private String color;
 
     private boolean active;
 //    private Boolean active = true;

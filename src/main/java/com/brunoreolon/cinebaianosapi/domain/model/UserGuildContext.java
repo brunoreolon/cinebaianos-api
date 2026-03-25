@@ -5,15 +5,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
+@Table(name = "user_guild_contexts")
 public class UserGuildContext {
 
     @EmbeddedId
@@ -23,16 +21,15 @@ public class UserGuildContext {
     @NotNull
     @MapsId("userId")
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User userContext;
 
     @NotNull
     @MapsId("guildId")
     @ManyToOne
-    @JoinColumn(name = "guild_id")
+    @JoinColumn(name = "guild_id", nullable = false)
     private DiscordGuild guild;
 
-    @NotNull
     @ManyToOne
     @JoinColumn(name = "active_group_id")
     private Group group;

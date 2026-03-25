@@ -1,7 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
-public enum GroupInviteType {
+public enum GroupVisibility {
 
-    LINK, USER
+    PUBLIC, PRIVATE
 
 }

@@ -6,7 +6,6 @@ import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
@@ -19,18 +18,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@Getter
+@Setter
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @DynamicUpdate
 @Entity
 @Table(name = "users")
-public class User implements Ownable<String> {
+public class User implements Ownable<Long> {
 
     @EqualsAndHashCode.Include
     @Id
@@ -48,52 +45,74 @@ public class User implements Ownable<String> {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Size(min = 16)
     private String password;
 
+    private String avatar;
+
+    private String biography;
+
+    private Boolean isBot = false;
+
+    private Boolean active = true;
+
     @CreationTimestamp()
-    @Column(name = "created_at", updatable = false, nullable = false)
-    private LocalDateTime created;
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updated;
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "chooser")
-    private List<Movie> movies = new ArrayList<>();
+    private LocalDateTime bannedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "banned_by")
+    private User bannedBy;
+
+    private String banReason;
+
+    private LocalDateTime expiresAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name="user_roles", joinColumns=@JoinColumn(name="user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new LinkedHashSet<>();
 
-    private Boolean isBot = false;
-    private String avatar;
-    private String biography;
-    private Boolean active = true;
-
-    private LocalDateTime bannedAt;
-
-    @ManyToOne
-    private User bannedBy;
-
-    private String banReason;
-    private LocalDateTime expiresAt;
-
     @OneToMany(mappedBy = "owner")
     private List<Group> ownedGroups = new ArrayList<>();
 
+    @OneToMany(mappedBy = "bannedBy")
+    private List<Group> bannedGroups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "chooser")
+    private List<GroupMovie> movies = new ArrayList<>();
+
+    @OneToMany(mappedBy = "voter")
+    private List<Vote> votes = new ArrayList<>();
+
     @OneToMany(mappedBy = "createdBy")
-    private List<GroupInvite> invites = new ArrayList<>();
+    private List<GroupInvite> invitationsCreated = new ArrayList<>();
 
     @OneToMany(mappedBy = "invitedUser")
     private List<GroupInvite> invitedUsers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
-    private List<UserGuildContext> userGuildContexts = new ArrayList<>();
+    @OneToMany(mappedBy = "member")
+    private List<GroupMember> members = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "userJoinRequest")
     private List<GroupJoinRequest> groupJoinRequests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reviewedBy")
+    private List<GroupJoinRequest> revisedGroups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "bannedUser")
+    private List<GroupMemberBan> groupMemberBans = new ArrayList<>();
+
+    @OneToMany(mappedBy = "bannedBy")
+    private List<GroupMemberBan> bannedUsers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userContext")
+    private List<UserGuildContext> userGuildContexts = new ArrayList<>();
 
     @OneToMany(mappedBy = "createdBy")
     private List<GroupGuildLinkRequest> groupGuildLinkRequests = new ArrayList<>();
@@ -137,8 +156,8 @@ public class User implements Ownable<String> {
     }
 
     @Override
-    public String getOwnerId() {
-        return getDiscordId();
+    public Long getOwnerId() {
+        return getId();
     }
 
     public void AddAdmin() {
@@ -150,4 +169,5 @@ public class User implements Ownable<String> {
     public void RemoveAdmin() {
         this.getRoles().remove(Role.ADMIN);
     }
+
 }

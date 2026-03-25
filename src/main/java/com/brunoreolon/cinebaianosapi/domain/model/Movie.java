@@ -1,6 +1,5 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,41 +9,22 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Movie implements Ownable {
+@Entity
+@Table(name = "movies")
+public class Movie {
 
     @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @ManyToOne()
-    @JoinColumn(name = "chooser_id")
-    private User chooser;
-
-    @NotNull
-    @ManyToOne()
-    @JoinColumn(name = "group_id")
-    private Group group;
-
     @NotBlank
     private String title;
-
-    @ManyToMany
-    @JoinTable(
-            name = "movie_genres",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "genre_id")
-    )
-    @OrderBy("name ASC")
-    private Set<Genre> genres = new LinkedHashSet<>();
 
     @NotNull
     private Long year;
@@ -55,13 +35,6 @@ public class Movie implements Ownable {
 
     private String posterPath;
 
-    @CreationTimestamp
-    @Column(updatable = false, nullable = false)
-    private LocalDateTime dateAdded;
-
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    public Set<Vote> votes = new LinkedHashSet<>();
-
     @NotBlank
     private String synopsis;
 
@@ -71,9 +44,20 @@ public class Movie implements Ownable {
     @NotNull
     private Integer duration;
 
-    @Override
-    public String getOwnerId() {
-        return getChooser().getDiscordId();
-    }
+    @CreationTimestamp
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime dateAdded;
+
+    @ManyToMany
+    @JoinTable(
+            name = "movie_genres",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    @OrderBy("name ASC")
+    private Set<Genre> genres = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "movie")
+    private List<GroupMovie> groupMovies = new ArrayList<>();
 
 }

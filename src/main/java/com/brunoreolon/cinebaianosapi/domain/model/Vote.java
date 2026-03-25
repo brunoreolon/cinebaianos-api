@@ -2,7 +2,6 @@ package com.brunoreolon.cinebaianosapi.domain.model;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -10,33 +9,26 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @Builder
+@Entity
+@Table(name = "group_votes")
 public class Vote implements Ownable {
 
-    @EmbeddedId
-    @Valid
-    private VoteId voteId;
+    @EqualsAndHashCode.Include
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @NotNull
-    @MapsId("groupId")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
-    private Group group;
+    @JoinColumn(name = "group_movie_id")
+    private GroupMovie groupMovie;
 
     @NotNull
-    @MapsId("movieId")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "movie_id")
-    private Movie movie;
-
-    @NotNull
-    @MapsId("voterId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voter_id")
     private User voter;
@@ -44,15 +36,15 @@ public class Vote implements Ownable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
     @NotNull
-    private VoteType vote;
+    private VoteType type;
 
     @CreationTimestamp
     @Column(updatable = false, nullable = false)
-    private LocalDateTime created;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(nullable = false)
-    private LocalDateTime updated;
+    private LocalDateTime updatedAt;
 
     @Override
     public String getOwnerId() {

@@ -5,14 +5,17 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-public class GroupBan {
+@Table(name = "group_movies")
+public class GroupMovie {
 
     @EqualsAndHashCode.Include
     @Id
@@ -20,20 +23,22 @@ public class GroupBan {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "movie_id")
+    private Movie movie;
+
+    @ManyToOne
     @JoinColumn(name = "group_id")
     private Group group;
 
     @ManyToOne
-    @JoinColumn(name = "banned_by")
-    private User bannedBy;
+    @JoinColumn(name = "chooser_id")
+    private User chooser;
 
-    @Column(nullable = false)
-    private String reason;
+    @OneToMany(mappedBy = "groupMovie")
+    private List<Vote> votes = new ArrayList<>();
 
-    @CreationTimestamp
+    @CreationTimestamp()
     @Column(updatable = false, nullable = false)
-    private LocalDateTime createdAt;
-
-    private LocalDateTime expiresAt;
+    private LocalDateTime dateAdded;
 
 }

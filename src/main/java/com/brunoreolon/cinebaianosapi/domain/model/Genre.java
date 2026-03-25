@@ -7,13 +7,12 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
 public class Genre {
 
     @Id

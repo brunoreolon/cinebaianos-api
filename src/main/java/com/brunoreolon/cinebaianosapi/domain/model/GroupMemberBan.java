@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@Table(name = "group_guild_link_requests")
-public class GroupGuildLinkRequest {
+@Table(name = "group_member_bans")
+public class GroupMemberBan {
 
     @EqualsAndHashCode.Include
     @Id
@@ -25,25 +25,19 @@ public class GroupGuildLinkRequest {
     private Group group;
 
     @ManyToOne
-    @JoinColumn(name = "guild_id", nullable = false)
-    private DiscordGuild discordGuild;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User bannedUser;
 
     @ManyToOne
-    @JoinColumn(name = "created_by", nullable = false)
-    private User createdBy;
+    @JoinColumn(name = "banned_by", nullable = false)
+    private User bannedBy;
 
-    @Column(unique = true, nullable = false)
-    private String token;
+    private String reason;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private GroupGuildLinkRequestStatus linkRequestStatus;
-
-    @CreationTimestamp
+    @CreationTimestamp()
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private LocalDateTime expiresAt;
+    private LocalDateTime expiresdAt;
 
 }

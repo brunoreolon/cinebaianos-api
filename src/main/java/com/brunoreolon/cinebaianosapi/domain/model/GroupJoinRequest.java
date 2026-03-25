@@ -6,13 +6,13 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@Table(name = "groups")
+@Table(name = "group_join_requests")
 public class GroupJoinRequest {
 
     @EqualsAndHashCode.Include
@@ -26,7 +26,7 @@ public class GroupJoinRequest {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private User userJoinRequest;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")

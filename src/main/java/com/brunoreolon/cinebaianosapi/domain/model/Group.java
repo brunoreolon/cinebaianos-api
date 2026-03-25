@@ -12,10 +12,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "groups")
@@ -43,14 +43,42 @@ public class Group {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
+    private Boolean active = true;
+
+    @Enumerated(EnumType.STRING)
+    private GroupVisibility visibility;
+
+    @Enumerated(EnumType.STRING)
+    private JoinPolicy joinPolicy;
+
+    private Boolean onlyAdminAddMovie = false;
+    private Boolean allowGlobalVotes = true;
+    private int voteChangeDeadlineDays;
+    private int movieNewDays;
+    private int inviteMaxUses;
+
+    @CreationTimestamp
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "banned_by")
+    private User bannedBy;
+
+    private LocalDateTime bannedAt;
+
+    private String bannedReason;
+
+    private LocalDateTime expiresAt;
+
     @OneToMany(mappedBy = "group")
-    private List<Movie> movies = new ArrayList<>();
+    private Set<GroupMovie> movies = new HashSet<>();
 
     @OneToMany(mappedBy = "group")
     private List<VoteType> voteTypes = new ArrayList<>();
 
     @OneToMany(mappedBy = "group")
-    private List<Vote> votes = new ArrayList<>();
+    private List<GroupMemberBan> groupMemberBans = new ArrayList<>();
 
     @OneToMany(mappedBy = "group")
     private List<GroupInvite> groupInvites = new ArrayList<>();
@@ -59,31 +87,12 @@ public class Group {
     private Set<GroupMember> members = new HashSet<>();
 
     @OneToMany(mappedBy = "group")
-    private Set<GroupGuild> guilds = new HashSet<>();
-
-    @OneToMany(mappedBy = "group")
-    private Set<GroupBan> groupBans = new HashSet<>();
-
-    @OneToMany(mappedBy = "group")
     private List<GroupJoinRequest> groupJoinRequests = new ArrayList<>();
 
     @OneToMany(mappedBy = "group")
     private List<GroupGuildLinkRequest> groupGuildLinkRequests = new ArrayList<>();
 
-    private Boolean active = true;
-    private String visibility;
-
-    @Enumerated(EnumType.STRING)
-    private JoinPolicy joinPolicy;
-
-    private Boolean onlyAdminAddMovie = false;
-    private Boolean allowGlobalVotes = true;
-    private Integer voteChangeDeadlineDays;
-    private Integer movieNewDays;
-    private Integer inviteMaxUses;
-
-    @CreationTimestamp
-    @Column(updatable = false, nullable = false)
-    private LocalDateTime createdAt;
+    @OneToMany(mappedBy = "group")
+    private Set<GroupGuild> guilds = new HashSet<>();
 
 }
