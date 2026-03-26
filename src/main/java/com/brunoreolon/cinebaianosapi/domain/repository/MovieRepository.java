@@ -16,15 +16,15 @@ public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecific
 
     Optional<Movie> findByTmdbId(Long tmdbId);
 
-    @Query("""
-                SELECT m FROM Movie m 
-                JOIN FETCH m.genres 
-                LEFT JOIN FETCH m.votes v 
-                LEFT JOIN FETCH v.vote 
-                LEFT JOIN FETCH v.voter
-                WHERE m.id = :id
-            """)
-    Optional<Movie> findByIdWithGenres(@Param("id") Long id);
+//    @Query("""
+//                SELECT m FROM Movie m
+//                JOIN FETCH m.genres
+//                LEFT JOIN FETCH m.votes v
+//                LEFT JOIN FETCH v.vote
+//                LEFT JOIN FETCH v.voter
+//                WHERE m.id = :id
+//            """)
+//    Optional<Movie> findByIdWithGenres(@Param("id") Long id);
 
     @Query("""
                 SELECT g.name AS genre, COUNT(m) AS count
@@ -61,8 +61,8 @@ public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecific
                 SELECT g.name
                 FROM Movie m
                 JOIN m.genres g
-                WHERE m.chooser.discordId = :discordId
+                WHERE m.chooser.id = :id
             """)
-    List<String> findGenresByChooserDiscordId(@Param("discordId") String discordId);
+    List<String> findGenresByChooserDiscordId(@Param("id") String id);
 
 }

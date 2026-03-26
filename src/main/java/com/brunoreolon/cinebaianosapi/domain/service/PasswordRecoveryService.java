@@ -41,7 +41,7 @@ public class PasswordRecoveryService {
      */
     @Transactional
     public PasswordResetToken create(User user) {
-        repository.deleteByUserDiscordId(user.getDiscordId());
+        repository.deleteByUserId(user.getId());
 
         Instant expiresAt = Instant.now().plus(TOKEN_TTL);
         PasswordResetToken token = new PasswordResetToken(user, expiresAt);

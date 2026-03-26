@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserRegistratioService implements OwnableService<User, String> {
+public class UserRegistratioService implements OwnableService<User, Long> {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -94,8 +94,8 @@ public class UserRegistratioService implements OwnableService<User, String> {
     }
 
     @Override
-    public User get(String discordId) {
-        return userRepository.findByDiscordId(discordId)
+    public User get(Long id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{discordId}));
     }
 

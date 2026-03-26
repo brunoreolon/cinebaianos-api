@@ -36,12 +36,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher publisher;
 
-    public List<Movie> getAllMovies(String discordId) {
-        return userRepository.findAllMoviesByDiscordId(discordId);
-    }
-
-    public User getWithMovies(String discordId) {
-        return userRepository.findByDiscordIdWithMovies(discordId)
+    public User getWithMovies(Long id) {
+        return userRepository.findByIdWithMovies(id)
                 .filter(u -> !u.getIsBot())
                 .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{discordId}));
     }

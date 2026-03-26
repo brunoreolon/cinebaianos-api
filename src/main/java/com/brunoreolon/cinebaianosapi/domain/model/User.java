@@ -65,7 +65,7 @@ public class User implements Ownable<Long> {
 
     private LocalDateTime bannedAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "banned_by")
     private User bannedBy;
 

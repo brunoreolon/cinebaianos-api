@@ -38,9 +38,9 @@ public class VoteService implements OwnableService<Vote, VoteId> {
     }
 
     @Transactional
-    public Vote register(String discordId, Long movieId, Long voteId) {
+    public Vote register(Long userId, Long movieId, Long voteId) {
         Group group = null;
-        User voter = userRegistratioService.get(discordId);
+        User voter = userRegistratioService.get(userId);
         Movie movie = movieService.get(movieId);
 
         if (voteRepository.existsById(new VoteId(null, movieId, discordId))) {
@@ -79,9 +79,9 @@ public class VoteService implements OwnableService<Vote, VoteId> {
         return voteRepository.save(existingVote);
     }
 
-    public Vote getVote(String discordId, Long movieId) {
-        return voteRepository.findByIdWithMovieAndVoter(new VoteId(null, movieId, discordId))
-                .orElseThrow(() -> new VoteNotFoundException("vote.not.found.message", new Object[]{discordId, movieId}));
+    public Vote getVote(Long id) {
+        return voteRepository.findByIdWithMovieAndVoter(id)
+                .orElseThrow(() -> new VoteNotFoundException("vote.not.found.message", new Object[]{id}));
     }
 
     public Long countVotesReceivedByTypeForUser(VoteType voteType, User user) {
@@ -92,8 +92,8 @@ public class VoteService implements OwnableService<Vote, VoteId> {
         return voteRepository.countAllByVoteTypeAndGiver(voteType, user);
     }
 
-    public List<Vote> getVotesByUser(String discordId) {
-        return voteRepository.findByVoterWithMovie(discordId);
+    public List<Vote> getVotesByUser(Long id) {
+        return voteRepository.findByVoterWithMovie(id);
     }
 
     @Transactional

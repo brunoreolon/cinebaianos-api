@@ -90,7 +90,7 @@ public class MovieService implements OwnableService<Movie, Long> {
 
     @Override
     public Movie get(Long movieId) {
-        return movieRepository.findByIdWithGenres(movieId)
+        return movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException("movie.not.found.message", new Object[]{movieId}));
     }
 

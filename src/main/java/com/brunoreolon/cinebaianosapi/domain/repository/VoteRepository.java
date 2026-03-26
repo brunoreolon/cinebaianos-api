@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface VoteRepository extends JpaRepository<Vote, VoteId> {
+public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     @Query("""
                 SELECT v FROM Vote v
@@ -18,7 +18,7 @@ public interface VoteRepository extends JpaRepository<Vote, VoteId> {
                 JOIN FETCH v.voter
                 WHERE v.id = :id
             """)
-    Optional<Vote> findByIdWithMovieAndVoter(@Param("id") VoteId id);
+    Optional<Vote> findByIdWithMovieAndVoter(@Param("id") Long id);
 
     @Query("""
                 SELECT COUNT(v)
@@ -42,9 +42,9 @@ public interface VoteRepository extends JpaRepository<Vote, VoteId> {
                 JOIN FETCH v.movie
                 JOIN FETCH v.voter
                 JOIN FETCH v.vote
-                WHERE v.voter.discordId = :discordId
+                WHERE v.voter.id = :id
             """)
-    List<Vote> findByVoterWithMovie(@Param("discordId") String discordId);
+    List<Vote> findByVoterWithMovie(@Param("id") String id);
 
     @Query("""
                 SELECT v

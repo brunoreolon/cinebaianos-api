@@ -9,6 +9,6 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
 
     Optional<PasswordResetToken> findByToken(String token);
 
-    void deleteByUserDiscordId(String userId);
+    void deleteByUserId(Long id);
 
 }
