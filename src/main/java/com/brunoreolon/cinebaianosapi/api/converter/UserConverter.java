@@ -4,7 +4,10 @@ import com.brunoreolon.cinebaianosapi.api.model.user.request.UserUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserWithMoviesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
+import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
+import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteSummaryResponse;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
+import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -51,6 +54,15 @@ public class UserConverter {
     public User merge(User source, User target) {
         modelMapper.map(source, target);
         return target;
+    }
+
+    public UsersVotesSummaryResponse toUsersVotesSummary(Vote vote) {
+        UsersVotesSummaryResponse dto = new UsersVotesSummaryResponse();
+
+        dto.setVoter(modelMapper.map(vote.getVoter(), UserDetailResponse.class));
+        dto.setVote(modelMapper.map(vote, VoteSummaryResponse.class));
+
+        return dto;
     }
 
 }

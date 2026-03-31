@@ -10,27 +10,54 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "movie")
 public class Movie implements Ownable {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne()
-    @JoinColumn(name = "chooser_id")
+    // Remover
     @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chooser_id")
     private User chooser;
 
     @NotBlank
     private String title;
+
+    @NotBlank
+    private Long year;
+
+    @NotNull
+    @Column(unique = true)
+    private Long tmdbId;
+
+    private String posterPath;
+
+    @NotBlank
+    private String synopsis;
+
+    @NotBlank
+    private String director;
+
+    @NotNull
+    private Integer duration;
+
+    @CreationTimestamp
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime dateAdded;
+
+    // Remover
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    public Set<Vote> votes = new LinkedHashSet<>();
 
     @ManyToMany
     @JoinTable(
@@ -41,29 +68,8 @@ public class Movie implements Ownable {
     @OrderBy("name ASC")
     private Set<Genre> genres = new LinkedHashSet<>();
 
-    @NotBlank
-    private String year;
-
-    @NotNull
-    private String tmdbId;
-
-    @NotBlank
-    private String posterPath;
-
-    @CreationTimestamp
-    private LocalDateTime dateAdded;
-
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    public Set<Vote> votes = new LinkedHashSet<>();
-
-    @NotBlank
-    private String synopsis;
-
-    @NotBlank
-    private String director;
-
-    @NotNull
-    private Integer duration;
+//    @OneToMany(mappedBy = "movie")
+//    private List<GroupMovie> groupMovies = new ArrayList<>();
 
     @Override
     public String getOwnerId() {
