@@ -84,6 +84,18 @@ public class User implements Ownable<Long> {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new LinkedHashSet<>();
 
+    @OneToMany(mappedBy = "owner")
+    private List<Group> ownedGroups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "bannedBy")
+    private List<Group> bannedGroups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "chooser")
+    private List<GroupMovie> moviess = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<GroupMember> members = new ArrayList<>();
+
     public Boolean hasRole(Role role) {
         return roles.contains(role);
     }

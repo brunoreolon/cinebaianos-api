@@ -66,6 +66,9 @@ public class Movie implements Ownable<Long> {
     @OrderBy("name ASC")
     private Set<Genre> genres = new LinkedHashSet<>();
 
+    @OneToMany(mappedBy = "movie")
+    private List<GroupMovie> groupMovies = new ArrayList<>();
+
     @Override
     public Long getOwnerId() {
         return getChooser().getId();
