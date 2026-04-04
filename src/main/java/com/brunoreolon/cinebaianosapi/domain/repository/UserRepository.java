@@ -11,22 +11,24 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, String> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByDiscordId(String discordId);
+//    Optional<User> findByDiscordId(String discordId);
 
     Optional<User> findByEmail(String email);
 
-    @Query("SELECT m FROM User u JOIN u.movies m WHERE u.discordId = :discordId")
-    List<Movie> findAllMoviesByDiscordId(@Param("discordId") String discordId);
+    @Query("SELECT m FROM User u JOIN u.movies m WHERE u.id = :userId")
+    List<Movie> findAllMoviesById(@Param("userId") Long userId);
 
     @Query("""
                 SELECT u 
                 FROM User u 
                 LEFT JOIN FETCH u.movies m
                 LEFT JOIN FETCH m.genres
-                WHERE u.discordId = :discordId
+                WHERE u.id = :userId
             """)
-    Optional<User> findByDiscordIdWithMovies(@Param("discordId") String discordId);
+    Optional<User> findByIdWithMovies(@Param("userId") Long userId);
+
+    boolean existsByDiscordId(String discordId);
 
 }

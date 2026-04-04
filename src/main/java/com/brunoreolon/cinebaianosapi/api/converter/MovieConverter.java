@@ -44,7 +44,7 @@ public class MovieConverter {
         voteSummary.setDescription(vote.getVote().getDescription());
         voteSummary.setColor(vote.getVote().getColor());
         voteSummary.setEmoji(vote.getVote().getEmoji());
-        voteSummary.setVotedAt(vote.getCreated());
+        voteSummary.setVotedAt(vote.getCreatedAt());
 
         UsersVotesSummaryResponse response = new UsersVotesSummaryResponse();
         response.setVoter(modelMapper.map(vote.getVoter(), UserDetailResponse.class));
@@ -60,13 +60,13 @@ public class MovieConverter {
         return map;
     }
 
-    public MovieVoteDetailResponse toMovieVoteDetailResponse(Movie movie, String chooserDiscordId) {
+    public MovieVoteDetailResponse toMovieVoteDetailResponse(Movie movie, Long chooserId) {
         MovieVoteDetailResponse response = modelMapper.map(movie, MovieVoteDetailResponse.class);
         String posterPath = response.getMovie().getPosterPath();
         response.getMovie().setPosterPath(pathUtil.fullPosterPath(posterPath));
 
         Vote vote = movie.getVotes().stream()
-                .filter(v -> v.getVoter().getDiscordId().equals(chooserDiscordId))
+                .filter(v -> v.getVoter().getId().equals(chooserId))
                 .findFirst()
                 .orElse(null);
 

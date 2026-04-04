@@ -10,17 +10,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
-@Builder
-public class Vote implements Ownable {
+@Entity
+public class Vote implements Ownable<Long> {
 
-    @EmbeddedId
     @Valid
+    @EmbeddedId
     private VoteId voteId;
 
     @MapsId("movieId")
@@ -28,27 +27,27 @@ public class Vote implements Ownable {
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
+    @NotNull
     @MapsId("voterId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voter_id")
-    @NotNull
     private User voter;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
-    @NotNull
     private VoteType vote;
 
     @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime created;
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updated;
+    private LocalDateTime updatedAt;
 
     @Override
-    public String getOwnerId() {
-        return getVoter().getDiscordId();
+    public Long getOwnerId() {
+        return getVoter().getId();
     }
 
 }

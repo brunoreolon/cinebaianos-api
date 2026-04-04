@@ -68,7 +68,7 @@ public class GenreController {
         return ResponseEntity.ok().body(genreVoteBreakdown);
     }
 
-    @GetMapping("/users/{discordId}")
+    @GetMapping("/users/{userId}")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Gêneros por usuário",
@@ -80,9 +80,9 @@ public class GenreController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<List<GenreStatsResponse>> getGenresByUser(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId) {
-        Map<String, Integer> genreCount = genreService.getGenreRankingsByUser(discordId);
+            @Parameter(description = "ID do usuário", example = "1")
+            @PathVariable Long userId) {
+        Map<String, Integer> genreCount = genreService.getGenreRankingsByUser(userId);
         return ResponseEntity.ok().body(genreConverter.toResponseList(genreCount));
     }
 

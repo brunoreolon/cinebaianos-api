@@ -36,14 +36,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher publisher;
 
-    public List<Movie> getAllMovies(String discordId) {
-        return userRepository.findAllMoviesByDiscordId(discordId);
+    public List<Movie> getAllMovies(Long userId) {
+        return userRepository.findAllMoviesById(userId);
     }
 
-    public User getWithMovies(String discordId) {
-        return userRepository.findByDiscordIdWithMovies(discordId)
+    public User getWithMovies(Long userId) {
+        return userRepository.findByIdWithMovies(userId)
                 .filter(u -> !u.getIsBot())
-                .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{discordId}));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{userId}));
     }
 
     public List<UserVoteStatsResponse> getVotesReceived(Long voteTypeId) {
@@ -58,12 +58,13 @@ public class UserService {
 
         return new UserVoteStatsResponse(
                 new UserDetailResponse(
+                        user.getId(),
                         user.getDiscordId(),
                         user.getName(),
                         user.getEmail(),
                         user.getAvatar(),
                         user.getBiography(),
-                        user.getCreated(),
+                        user.getCreatedAt(),
                         user.isAdmin(),
                         user.getIsBot(),
                         user.getActive()
@@ -84,12 +85,13 @@ public class UserService {
 
         return new UserVoteStatsResponse(
                 new UserDetailResponse(
+                        user.getId(),
                         user.getDiscordId(),
                         user.getName(),
                         user.getEmail(),
                         user.getAvatar(),
                         user.getBiography(),
-                        user.getCreated(),
+                        user.getCreatedAt(),
                         user.isAdmin(),
                         user.getIsBot(),
                         user.getActive()
@@ -128,28 +130,28 @@ public class UserService {
                 .toList();
     }
 
-    private User resetPassword(String discordId, String newPassword) {
-        User user = userRegistratioService.get(discordId);
+    private User resetPassword(Long userId, String newPassword) {
+        User user = userRegistratioService.get(userId);
         user.setPassword(passwordEncoder.encode(newPassword));
 
         return user;
     }
 
     @Transactional
-    public void resetPasswordByRecover(String discordId, String newPassword) {
-        User user = resetPassword(discordId, newPassword);
+    public void resetPasswordByRecover(Long userId, String newPassword) {
+        User user = resetPassword(userId, newPassword);
         publisher.publishEvent(new PasswordResetByRecoverEvent(user));
     }
 
     @Transactional
-    public void resetPasswordByAdmin(String discordId, String newPassword) {
-        User user = resetPassword(discordId, newPassword);
+    public void resetPasswordByAdmin(Long userId, String newPassword) {
+        User user = resetPassword(userId, newPassword);
         publisher.publishEvent(new PasswordResetByAdminEvent(user, newPassword));
     }
 
     @Transactional
-    public void changeActivationStatus(String discordId, boolean active) {
-        User user = userRegistratioService.get(discordId);
+    public void changeActivationStatus(Long userId, boolean active) {
+        User user = userRegistratioService.get(userId);
 
         if (active) {
             user.activate();
@@ -159,11 +161,11 @@ public class UserService {
     }
 
     @Transactional
-    public void updateStatusAdmin(String loggedUserIdentifier, String targetDiscordId, Boolean active) {
+    public void updateStatusAdmin(String loggedUserIdentifier, Long targetUserId, Boolean active) {
         User loggedUser = userRepository.findByEmail(loggedUserIdentifier)
                 .orElseThrow(() -> new IllegalStateException("Logged user not found"));
 
-        if (loggedUser.getDiscordId().equals(targetDiscordId)) {
+        if (loggedUser.getId().equals(targetUserId)) {
             throw new BusinessException(
                     "action.not.allowed.title",
                     "user.cannot_remove_own_admin.message",
@@ -171,7 +173,7 @@ public class UserService {
             );
         }
 
-        User user = userRegistratioService.get(targetDiscordId);
+        User user = userRegistratioService.get(targetUserId);
 
         if (active) {
             user.AddAdmin();
@@ -180,22 +182,23 @@ public class UserService {
         }
     }
 
-    public com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse getUserSummary(String discordId) {
-        User user = userRegistratioService.get(discordId);
+    public com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse getUserSummary(Long userId) {
+        User user = userRegistratioService.get(userId);
 
         UserDetailResponse userDetail = new UserDetailResponse(
+                user.getId(),
                 user.getDiscordId(),
                 user.getName(),
                 user.getEmail(),
                 user.getAvatar(),
                 user.getBiography(),
-                user.getCreated(),
+                user.getCreatedAt(),
                 user.isAdmin(),
                 user.getIsBot(),
                 user.getActive()
         );
 
-        UserSummaryProjection summary = userStatsRepository.findUserSummaryByDiscordId(discordId);
+        UserSummaryProjection summary = userStatsRepository.findUserSummaryById(userId);
 
         return new com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse(
                 userDetail,

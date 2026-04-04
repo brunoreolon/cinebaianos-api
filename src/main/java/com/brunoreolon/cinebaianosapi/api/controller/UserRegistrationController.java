@@ -82,18 +82,18 @@ public class UserRegistrationController {
         return ResponseEntity.ok().body(userConverter.toDetailResponseList(users));
     }
 
-    @GetMapping("/{discordId}")
+    @GetMapping("/{userId}")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
-    @Operation(summary = "Buscar usuário por Discord ID", description = "Retorna os detalhes de um usuário específico pelo seu Discord ID.")
+    @Operation(summary = "Buscar usuário por ID", description = "Retorna os detalhes de um usuário específico pelo seu ID.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário encontrado", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<UserDetailResponse> get(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId) {
-        User user = userRegistratioService.get(discordId);
+            @Parameter(description = "ID do usuário", example = "5")
+            @PathVariable Long userId) {
+        User user = userRegistratioService.get(userId);
         return ResponseEntity.ok().body(userConverter.toDetailResponse(user));
     }
 
@@ -117,9 +117,9 @@ public class UserRegistrationController {
         return ResponseEntity.ok(userConverter.toDetailResponse(user));
     }
 
-    @DeleteMapping("/{discordId}")
+    @DeleteMapping("/{userId}")
     @RequireRole(roles = {Role.ADMIN})
-    @Operation(summary = "Excluir usuário", description = "Remove um usuário do sistema com base no Discord ID. Apenas administradores podem executar esta operação.")
+    @Operation(summary = "Excluir usuário", description = "Remove um usuário do sistema com base no ID do usuário. Apenas administradores podem executar esta operação.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário excluído com sucesso"),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
@@ -127,13 +127,13 @@ public class UserRegistrationController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> delete(
-            @Parameter(description = "Discord ID do usuário a ser excluído", example = "987654321098765432")
-            @PathVariable @ResourceKey String discordId) {
-        userRegistratioService.delete(discordId);
+            @Parameter(description = "ID do usuário a ser excluído", example = "5")
+            @PathVariable @ResourceKey Long userId) {
+        userRegistratioService.delete(userId);
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/{discordId}")
+    @PatchMapping("/{userId}")
     @CheckOwner(service = UserRegistratioService.class, allowAdmin = true)
     @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário existente. Administradores podem atualizar qualquer usuário, outros só podem atualizar seu próprio registro.")
     @ApiResponses({
@@ -143,15 +143,15 @@ public class UserRegistrationController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<UserDetailResponse> update(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable @ResourceKey String discordId,
+            @Parameter(description = "ID do usuário", example = "5")
+            @PathVariable @ResourceKey Long userId,
 
             @Parameter(description = "Dados para atualização do usuário")
             @Valid @RequestBody UserUpdateRequest userRequest) {
         User userUpdate = userConverter.toEntityFromUpdate(userRequest);
-        userUpdate.setDiscordId(discordId);
+        userUpdate.setId(userId);
 
-        User existingUser = userRegistratioService.get(discordId);
+        User existingUser = userRegistratioService.get(userId);
         existingUser = userConverter.merge(userUpdate, existingUser);
 
         User updated = userRegistratioService.update(existingUser);

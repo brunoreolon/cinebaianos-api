@@ -36,7 +36,7 @@ public class AdminController {
     private final UserService userService;
     private final VoteTypeService voteTypeService;
 
-    @PostMapping("/users/{discordId}/reset-password")
+    @PostMapping("/users/{userId}/reset-password")
     @CheckSecurity.RequireRole(roles = {Role.ADMIN})
     @Operation(
             summary = "Resetar senha de usuário",
@@ -49,16 +49,16 @@ public class AdminController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> resetPassword(
-            @Parameter(description = "Discord ID do usuário que terá a senha resetada", example = "987654321098765432")
-            @PathVariable @ResourceKey String discordId,
+            @Parameter(description = "ID do usuário que terá a senha resetada", example = "1")
+            @PathVariable @ResourceKey Long userId,
 
             @Parameter(description = "Nova senha do usuário")
             @Valid @RequestBody UserResetPasswordRequest passwordRequest) {
-        userService.resetPasswordByAdmin(discordId, passwordRequest.getNewPassword());
+        userService.resetPasswordByAdmin(userId, passwordRequest.getNewPassword());
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/users/{discordId}/activation")
+    @PostMapping("/users/{userId}/activation")
     @CheckSecurity.RequireRole(roles = {Role.ADMIN})
     @Operation(
             summary = "Ativar/Desativar usuário",
@@ -71,16 +71,16 @@ public class AdminController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> updateStatusActiveAccount(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId,
+            @Parameter(description = "ID do usuário", example = "1")
+            @PathVariable Long userId,
 
             @Parameter(description = "Objeto contendo o novo status de ativação")
             @Valid @RequestBody UserStatusActiveAccountUpdateRequest active) {
-        userService.changeActivationStatus(discordId, active.getActive());
+        userService.changeActivationStatus(userId, active.getActive());
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/users/{discordId}/admin")
+    @PostMapping("/users/{userId}/admin")
     @CheckSecurity.RequireRole(roles = {Role.ADMIN})
     @Operation(
             summary = "Conceder/Remover privilégios de administrador",
@@ -93,15 +93,15 @@ public class AdminController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> updateStatusAdmin(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId,
+            @Parameter(description = "ID do usuário", example = "1")
+            @PathVariable Long userId,
 
             @Parameter(description = "Objeto contendo o novo status de administrador")
             @Valid @RequestBody UserStatusAdminUpdateRequest admin,
 
             @Parameter(description = "Usuário autenticado (injetado pelo Spring Security)")
             @AuthenticationPrincipal UserDetails userDetails) {
-        userService.updateStatusAdmin(userDetails.getUsername(), discordId, admin.getAdmin());
+        userService.updateStatusAdmin(userDetails.getUsername(), userId, admin.getAdmin());
         return ResponseEntity.noContent().build();
     }
 

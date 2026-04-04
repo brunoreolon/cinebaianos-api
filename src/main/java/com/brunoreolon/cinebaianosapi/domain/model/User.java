@@ -19,52 +19,70 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-@Entity
-@Table(name = "users")
-@DynamicUpdate
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
-@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User implements Ownable<String> {
+@DynamicUpdate
+@Entity
+@Table(name = "users")
+public class User implements Ownable<Long> {
 
-    @Id
     @EqualsAndHashCode.Include
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true)
     private String discordId;
 
     @NotBlank
     private String name;
 
-    @Column(unique = true)
     @NotBlank
     @Email
+    @Column(unique = true)
     private String email;
 
     @Size(min = 8)
+    @NotBlank
     private String password;
 
+    private String avatar;
+
+    private String biography;
+
+    private Boolean isBot = false;
+
+    private Boolean active = true;
+
     @CreationTimestamp()
-    @Column(updatable = false)
-    private LocalDateTime created;
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updated;
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    private LocalDateTime bannedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "banned_by")
+    private User bannedBy;
+
+    private String banReason;
+
+    private LocalDateTime expiresAt;
 
     @OneToMany(mappedBy = "chooser")
     List<Movie> movies = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name="user_roles", joinColumns=@JoinColumn(name="discord_id"))
+    @CollectionTable(name="user_roles", joinColumns=@JoinColumn(name="user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new LinkedHashSet<>();
-
-    private Boolean isBot = false;
-    private String avatar;
-    private String biography;
-    private Boolean active = false;
 
     public Boolean hasRole(Role role) {
         return roles.contains(role);
@@ -105,8 +123,8 @@ public class User implements Ownable<String> {
     }
 
     @Override
-    public String getOwnerId() {
-        return getDiscordId();
+    public Long getOwnerId() {
+        return getId();
     }
 
     public void AddAdmin() {
@@ -118,4 +136,5 @@ public class User implements Ownable<String> {
     public void RemoveAdmin() {
         this.getRoles().remove(Role.ADMIN);
     }
+
 }

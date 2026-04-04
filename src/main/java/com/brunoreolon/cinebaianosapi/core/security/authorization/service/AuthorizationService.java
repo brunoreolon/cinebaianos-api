@@ -63,7 +63,7 @@ public class AuthorizationService {
         Object entity = service.get(ResourceKey);
 
         if (entity instanceof Ownable ownable) {
-            return ownable.getOwnerId().equals(loggedUser.getDiscordId());
+            return ownable.getOwnerId().equals(loggedUser.getId());
         }
 
         return false;

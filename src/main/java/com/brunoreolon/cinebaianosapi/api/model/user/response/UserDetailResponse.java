@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 public class UserDetailResponse {
 
+    private Long id;
     private String discordId;
     private String name;
     private String email;

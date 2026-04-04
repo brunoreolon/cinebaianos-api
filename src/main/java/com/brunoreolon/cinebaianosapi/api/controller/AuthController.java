@@ -155,7 +155,7 @@ public class AuthController {
                 recoveryService.validate(request.getToken());
 
         userService.resetPasswordByRecover(
-                resetToken.getUser().getDiscordId(),
+                resetToken.getUser().getId(),
                 request.getNewPassword()
         );
 

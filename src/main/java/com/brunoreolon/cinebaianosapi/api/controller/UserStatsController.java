@@ -32,7 +32,7 @@ public class UserStatsController {
     private final UserService userService;
     private final UserRegistratioService userRegistratioService;
 
-    @GetMapping("/{discordId}/votes/received")
+    @GetMapping("/{userId}/votes/received")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(summary = "Votos recebidos por usuário", description = "Retorna estatísticas de votos recebidos por um usuário, podendo filtrar por tipo de voto.")
     @ApiResponses({
@@ -41,18 +41,18 @@ public class UserStatsController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<UserVoteStatsResponse> getVotesReceivedByUser(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId,
+            @Parameter(description = "ID do usuário", example = "987654321098765432")
+            @PathVariable Long userId,
 
             @Parameter(description = "ID do tipo de voto (opcional)", example = "1")
             @RequestParam(name = "vote", required = false) Long voteType) {
-        User user = userRegistratioService.get(discordId);
+        User user = userRegistratioService.get(userId);
         UserVoteStatsResponse votesReceived = userService.getVotesReceivedByUser(user, voteType);
 
         return ResponseEntity.ok().body(votesReceived);
     }
 
-    @GetMapping("/{discordId}/votes/given")
+    @GetMapping("/{userId}/votes/given")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(summary = "Votos dados por usuário", description = "Retorna estatísticas de votos dados por um usuário, podendo filtrar por tipo de voto.")
     @ApiResponses({
@@ -61,18 +61,18 @@ public class UserStatsController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<UserVoteStatsResponse> getVotesGivenByUser(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId,
+            @Parameter(description = "ID do usuário", example = "1")
+            @PathVariable Long userId,
 
             @Parameter(description = "ID do tipo de voto (opcional)", example = "1")
             @RequestParam(name = "vote", required = false) Long voteType) {
-        User user = userRegistratioService.get(discordId);
+        User user = userRegistratioService.get(userId);
         UserVoteStatsResponse votesGiven = userService.getVotesGivenByUser(user, voteType);
 
         return ResponseEntity.ok().body(votesGiven);
     }
 
-    @GetMapping("/{discordId}/summary")
+    @GetMapping("/{userId}/summary")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(summary = "Resumo do usuário", description = "Retorna um resumo completo de estatísticas do usuário, incluindo votos e métricas gerais.")
     @ApiResponses({
@@ -81,9 +81,9 @@ public class UserStatsController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<UserSummaryResponse> getUserSummary(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId) {
-        UserSummaryResponse userSummaryStats = userService.getUserSummary(discordId);
+            @Parameter(description = "ID do usuário", example = "987654321098765432")
+            @PathVariable Long userId) {
+        UserSummaryResponse userSummaryStats = userService.getUserSummary(userId);
 
         return ResponseEntity.ok().body(userSummaryStats);
     }

@@ -89,12 +89,12 @@ public class MovieController {
             language = tmdbProperties.getLanguage();
         }
 
-        permissionService.checkCanAddMovieFor(movieIdRequest.getChooser().getDiscordId());
+        permissionService.checkCanAddMovieFor(movieIdRequest.getChooser().getId());
 
         ClientMovieDetailsResponse movieDetails = tmdbService.getMovieDetails(movieIdRequest.getMovie().getId(), language);
         Movie movie = tmdbConverter.toEntityFromClientMovieDetail(movieDetails);
         Long voteId = getVoteId(movieIdRequest.getVote());
-        Movie newMovie = movieService.save(movie, movieIdRequest.getChooser().getDiscordId(), voteId);
+        Movie newMovie = movieService.save(movie, movieIdRequest.getChooser().getId(), voteId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(movieConverter.toWithChooserResponse(newMovie));
     }
@@ -128,7 +128,7 @@ public class MovieController {
             language = tmdbProperties.getLanguage();
         }
 
-        permissionService.checkCanAddMovieFor(movieSearchRequest.getChooser().getDiscordId());
+        permissionService.checkCanAddMovieFor(movieSearchRequest.getChooser().getId());
 
         ClientResultsResponse response = tmdbService.search(movieSearchRequest.getTitle(), movieSearchRequest.getYear(), language);
         List<TmdbMovieResponse> tmdbMovieResponses = tmdbConverter.toMovieResponseList(response.getResults());
@@ -141,8 +141,8 @@ public class MovieController {
 
         Long voteId = getVoteId(movieSearchRequest.getVote());
 
-        Movie newMovie = movieService.save(movie, movieSearchRequest.getChooser().getDiscordId(), voteId);
-        MovieVoteDetailResponse movieVote = movieConverter.toMovieVoteDetailResponse(newMovie, newMovie.getChooser().getDiscordId());
+        Movie newMovie = movieService.save(movie, movieSearchRequest.getChooser().getId(), voteId);
+        MovieVoteDetailResponse movieVote = movieConverter.toMovieVoteDetailResponse(newMovie, newMovie.getChooser().getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(movieVote);
     }
@@ -214,7 +214,7 @@ public class MovieController {
     }
 
     @DeleteMapping("/{movieId}")
-    @CheckOwner(service = MovieService.class)
+    @CheckOwner(service = MovieService.class, allowBot = true, allowAdmin = true)
     @Operation(
             summary = "Excluir filme",
             description = "Remove definitivamente um filme do sistema com base no ID informado."
@@ -235,11 +235,11 @@ public class MovieController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/users/{discordId}")
+    @GetMapping("/users/{userId}")
     @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Listar filmes por usuário",
-            description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu Discord ID."
+            description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu ID."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Filmes retornados com sucesso", content = @Content(schema = @Schema(implementation = UserWithMoviesResponse.class))),
@@ -249,10 +249,10 @@ public class MovieController {
     public ResponseEntity<UserWithMoviesResponse> getMoviesByUser(
             @Parameter(
                     description = "Identificador único do usuário",
-                    example = "987654321098765432"
+                    example = "1"
             )
-            @PathVariable String discordId) {
-        User user = userService.getWithMovies(discordId);
+            @PathVariable Long userId) {
+        User user = userService.getWithMovies(userId);
         UserWithMoviesResponse response = userConverter.toWithMoviesResponse(user);
 
         return ResponseEntity.ok().body(response);

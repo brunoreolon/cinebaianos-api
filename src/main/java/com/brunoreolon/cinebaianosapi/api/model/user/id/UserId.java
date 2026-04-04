@@ -13,6 +13,6 @@ import lombok.Setter;
 public class UserId {
 
     @NotNull
-    private String discordId;
+    private Long id;
 
 }

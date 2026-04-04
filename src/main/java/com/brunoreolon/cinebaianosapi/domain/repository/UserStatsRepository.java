@@ -16,8 +16,8 @@ public interface UserStatsRepository extends JpaRepository<User, String> {
                 (SELECT COUNT(v) FROM Vote v JOIN v.movie mv WHERE mv.chooser = u) AS totalVotesReceived,
                 (SELECT COUNT(m) FROM Movie m WHERE m NOT IN (SELECT v.movie FROM Vote v WHERE v.voter = u)) AS moviesPendingVote
             FROM User u
-            WHERE u.discordId = :discordId
+            WHERE u.id = :userId
         """)
-    UserSummaryProjection findUserSummaryByDiscordId(@Param("discordId") String discordId);
+    UserSummaryProjection findUserSummaryById(@Param("userId") Long userId);
 
 }

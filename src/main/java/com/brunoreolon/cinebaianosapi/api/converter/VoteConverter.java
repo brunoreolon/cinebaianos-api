@@ -39,18 +39,18 @@ public class VoteConverter {
                 vote.getVote().getDescription(),
                 vote.getVote().getColor(),
                 vote.getVote().getEmoji(),
-                vote.getCreated()
+                vote.getCreatedAt()
         );
 
         return new VoteDetailResponse(
                 new MovieSummaryResponse(movie.getId(), movie.getTitle(), movie.getTmdbId()),
-                new UserSummaryResponse(voter.getDiscordId(), voter.getName()),
+                new UserSummaryResponse(voter.getId(), voter.getName()),
                 voteSummary
         );
     }
 
     public UserMovieVoteResponse toUserMovieVoteResponse(Vote vote) {
-        MovieSummaryResponse map1 = new MovieSummaryResponse(vote.getMovie().getId(), vote.getMovie().getTitle(), vote.getMovie().getYear());
+        MovieSummaryResponse map1 = new MovieSummaryResponse(vote.getMovie().getId(), vote.getMovie().getTitle(), vote.getMovie().getTmdbId());
         VoteSummaryResponse map2 = modelMapper.map(vote, VoteSummaryResponse.class);
 
         return new UserMovieVoteResponse(map1, map2);
@@ -67,7 +67,7 @@ public class VoteConverter {
                 .map(v -> {
                     UserDetailResponse voter = modelMapper.map(v.getVoter(), UserDetailResponse.class);
                     VoteSummaryResponse vote = modelMapper.map(v.getVote(), VoteSummaryResponse.class);
-                    vote.setVotedAt(v.getCreated());
+                    vote.setVotedAt(v.getCreatedAt());
 
                     return new UsersVotesSummaryResponse(voter, vote);
                 })
