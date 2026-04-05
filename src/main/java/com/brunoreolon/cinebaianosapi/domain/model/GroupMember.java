@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "group_members")
-public class GroupMember {
+public class GroupMember implements Ownable<Long> {
 
     @EqualsAndHashCode.Include
     @Valid
@@ -102,6 +103,11 @@ public class GroupMember {
         } else {
             throw new RuntimeException("Operação não permitida");
         }
+    }
+
+    @Override
+    public Long getOwnerId() {
+        return getMember().getId();
     }
 
 //    public void revokeAdmin() {

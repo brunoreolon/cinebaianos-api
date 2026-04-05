@@ -7,10 +7,12 @@ import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailRespon
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailWithMembersResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupResponse;
-import com.brunoreolon.cinebaianosapi.domain.model.CustomUserDetails;
-import com.brunoreolon.cinebaianosapi.domain.model.Group;
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckOwner;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
+import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +31,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.brunoreolon.cinebaianosapi.domain.model.Role.*;
+
 @AllArgsConstructor
 @RestController
 @RequestMapping("/api/groups")
@@ -39,6 +43,7 @@ public class GroupController {
     private final GroupMemberService groupMemberService;
     private final GroupConverter groupConverter;
 
+    @RequireRole(roles = {USER, SUPER_ADMIN})
     @PostMapping
     @Operation(summary = "Criar novo grupo",
             description = "Cria um novo grupo. O usuário autenticado será definido como o owner do grupo.")
@@ -58,6 +63,7 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.CREATED).body(groupConverter.toResponse(newGroup));
     }
 
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
     @PutMapping("/{groupId}")
     @Operation(summary = "Atualizar grupo",
             description = "Atualiza as configurações de um grupo existente. Apenas o owner ou admin do grupo podem executar esta operação.")
@@ -68,7 +74,7 @@ public class GroupController {
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para atualizar este grupo"),
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
-    public ResponseEntity<GroupResponse> update(@PathVariable Long groupId, @Valid @RequestBody GroupUpdateRequest request) {
+    public ResponseEntity<GroupResponse> update(@PathVariable @ResourceKey Long groupId, @Valid @RequestBody GroupUpdateRequest request) {
         Group group = groupConverter.toEntiy(request);
         group.setId(groupId);
         Group updatedGroup = groupService.update(group);
@@ -76,6 +82,7 @@ public class GroupController {
         return ResponseEntity.ok(groupConverter.toResponse(updatedGroup));
     }
 
+    @RequireRole(roles = {USER, SUPER_ADMIN})
     @GetMapping
     @Operation(summary = "Listar todos os grupos",
             description = "Retorna uma lista de todos os grupos públicos disponíveis.")
@@ -87,6 +94,7 @@ public class GroupController {
         return ResponseEntity.ok(groupConverter.toResponseList(groups));
     }
 
+    @CheckGroupMember(service = GroupMemberService.class)
     @GetMapping("/{groupId}")
     @Operation(summary = "Buscar grupo por ID",
             description = "Retorna os detalhes de um grupo específico.")
@@ -94,11 +102,12 @@ public class GroupController {
             @ApiResponse(responseCode = "200", description = "Grupo encontrado", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
-    public ResponseEntity<GroupResponse> getById(@PathVariable("groupId") Long groupId) {
+    public ResponseEntity<GroupResponse> getById(@PathVariable("groupId") @ResourceKey Long groupId) {
         Group group = groupService.getById(groupId);
         return ResponseEntity.ok(groupConverter.toResponse(group));
     }
 
+    @CheckGroupMember(service = GroupMemberService.class)
     @GetMapping("/{groupId}/movies")
     @Operation(summary = "Obter grupo com filmes",
             description = "Retorna um grupo com todos os seus filmes associados.")
@@ -106,7 +115,7 @@ public class GroupController {
             @ApiResponse(responseCode = "200", description = "Grupo com filmes encontrado", content = @Content(schema = @Schema(implementation = GroupDetailResponse.class))),
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
-    public ResponseEntity<GroupDetailResponse> getGroupWithMovies(@PathVariable Long groupId) {
+    public ResponseEntity<GroupDetailResponse> getGroupWithMovies(@PathVariable @ResourceKey Long groupId) {
         try {
             Group group = groupService.getGroupWithMovies(groupId);
             GroupDetailResponse groupResponse = groupConverter.toGroupWithMoviesResponse(group);
@@ -117,6 +126,7 @@ public class GroupController {
         }
     }
 
+    @CheckGroupMember(service = GroupMemberService.class)
     @GetMapping("/{groupId}/members")
     @Operation(summary = "Obter membros do grupo",
             description = "Retorna um grupo com todos os seus membros ativos.")
@@ -124,7 +134,7 @@ public class GroupController {
             @ApiResponse(responseCode = "200", description = "Membros do grupo encontrados", content = @Content(schema = @Schema(implementation = GroupDetailWithMembersResponse.class))),
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
-    public ResponseEntity<GroupDetailWithMembersResponse> getGroupWithMembers(@PathVariable Long groupId) {
+    public ResponseEntity<GroupDetailWithMembersResponse> getGroupWithMembers(@PathVariable @ResourceKey Long groupId) {
         try {
             Group group = groupService.getGroupMembers(groupId);
             GroupDetailWithMembersResponse response = groupConverter.toGroupWithMembersResponse(group);
@@ -134,6 +144,8 @@ public class GroupController {
         }
     }
 
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
+    @CheckOwner(service = GroupService.class)
     @PostMapping("/{groupId}/members/{userId}")
     @Operation(summary = "Adicionar membro ao grupo",
             description = "Adiciona um usuário como membro do grupo com a role de MEMBER. Apenas o owner ou admin podem executar esta operação.")
@@ -146,7 +158,7 @@ public class GroupController {
     })
     public ResponseEntity<GroupMemberResponse> addMember(
             @Parameter(description = "ID do grupo", example = "1")
-            @PathVariable Long groupId,
+            @PathVariable @ResourceKey Long groupId,
             @Parameter(description = "ID do usuário a ser adicionado", example = "1")
             @PathVariable Long userId) {
         try {
@@ -160,6 +172,8 @@ public class GroupController {
         }
     }
 
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
+    @CheckOwner(service = GroupService.class)
     @DeleteMapping("/{groupId}/members/{userId}")
     @Operation(summary = "Remover membro do grupo",
             description = "Remove um membro do grupo. O membro será marcado como inativo e seus dados permanecerão no sistema. Apenas o owner ou admin podem executar esta operação.")
@@ -171,7 +185,7 @@ public class GroupController {
     })
     public ResponseEntity<Void> removeMember(
             @Parameter(description = "ID do grupo", example = "1")
-            @PathVariable Long groupId,
+            @PathVariable @ResourceKey Long groupId,
             @Parameter(description = "ID do usuário a ser removido", example = "1")
             @PathVariable Long userId) {
         try {
@@ -182,6 +196,7 @@ public class GroupController {
         }
     }
 
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.OWNER)
     @PutMapping("/{groupId}/members/{userId}/promote-to-admin")
     @Operation(summary = "Promover membro para admin",
             description = "Promove um membro para admin do grupo. Apenas o owner pode executar esta operação.")
@@ -193,7 +208,7 @@ public class GroupController {
     })
     public ResponseEntity<GroupMemberResponse> promoteToAdmin(
             @Parameter(description = "ID do grupo", example = "1")
-            @PathVariable Long groupId,
+            @PathVariable @ResourceKey Long groupId,
             @Parameter(description = "ID do usuário a ser promovido", example = "1")
             @PathVariable Long userId) {
         try {
@@ -206,6 +221,7 @@ public class GroupController {
         }
     }
 
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.OWNER)
     @PutMapping("/{groupId}/members/{userId}/demote-to-member")
     @Operation(summary = "Rebaixar admin para membro",
             description = "Rebaixa um admin para membro do grupo. Apenas o owner pode executar esta operação.")
@@ -217,7 +233,7 @@ public class GroupController {
     })
     public ResponseEntity<GroupMemberResponse> demoteToMember(
             @Parameter(description = "ID do grupo", example = "1")
-            @PathVariable Long groupId,
+            @PathVariable @ResourceKey Long groupId,
             @Parameter(description = "ID do admin a ser rebaixado", example = "1")
             @PathVariable Long userId) {
         try {
@@ -230,6 +246,8 @@ public class GroupController {
         }
     }
 
+    @CheckGroupMember(service = GroupMemberService.class)
+    @CheckOwner(service = GroupMemberService.class)
     @PutMapping("/{groupId}/set-default")
     @Operation(summary = "Definir grupo como padrão",
             description = "Define um grupo como o padrão do usuário autenticado. Este será o grupo utilizado por padrão nas operações do usuário.")
@@ -240,7 +258,7 @@ public class GroupController {
     })
     public ResponseEntity<Void> setAsDefaultGroup(
             @Parameter(description = "ID do grupo", example = "1")
-            @PathVariable Long groupId,
+            @PathVariable @ResourceKey Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         try {
             Long userId = userDetails.getUser().getId();
@@ -251,6 +269,8 @@ public class GroupController {
         }
     }
 
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.OWNER)
+    @CheckOwner(service = GroupMemberService.class)
     @PutMapping("/{groupId}/transfer-ownership/{newOwnerId}")
     @Operation(summary = "Transferir propriedade do grupo",
             description = "Transfere a propriedade do grupo para outro membro. Apenas o owner atual pode executar esta operação.")
@@ -262,7 +282,7 @@ public class GroupController {
     })
     public ResponseEntity<GroupResponse> transferOwnership(
             @Parameter(description = "ID do grupo", example = "1")
-            @PathVariable Long groupId,
+            @PathVariable @ResourceKey Long groupId,
             @Parameter(description = "ID do novo owner", example = "1")
             @PathVariable Long newOwnerId) {
         try {
@@ -274,6 +294,8 @@ public class GroupController {
         }
     }
 
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.OWNER)
+    @CheckOwner(service = GroupService.class)
     @DeleteMapping("/{groupId}")
     @Operation(summary = "Deletar grupo",
             description = "Remove completamente um grupo do sistema. Apenas o owner pode executar esta operação.")
@@ -283,7 +305,7 @@ public class GroupController {
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para deletar este grupo"),
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
-    public ResponseEntity<Void> delete(@PathVariable Long groupId) {
+    public ResponseEntity<Void> delete(@PathVariable @ResourceKey Long groupId) {
         try {
             groupService.deleteById(groupId);
             return ResponseEntity.noContent().build();

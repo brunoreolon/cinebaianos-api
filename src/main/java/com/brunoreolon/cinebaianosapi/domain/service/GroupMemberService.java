@@ -1,5 +1,8 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupAuthorizationService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupMemberRepository;
 import lombok.AllArgsConstructor;
@@ -11,7 +14,7 @@ import java.util.Optional;
 
 @AllArgsConstructor
 @Service
-public class GroupMemberService {
+public class GroupMemberService implements GroupAuthorizationService, OwnableService<GroupMember, GroupMemberId> {
 
     private final GroupMemberRepository groupMemberRepository;
     private final GroupService groupService;
@@ -114,12 +117,33 @@ public class GroupMemberService {
         member.demoteToMember();
     }
 
-    public boolean isMember(Long groupId, Long userId) {
-        return groupMemberRepository.existsByGroupIdAndMemberIdAndActiveTrue(groupId, userId);
-    }
-
     public List<GroupMember> getActiveMembers(Long groupId) {
         return groupMemberRepository.findByGroupIdAndActiveTrue(groupId);
+    }
+
+    @Override
+    public boolean isMember(Long groupId, Long userId) {
+        return getMember(groupId, userId)
+                .map(GroupMember::getActive)
+                .orElse(false);
+    }
+
+    @Override
+    public boolean hasRole(Long groupId, Long userId, GroupMemberRole requiredRole) {
+        return getMember(groupId, userId)
+                .map(m -> m.getActive() && m.getRole().atLeast(requiredRole))
+                .orElse(false);
+    }
+
+    @Override
+    public GroupMember get(GroupMemberId groupMemberId) {
+        return getMember(groupMemberId.getGroupId(), groupMemberId.getMemberId())
+                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+    }
+
+    @Override
+    public GroupMemberId buildId(ResourceKeyValues keyValues) {
+        return keyValues.as(GroupMemberId.class);
     }
 
 }

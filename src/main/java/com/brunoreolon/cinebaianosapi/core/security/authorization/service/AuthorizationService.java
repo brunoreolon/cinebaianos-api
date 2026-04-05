@@ -1,7 +1,9 @@
 package com.brunoreolon.cinebaianosapi.core.security.authorization.service;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupAuthorizationService;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import lombok.AllArgsConstructor;
@@ -23,8 +25,8 @@ import java.util.Arrays;
  *
  * <p>Não contém regras de negócio, apenas regras de acesso.</p>
  */
-@Component
 @AllArgsConstructor
+@Component
 public class AuthorizationService {
 
     private final UserContextService userContextService;
@@ -56,17 +58,28 @@ public class AuthorizationService {
     /**
      * Retorna true se o usuário atual é dono do recurso
      */
-    public boolean isOwner(OwnableService service, Object ResourceKey) {
+    public boolean isOwner(OwnableService service, Object resourceKey) {
         User loggedUser = userContextService.getLoggedUser().orElse(null);
         if (loggedUser == null) return false;
 
-        Object entity = service.get(ResourceKey);
+        Object entity = service.get(resourceKey);
 
         if (entity instanceof Ownable ownable) {
             return ownable.getOwnerId().equals(loggedUser.getId());
         }
 
         return false;
+    }
+
+    public boolean authorize(GroupAuthorizationService service, Long groupId, GroupMemberRole requiredRole) {
+        User loggedUser = userContextService.getLoggedUser().orElse(null);
+        if (loggedUser == null) return false;
+
+        if (requiredRole == null) {
+            return service.isMember(groupId, loggedUser.getId());
+        } else {
+            return service.hasRole(groupId, loggedUser.getId(), requiredRole);
+        }
     }
 
 }

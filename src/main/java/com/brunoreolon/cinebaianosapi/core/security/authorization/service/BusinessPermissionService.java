@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-@Component
 @AllArgsConstructor
+@Component
 public class BusinessPermissionService {
 
     private final UserContextService userContextService;

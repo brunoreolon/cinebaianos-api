@@ -2,13 +2,13 @@ package com.brunoreolon.cinebaianosapi.domain.model;
 
 public enum GroupMemberRole {
 
-    OWNER{
+    OWNER(3) {
         @Override
         public boolean canDemoteToMember() {
             return true;
         }
     },
-    ADMIN{
+    ADMIN(2) {
         @Override
         public boolean canDemoteToMember() {
             return true;
@@ -19,12 +19,25 @@ public enum GroupMemberRole {
             return true;
         }
     },
-    MEMBER {
+    MEMBER(1) {
         @Override
         public boolean canPromoteToAdmin() {
             return true;
         }
     };
+
+    private final int level;
+
+    GroupMemberRole(int level) {
+        this.level = level;
+    }
+
+    /**
+     * Retorna true se a role atual é igual ou superior à role exigida
+     */
+    public boolean atLeast(GroupMemberRole requiredRole) {
+        return this.level >= requiredRole.level;
+    }
 
     public boolean canPromoteToAdmin() {
         return false;

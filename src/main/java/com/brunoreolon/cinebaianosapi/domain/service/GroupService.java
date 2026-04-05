@@ -1,5 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupRepository;
 import org.springframework.context.annotation.Lazy;
@@ -10,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class GroupService {
+public class GroupService implements OwnableService<Group, Long> {
 
     private final GroupRepository groupRepository;
     private final GroupMemberService groupMemberService;
@@ -129,7 +131,10 @@ public class GroupService {
         if (slugAlreadyExists) throw new RuntimeException(String.format("Slug %s já existe", group.getSlug()));
     }
 
-
+    @Override
+    public Group get(Long groupId) {
+        return getById(groupId);
+    }
 
 //    public Group getVoteTypes(Long groupId) {
 //        groupRepository.findAllByVoteTypes(groupId);

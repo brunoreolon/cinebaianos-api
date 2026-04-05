@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
@@ -21,7 +22,7 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "groups")
-public class Group {
+public class Group implements Ownable<Long> {
 
     @EqualsAndHashCode.Include
     @Id
@@ -105,6 +106,11 @@ public class Group {
             throw new RuntimeException("Grupo já desativado");
 
         this.active = false;
+    }
+
+    @Override
+    public Long getOwnerId() {
+        return getOwner().getId();
     }
 
 }

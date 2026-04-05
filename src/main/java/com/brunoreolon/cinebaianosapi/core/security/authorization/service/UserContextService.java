@@ -19,8 +19,8 @@ import java.util.Optional;
  * centralizando regras como bot, admin e autenticação.</p>
  */
 
-@Component
 @AllArgsConstructor
+@Component
 public class UserContextService {
 
     private final AuthenticationFacade authenticationFacade;
