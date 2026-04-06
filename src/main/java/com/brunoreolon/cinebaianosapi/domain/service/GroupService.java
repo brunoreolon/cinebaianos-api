@@ -1,6 +1,5 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupRepository;
@@ -102,6 +101,8 @@ public class GroupService implements OwnableService<Group, Long> {
 
         GroupMember oldOwnerMember = groupMemberService.getMember(groupId, group.getOwner().getId())
                 .orElseThrow(() -> new RuntimeException("Antigo proprietário não encontrado"));
+
+        if (oldOwnerMember.getMember().getId().equals(newOwnerId)) throw new RuntimeException("Novo proprietário é o mesmo que o atual");
 
         GroupMember newOwnerMember = groupMemberService.getMember(groupId, newOwnerId)
                 .orElseThrow(() -> new RuntimeException("Novo proprietário deve ser um membro do grupo"));

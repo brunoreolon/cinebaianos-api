@@ -63,6 +63,11 @@ public class ModalMapperConfig {
         modelMapper.typeMap(User.class, UserSummaryResponse.class)
                 .addMappings(mapper -> mapper.map(User::getId, UserSummaryResponse::setId));
 
+        modelMapper.typeMap(Group.class, Group.class).addMappings(mapper -> {
+            mapper.skip(Group::setActive);
+            mapper.skip(Group::setMembers);
+        });
+
         return modelMapper;
     }
 

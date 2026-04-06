@@ -113,4 +113,9 @@ public class GroupConverter {
         return response;
     }
 
+    public Group merge(Group source, Group target) {
+        modelMapper.map(source, target);
+        return target;
+    }
+
 }

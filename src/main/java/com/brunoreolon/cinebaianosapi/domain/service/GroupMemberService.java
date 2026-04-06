@@ -27,16 +27,24 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     @Transactional
     public void setAsDefaultGroup(Long userId, Long groupId) {
         List<GroupMember> activeMembers = groupMemberRepository.findByMemberIdAndActiveTrue(userId);
+
+        GroupMember selectedMember = null;
+
         for (GroupMember gm : activeMembers) {
             gm.unselect();
+
+            if (gm.getGroupMemberId().getGroupId().equals(groupId)) {
+                selectedMember = gm;
+            }
         }
 
-        GroupMember selectedMember = getMember(groupId, userId)
-                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+        if (selectedMember == null) {
+            throw new RuntimeException("Membro não encontrado");
+        }
+
         selectedMember.select();
 
         groupMemberRepository.saveAll(activeMembers);
-        groupMemberRepository.save(selectedMember);
     }
 
     @Transactional
@@ -94,7 +102,9 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     }
 
     @Transactional
-    public void promoteToAdmin(Long groupId, Long userId) {
+    public void promoteToAdmin(Long groupId, Long userId, Long userLoggedId) {
+        if (userId.equals(userLoggedId)) throw new RuntimeException("Você não pode se promover para admin");
+
         GroupMember member = getMember(groupId, userId)
                 .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
 
@@ -102,7 +112,9 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     }
 
     @Transactional
-    public void demoteToMember(Long groupId, Long userId) {
+    public void demoteToMember(Long groupId, Long userId, Long userLoggedId) {
+        if (userId.equals(userLoggedId)) throw new RuntimeException("Você não pode se rebaixar para membro");
+
         GroupMember member = getMember(groupId, userId)
                 .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
 
@@ -144,6 +156,11 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     @Override
     public GroupMemberId buildId(ResourceKeyValues keyValues) {
         return keyValues.as(GroupMemberId.class);
+    }
+
+    @Override
+    public String currentUserKeyName() {
+        return "memberId";
     }
 
 }
