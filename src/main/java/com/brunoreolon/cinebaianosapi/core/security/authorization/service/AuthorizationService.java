@@ -46,6 +46,15 @@ public class AuthorizationService {
     }
 
     /**
+     * Retorna o ID do usuário logado ou null se nenhum usuário estiver autenticado
+     */
+    public Long getCurrentUserId() {
+        return userContextService.getLoggedUser()
+                .map(User::getId)
+                .orElse(null);
+    }
+
+    /**
      * Retorna true se o usuário atual possui qualquer uma das roles fornecidas
      */
     public boolean hasAnyRole(Role[] roles) {

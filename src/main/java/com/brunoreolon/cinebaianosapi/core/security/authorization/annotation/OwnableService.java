@@ -39,4 +39,22 @@ public interface OwnableService<T extends Ownable, ID> {
         throw new UnsupportedOperationException("ownable.buildid.composite_not_supported");
     }
 
+    /**
+     * Retorna o nome do campo no ID composto que representa o usuário autenticado.
+     *
+     * <p>Quando um endpoint possui apenas uma {@code @ResourceKey} visível na URL
+     * mas o recurso requer um ID composto, o Aspect de segurança usa este nome
+     * para complementar automaticamente o mapa de chaves com o userId do contexto.</p>
+     *
+     * <p>Exemplo: {@code GroupMemberService} retorna {@code "memberId"},
+     * {@code VoteService} retorna {@code "voterId"}.</p>
+     *
+     * <p>Retorne {@code null} (padrão) se o serviço não precisa deste comportamento.</p>
+     *
+     * @return nome do campo do userId no ID composto, ou {@code null}
+     */
+    default String currentUserKeyName() {
+        return null;
+    }
+
 }

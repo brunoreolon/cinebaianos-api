@@ -107,9 +107,24 @@ public class SecurityAspect {
         }
 
         if (found.isEmpty()) return null;
-        if (found.size() == 1) return found.values().iterator().next();
+        if (found.size() == 1 && service == null) return found.values().iterator().next();
 
-        if (service != null) {
+        // Se há apenas 1 chave mas o serviço é fornecido (esperando chave composta),
+        // tenta completá-la com o userId do contexto de autenticação
+        if (found.size() == 1 && service != null) {
+            String userKeyName = service.currentUserKeyName();
+            if (userKeyName != null) {
+                Long userId = authorizationService.getCurrentUserId();
+                if (userId != null) {
+                    found.put(userKeyName, userId);
+                    return service.buildId(new ResourceKeyValues(found));
+                }
+            }
+            // Se não há campo de usuário configurado ou userId indisponível, retorna o valor simples
+            return found.values().iterator().next();
+        }
+
+        if (found.size() > 1 && service != null) {
             return service.buildId(new ResourceKeyValues(found));
         }
 
