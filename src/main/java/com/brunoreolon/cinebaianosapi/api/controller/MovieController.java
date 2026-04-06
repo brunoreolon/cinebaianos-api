@@ -42,7 +42,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,6 +49,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -68,7 +68,7 @@ public class MovieController {
     private final TmdbProperties tmdbProperties;
 
     @PostMapping
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Adicionar filme pelo TMDb ID",
             description = "Recebe o TMDb ID de um filme, obtém os dados diretamente da API do TMDb e realiza o cadastro no sistema.")
     @ApiResponses(value = {
@@ -100,7 +100,7 @@ public class MovieController {
     }
 
     @PostMapping("/candidates")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Adicionar filme informando título e ano",
             description = """
                     Realiza uma busca no TMDb utilizando título e ano.
@@ -152,7 +152,7 @@ public class MovieController {
     }
 
     @GetMapping
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar todos os filmes cadastrados",
             description = "Retorna uma lista paginada de filmes cadastrados, com suporte a filtros, ordenação e paginação."
@@ -193,7 +193,7 @@ public class MovieController {
     }
 
     @GetMapping("/{movieId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar filme por ID",
             description = "Retorna os detalhes completos de um filme cadastrado no sistema, incluindo avaliador e informações adicionais."
@@ -236,7 +236,7 @@ public class MovieController {
     }
 
     @GetMapping("/users/{userId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar filmes por usuário",
             description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu ID."
@@ -259,7 +259,7 @@ public class MovieController {
     }
 
     @GetMapping("/awaiting-review")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar filmes aguardando avaliação",
             description = "Retorna uma lista paginada de filmes que ainda não receberam avaliação."

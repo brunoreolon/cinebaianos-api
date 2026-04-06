@@ -5,7 +5,7 @@ import com.brunoreolon.cinebaianosapi.domain.exception.EntityInUseException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
@@ -51,7 +51,7 @@ public class UserRegistratioService implements OwnableService<User, Long> {
 
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
-        user.setRoles(Set.of(Role.USER));
+        user.setRoles(Set.of(UserRole.USER));
         User newUser = userRepository.save(user);
 
         publisher.publishEvent(new UserCreatedEvent(newUser, newPassword));

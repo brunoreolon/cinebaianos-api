@@ -8,7 +8,6 @@ import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeStatusUpdat
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteTypeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +25,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
+
 @RestController
 @RequestMapping("/api/admin")
 @AllArgsConstructor
@@ -37,7 +38,7 @@ public class AdminController {
     private final VoteTypeService voteTypeService;
 
     @PostMapping("/users/{userId}/reset-password")
-    @CheckSecurity.RequireRole(roles = {Role.ADMIN})
+    @CheckSecurity.RequireRole(roles = {ADMIN})
     @Operation(
             summary = "Resetar senha de usuário",
             description = "Permite que um administrador redefina a senha de um usuário específico."
@@ -59,7 +60,7 @@ public class AdminController {
     }
 
     @PostMapping("/users/{userId}/activation")
-    @CheckSecurity.RequireRole(roles = {Role.ADMIN})
+    @CheckSecurity.RequireRole(roles = {ADMIN})
     @Operation(
             summary = "Ativar/Desativar usuário",
             description = "Permite que um administrador ative ou desative a conta de um usuário."
@@ -81,7 +82,7 @@ public class AdminController {
     }
 
     @PostMapping("/users/{userId}/admin")
-    @CheckSecurity.RequireRole(roles = {Role.ADMIN})
+    @CheckSecurity.RequireRole(roles = {ADMIN})
     @Operation(
             summary = "Conceder/Remover privilégios de administrador",
             description = "Permite que um administrador atualize o status de administrador de outro usuário."
@@ -106,7 +107,7 @@ public class AdminController {
     }
 
     @PostMapping("/vote-types/{typeVoteId}/activation")
-    @CheckSecurity.RequireRole(roles = {Role.ADMIN})
+    @CheckSecurity.RequireRole(roles = {ADMIN})
     @Operation(
             summary = "Ativar/Desativar tipo de voto",
             description = "Permite que um administrador altere o status de um tipo de voto específico."

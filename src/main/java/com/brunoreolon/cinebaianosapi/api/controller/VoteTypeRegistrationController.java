@@ -6,7 +6,7 @@ import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeDetailResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteTypeRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,7 +38,7 @@ public class VoteTypeRegistrationController {
     private final VoteTypeConverter voteTypeConverter;
 
     @PostMapping
-    @RequireRole(roles = {Role.ADMIN})
+    @RequireRole(roles = {UserRole.ADMIN})
     @Operation(summary = "Criar tipo de voto", description = "Permite que um administrador crie um novo tipo de voto no sistema.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Tipo de voto criado com sucesso", content = @Content(schema = @Schema(implementation = VoteTypeDetailResponse.class))),
@@ -55,7 +55,7 @@ public class VoteTypeRegistrationController {
     }
 
     @GetMapping
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {UserRole.ADMIN, UserRole.USER})
     @Operation(summary = "Listar tipos de voto", description = "Retorna todos os tipos de voto ativos ou inativos, conforme o filtro.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Tipos de voto retornados com sucesso", content = @Content(schema = @Schema(implementation = VoteTypeDetailResponse.class))),
@@ -69,7 +69,7 @@ public class VoteTypeRegistrationController {
     }
 
     @GetMapping("/{typeVoteId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {UserRole.ADMIN, UserRole.USER})
     @Operation(summary = "Buscar tipo de voto por ID", description = "Retorna os detalhes de um tipo de voto específico.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Tipo de voto encontrado", content = @Content(schema = @Schema(implementation = VoteTypeDetailResponse.class))),
@@ -84,7 +84,7 @@ public class VoteTypeRegistrationController {
     }
 
     @DeleteMapping("/{typeVoteId}")
-    @RequireRole(roles = {Role.ADMIN})
+    @RequireRole(roles = {UserRole.ADMIN})
     @Operation(summary = "Excluir tipo de voto", description = "Permite que um administrador exclua um tipo de voto específico.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Tipo de voto excluído com sucesso"),
@@ -100,7 +100,7 @@ public class VoteTypeRegistrationController {
     }
 
     @PutMapping("/{typeVoteId}")
-    @RequireRole(roles = {Role.ADMIN})
+    @RequireRole(roles = {UserRole.ADMIN})
     @Operation(summary = "Editar tipo de voto", description = "Permite que um administrador atualize os dados de um tipo de voto existente.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Tipo de voto atualizado com sucesso", content = @Content(schema = @Schema(implementation = VoteTypeDetailResponse.class))),

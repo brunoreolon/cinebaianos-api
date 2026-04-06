@@ -4,7 +4,6 @@ import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
@@ -21,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -33,7 +33,7 @@ public class UserStatsController {
     private final UserRegistratioService userRegistratioService;
 
     @GetMapping("/{userId}/votes/received")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos recebidos por usuário", description = "Retorna estatísticas de votos recebidos por um usuário, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Estatísticas de votos recebidos retornadas com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -53,7 +53,7 @@ public class UserStatsController {
     }
 
     @GetMapping("/{userId}/votes/given")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos dados por usuário", description = "Retorna estatísticas de votos dados por um usuário, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Estatísticas de votos dados retornadas com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -73,7 +73,7 @@ public class UserStatsController {
     }
 
     @GetMapping("/{userId}/summary")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Resumo do usuário", description = "Retorna um resumo completo de estatísticas do usuário, incluindo votos e métricas gerais.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Resumo do usuário retornado com sucesso", content = @Content(schema = @Schema(implementation = UserSummaryResponse.class))),

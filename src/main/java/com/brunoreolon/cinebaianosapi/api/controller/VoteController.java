@@ -12,7 +12,6 @@ import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfi
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.BusinessPermissionService;
 import com.brunoreolon.cinebaianosapi.domain.model.MovieVotes;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteService;
@@ -33,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/votes")
@@ -47,7 +47,7 @@ public class VoteController {
     private final VoteConverter voteConverter;
 
     @GetMapping("/received")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos recebidos", description = "Retorna a lista de votos recebidos pelos usuários, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de votos recebidos retornada com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -61,7 +61,7 @@ public class VoteController {
     }
 
     @GetMapping("/given")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos dados", description = "Retorna a lista de votos dados pelos usuários, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de votos dados retornada com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -75,7 +75,7 @@ public class VoteController {
     }
 
     @GetMapping("/users/{userId}/movies-votes")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos de filmes de um usuário", description = "Retorna a lista de votos que um usuário deu em filmes.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Votos do usuário retornados com sucesso", content = @Content(schema = @Schema(implementation = UserMovieVoteResponse.class))),
@@ -92,7 +92,7 @@ public class VoteController {
     }
 
     @PostMapping
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Registrar voto", description = "Registra um voto dado por um usuário para um filme específico.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Voto registrado com sucesso", content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
@@ -148,7 +148,7 @@ public class VoteController {
     }
 
     @GetMapping("{movieId}/votes")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos recebidos por filme", description = "Retorna a contagem de votos recebidos por um filme específico.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Contagem de votos retornada com sucesso", content = @Content(schema = @Schema(implementation = MovieVotesResponse.class))),

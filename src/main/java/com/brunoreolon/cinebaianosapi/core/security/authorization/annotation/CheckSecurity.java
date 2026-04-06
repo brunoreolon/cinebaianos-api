@@ -7,7 +7,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 
 /**
  * Annotations para controle de segurança nos endpoints.
@@ -24,7 +24,7 @@ public @interface CheckSecurity {
     @Retention(RUNTIME)
     @Target(METHOD)
     @interface RequireRole {
-        Role[] roles();                   // Roles permitidas
+        UserRole[] roles();                   // Roles permitidas
         boolean allowBot() default false; // Permitir execução por bot do discord
     }
 

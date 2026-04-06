@@ -82,7 +82,7 @@ public class User implements Ownable<Long> {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name="user_roles", joinColumns=@JoinColumn(name="user_id"))
     @Enumerated(EnumType.STRING)
-    private Set<Role> roles = new LinkedHashSet<>();
+    private Set<UserRole> roles = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "owner")
     private List<Group> ownedGroups = new ArrayList<>();
@@ -96,12 +96,12 @@ public class User implements Ownable<Long> {
     @OneToMany(mappedBy = "member")
     private List<GroupMember> members = new ArrayList<>();
 
-    public Boolean hasRole(Role role) {
-        return roles.contains(role);
+    public Boolean hasRole(UserRole userRole) {
+        return roles.contains(userRole);
     }
 
     public Boolean isAdmin() {
-        return hasRole(Role.ADMIN);
+        return hasRole(UserRole.ADMIN);
     }
 
     public Boolean canActivate() {
@@ -140,13 +140,13 @@ public class User implements Ownable<Long> {
     }
 
     public void AddAdmin() {
-        if (!this.hasRole(Role.ADMIN)) {
-            this.getRoles().add(Role.ADMIN);
+        if (!this.hasRole(UserRole.ADMIN)) {
+            this.getRoles().add(UserRole.ADMIN);
         }
     }
 
     public void RemoveAdmin() {
-        this.getRoles().remove(Role.ADMIN);
+        this.getRoles().remove(UserRole.ADMIN);
     }
 
 }

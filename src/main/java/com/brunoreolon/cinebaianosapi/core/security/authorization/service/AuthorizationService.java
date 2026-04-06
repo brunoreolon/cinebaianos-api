@@ -4,7 +4,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Gro
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -57,10 +57,10 @@ public class AuthorizationService {
     /**
      * Retorna true se o usuário atual possui qualquer uma das roles fornecidas
      */
-    public boolean hasAnyRole(Role[] roles) {
+    public boolean hasAnyRole(UserRole[] userRoles) {
         return userContextService.getLoggedUser()
                 .map(user -> user.getRoles().stream()
-                        .anyMatch(r -> Arrays.asList(roles).contains(r)))
+                        .anyMatch(r -> Arrays.asList(userRoles).contains(r)))
                 .orElse(false);
     }
 
