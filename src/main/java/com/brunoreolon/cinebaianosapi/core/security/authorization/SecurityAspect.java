@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Che
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckOwner;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.AuthorizationGroupNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.OwnershipAccessDeniedException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.AuthorizationService;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.OwnableServiceRegistry;
@@ -72,6 +73,8 @@ public class SecurityAspect {
         GroupAuthorizationService service = groupAuthorizationServiceRegistry.get(checkGroupMember.service());
         Long groupId = (Long) extractId(joinPoint, GroupKey.class, null);
 
+        ensureGroupExists(service, groupId);
+
         boolean authorized = authorizeGroupAccess(service, groupId, null, checkGroupMember.allowAdmin(), checkGroupMember.allowBot());
 
         if (!authorized) {
@@ -86,6 +89,8 @@ public class SecurityAspect {
     public void checkGroupRole(JoinPoint joinPoint, CheckGroupRole checkGroupRole) {
         GroupAuthorizationService service = groupAuthorizationServiceRegistry.get(checkGroupRole.service());
         Long groupId = (Long) extractId(joinPoint, GroupKey.class, null);
+
+        ensureGroupExists(service, groupId);
 
         boolean authorized = authorizeGroupAccess(service, groupId, checkGroupRole.role(), checkGroupRole.allowAdmin(), checkGroupRole.allowBot());
 
@@ -147,6 +152,12 @@ public class SecurityAspect {
         if (allowAdmin && authorizationService.isAdmin()) return true;
 
         return authorizationService.authorize(service, groupId, requiredRole);
+    }
+
+    private void ensureGroupExists(GroupAuthorizationService service, Long groupId) {
+        if (!service.groupExists(groupId)) {
+            throw new AuthorizationGroupNotFoundException(new Object[]{groupId});
+        }
     }
 
 }

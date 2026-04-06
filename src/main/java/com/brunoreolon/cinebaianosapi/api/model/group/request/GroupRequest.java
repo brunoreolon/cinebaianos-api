@@ -27,7 +27,7 @@ public class GroupRequest {
     private String tag;
 
     @NotBlank
-    @Size(max = 50)
+    @Size(min = 4, max = 30)
     private String slug;
 
     @NotNull

@@ -3,6 +3,10 @@ package com.brunoreolon.cinebaianosapi.domain.service;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupAuthorizationService;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.domain.exception.GroupInvalidOperationException;
+import com.brunoreolon.cinebaianosapi.domain.exception.GroupMemberAlreadyExistsException;
+import com.brunoreolon.cinebaianosapi.domain.exception.GroupMemberNotFoundException;
+import com.brunoreolon.cinebaianosapi.domain.exception.GroupNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupMemberRepository;
 import lombok.AllArgsConstructor;
@@ -26,7 +30,7 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
     public GroupMember getMemberOrThrow(Long groupId, Long userId) {
         return getMember(groupId, userId)
-                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+                .orElseThrow(() -> new GroupMemberNotFoundException("group.member.not.found.message", new Object[]{groupId, userId}));
     }
 
     public List<GroupMember> getActiveByUser(Long userId) {
@@ -62,7 +66,7 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
         }
 
         if (selectedMember == null) {
-            throw new RuntimeException("Membro não encontrado");
+            throw new GroupMemberNotFoundException("group.member.not.found.message", new Object[]{groupId, userId});
         }
 
         selectedMember.select();
@@ -85,7 +89,7 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
             GroupMember groupMember = member.get();
 
             if (groupMember.getActive())
-                throw new RuntimeException("Usuário já é membro do grupo");
+                throw new GroupMemberAlreadyExistsException("group.member.already.exists.message", new Object[]{group.getId(), user.getId()});
 
             groupMember.activate();
             groupMember.select();
@@ -115,11 +119,10 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
     @Transactional
     public GroupMember reactivateMember(Long groupId, Long userId) {
-        GroupMember member = getMember(groupId, userId)
-                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+        GroupMember member = getMemberOrThrow(groupId, userId);
 
         if (member.getActive()) {
-            throw new RuntimeException("Usuário já é membro do grupo");
+            throw new GroupMemberAlreadyExistsException("group.member.already.exists.message", new Object[]{groupId, userId});
         }
 
         List<GroupMember> activeMembers = getActiveByUser(userId);
@@ -139,11 +142,15 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
         GroupMember member = getMemberOrThrow(groupId, userId);
 
         if (member.getRole() == GroupMemberRole.OWNER) {
-            throw new RuntimeException("Owner não pode ser removido do grupo");
+            throw new GroupInvalidOperationException("group.owner.cannot.be.removed.message");
         }
 
         boolean selected = member.getSelected();
-        member.disable();
+        try {
+            member.disable();
+        } catch (RuntimeException ex) {
+            throw new GroupInvalidOperationException("group.member.already.inactive.message");
+        }
         member.unselect();
 
         if (selected) {
@@ -158,29 +165,43 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
     @Transactional
     public void promoteToAdmin(Long groupId, Long userId, Long userLoggedId) {
-        if (userId.equals(userLoggedId)) throw new RuntimeException("Você não pode se promover para admin");
+        if (userId.equals(userLoggedId)) {
+            throw new GroupInvalidOperationException("group.cannot.promote.self.message");
+        }
 
-        GroupMember member = getMember(groupId, userId)
-                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+        GroupMember member = getMemberOrThrow(groupId, userId);
 
-        member.promoteToAdmin();
+        try {
+            member.promoteToAdmin();
+        } catch (RuntimeException ex) {
+            throw new GroupInvalidOperationException("group.member.cannot.promote.to.admin.message");
+        }
     }
 
     @Transactional
     public void demoteToMember(Long groupId, Long userId, Long userLoggedId) {
-        if (userId.equals(userLoggedId)) throw new RuntimeException("Você não pode se rebaixar para membro");
+        if (userId.equals(userLoggedId)) {
+            throw new GroupInvalidOperationException("group.cannot.demote.self.message");
+        }
 
-        GroupMember member = getMember(groupId, userId)
-                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+        GroupMember member = getMemberOrThrow(groupId, userId);
 
-        member.demoteToMember();
+        try {
+            member.demoteToMember();
+        } catch (RuntimeException ex) {
+            throw new GroupInvalidOperationException("group.member.cannot.demote.to.member.message");
+        }
     }
 
     @Transactional
     public void revokeAdmin(Long groupId, Long userId) {
         GroupMember member = getMemberOrThrow(groupId, userId);
 
-        member.demoteToMember();
+        try {
+            member.demoteToMember();
+        } catch (RuntimeException ex) {
+            throw new GroupInvalidOperationException("group.member.cannot.demote.to.member.message");
+        }
     }
 
     public GroupPermissions getPermissions(Long groupId, Long userId) {
@@ -203,6 +224,16 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     }
 
     @Override
+    public boolean groupExists(Long groupId) {
+        try {
+            groupService.getById(groupId);
+            return true;
+        } catch (GroupNotFoundException ex) {
+            return false;
+        }
+    }
+
+    @Override
     public boolean isMember(Long groupId, Long userId) {
         return getMember(groupId, userId)
                 .map(GroupMember::getActive)
@@ -218,8 +249,7 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
     @Override
     public GroupMember get(GroupMemberId groupMemberId) {
-        return getMember(groupMemberId.getGroupId(), groupMemberId.getMemberId())
-                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+        return getMemberOrThrow(groupMemberId.getGroupId(), groupMemberId.getMemberId());
     }
 
     @Override

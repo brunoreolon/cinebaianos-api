@@ -1,6 +1,9 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.domain.exception.GroupConflictException;
+import com.brunoreolon.cinebaianosapi.domain.exception.GroupInvalidOperationException;
+import com.brunoreolon.cinebaianosapi.domain.exception.GroupNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupRepository;
 import org.springframework.context.annotation.Lazy;
@@ -30,12 +33,12 @@ public class GroupService implements OwnableService<Group, Long> {
         return group.map(g -> g.getMovies().stream()
                         .map(GroupMovie::getMovie)
                         .toList())
-                .orElseThrow(() -> new RuntimeException("Grupo não encontrado"));
+                .orElseThrow(() -> new GroupNotFoundException("group.not.found.message", new Object[]{groupId}));
     }
 
     public Group getGroupWithMovies(Long groupId) {
         return groupRepository.findGroupWithMovies(groupId)
-                .orElseThrow(() -> new RuntimeException("Grupo não encontrado"));
+                .orElseThrow(() -> new GroupNotFoundException("group.not.found.message", new Object[]{groupId}));
     }
 
     @Transactional
@@ -55,7 +58,6 @@ public class GroupService implements OwnableService<Group, Long> {
 
     @Transactional
     public Group update(Group group) {
-        validateRequiredFields(group);
         return groupRepository.save(group);
     }
 
@@ -77,13 +79,12 @@ public class GroupService implements OwnableService<Group, Long> {
 
     public Group getById(Long groupId) {
         return groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException(String.format("Grupo com id %d não encontrado", groupId)));
+                .orElseThrow(() -> new GroupNotFoundException("group.not.found.message", new Object[]{groupId}));
     }
 
     public Group getBySlug(String slug) {
         return groupRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException(String.format("Grupo com slug %s não encontrado", slug)));
-
+                .orElseThrow(() -> new GroupNotFoundException("group.with.slug.not.found.message", new Object[]{slug}));
     }
 
     public List<Group> getAllPublicGroups() {
@@ -95,7 +96,11 @@ public class GroupService implements OwnableService<Group, Long> {
     }
 
     public Group getGroupMembers(Long id) {
-        return groupRepository.findGroupWithMembers(id);
+        Group group = groupRepository.findGroupWithMembers(id);
+        if (group == null) {
+            throw new GroupNotFoundException("group.not.found.message", new Object[]{id});
+        }
+        return group;
     }
 
     @Transactional
@@ -104,12 +109,14 @@ public class GroupService implements OwnableService<Group, Long> {
         User newOwner = userRegistratioService.get(newOwnerId);
 
         GroupMember oldOwnerMember = groupMemberService.getMember(groupId, group.getOwner().getId())
-                .orElseThrow(() -> new RuntimeException("Antigo proprietário não encontrado"));
+                .orElseThrow(() -> new GroupInvalidOperationException("group.old.owner.not.found.message"));
 
-        if (oldOwnerMember.getMember().getId().equals(newOwnerId)) throw new RuntimeException("Novo proprietário é o mesmo que o atual");
+        if (oldOwnerMember.getMember().getId().equals(newOwnerId)) {
+            throw new GroupInvalidOperationException("group.new.owner.same.as.current.message");
+        }
 
         GroupMember newOwnerMember = groupMemberService.getMember(groupId, newOwnerId)
-                .orElseThrow(() -> new RuntimeException("Novo proprietário deve ser um membro do grupo"));
+                .orElseThrow(() -> new GroupInvalidOperationException("group.new.owner.must.be.member.message"));
 
         if (newOwnerMember.getActive() && newOwnerMember.getRole().canBecomeOwner()) {
             group.setOwner(newOwner);
@@ -118,22 +125,26 @@ public class GroupService implements OwnableService<Group, Long> {
             newOwnerMember.promoteToOwner();
             oldOwnerMember.demoteToMember();
         } else {
-            throw new RuntimeException("Novo proprietário deve ser um administrador do grupo");
+            throw new GroupInvalidOperationException("group.new.owner.must.be.admin.message");
         }
     }
 
-    private void validateRequiredFields(Group group) {
+    public void validateRequiredFields(Group group) {
         boolean tagAlreadyExists = groupRepository.findByTag(group.getTag())
                 .filter(g -> !g.equals(group))
                 .isPresent();
 
-        if (tagAlreadyExists) throw new RuntimeException(String.format("Tag %s já cadastrada", group.getTag()));
+        if (tagAlreadyExists) {
+            throw new GroupConflictException("group.tag.already.exists.message", new Object[]{group.getTag()});
+        }
 
         boolean slugAlreadyExists = groupRepository.findBySlug(group.getSlug())
                 .filter(g -> !g.equals(group))
                 .isPresent();
 
-        if (slugAlreadyExists) throw new RuntimeException(String.format("Slug %s já existe", group.getSlug()));
+        if (slugAlreadyExists) {
+            throw new GroupConflictException("group.slug.already.exists.message", new Object[]{group.getSlug()});
+        }
     }
 
     @Override

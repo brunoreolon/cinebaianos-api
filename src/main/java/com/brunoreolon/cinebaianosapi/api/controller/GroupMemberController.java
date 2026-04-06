@@ -4,7 +4,6 @@ import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailWithMembersResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupPermissionsResponse;
-import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckOwner;
@@ -24,10 +23,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,7 +42,6 @@ import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.U
 @RestController
 @RequestMapping("/api/groups")
 @Tag(name = "Membros de Grupos", description = "Operações relacionadas ao gerenciamento de membros em grupos.")
-@SecurityRequirement(name = SecurityConfig.SECURITY)
 public class GroupMemberController {
 
     private final GroupMemberService groupMemberService;
@@ -61,13 +57,9 @@ public class GroupMemberController {
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
     public ResponseEntity<GroupDetailWithMembersResponse> getGroupWithMembers(@PathVariable @GroupKey Long groupId) {
-        try {
-            Group group = groupService.getGroupMembers(groupId);
-            GroupDetailWithMembersResponse response = groupConverter.toGroupWithMembersResponse(group);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Group group = groupService.getGroupMembers(groupId);
+        GroupDetailWithMembersResponse response = groupConverter.toGroupWithMembersResponse(group);
+        return ResponseEntity.ok(response);
     }
 
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
@@ -86,33 +78,26 @@ public class GroupMemberController {
             @PathVariable @GroupKey Long groupId,
             @Parameter(description = "ID do usuário a ser adicionado", example = "1")
             @PathVariable Long userId) {
-        try {
-            GroupMember member = groupMemberService.addMember(groupId, userId, GroupMemberRole.MEMBER);
-            return ResponseEntity.ok(groupConverter.toMemberResponse(member));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("já é membro")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-            return ResponseEntity.notFound().build();
-        }
+        GroupMember member = groupMemberService.addMember(groupId, userId, GroupMemberRole.MEMBER);
+        return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
 
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
     @PostMapping("/{groupId}/members/{userId}/reactivate")
     @Operation(summary = "Reativar membro no grupo",
             description = "Reativa um membro inativo no grupo. Apenas owner ou admin podem executar esta operação.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Membro reativado com sucesso", content = @Content(schema = @Schema(implementation = GroupMemberResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para reativar membros"),
+            @ApiResponse(responseCode = "404", description = "Grupo ou membro não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Membro já está ativo no grupo"),
+    })
     public ResponseEntity<GroupMemberResponse> reactivateMember(
             @PathVariable @GroupKey Long groupId,
             @PathVariable Long userId) {
-        try {
-            GroupMember member = groupMemberService.reactivateMember(groupId, userId);
-            return ResponseEntity.ok(groupConverter.toMemberResponse(member));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("já é membro")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-            return ResponseEntity.notFound().build();
-        }
+        GroupMember member = groupMemberService.reactivateMember(groupId, userId);
+        return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
 
     @CheckGroupMember(service = GroupMemberService.class)
@@ -122,12 +107,8 @@ public class GroupMemberController {
     public ResponseEntity<GroupMemberResponse> getMember(
             @PathVariable @GroupKey Long groupId,
             @PathVariable Long userId) {
-        try {
-            GroupMember member = groupMemberService.getMemberOrThrow(groupId, userId);
-            return ResponseEntity.ok(groupConverter.toMemberResponse(member));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        GroupMember member = groupMemberService.getMemberOrThrow(groupId, userId);
+        return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
 
     @RequireRole(roles = {USER, SUPER_ADMIN})
@@ -150,33 +131,33 @@ public class GroupMemberController {
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para remover membros"),
             @ApiResponse(responseCode = "404", description = "Grupo ou membro não encontrado"),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: não é possível remover o owner ou o membro já está inativo"),
     })
     public ResponseEntity<Void> removeMember(
             @Parameter(description = "ID do grupo", example = "1")
             @PathVariable @GroupKey Long groupId,
             @Parameter(description = "ID do usuário a ser removido", example = "1")
             @PathVariable Long userId) {
-        try {
-            groupMemberService.removeMember(groupId, userId);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        groupMemberService.removeMember(groupId, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @CheckGroupMember(service = GroupMemberService.class)
     @DeleteMapping("/{groupId}/members/me")
     @Operation(summary = "Sair do grupo",
             description = "Permite que o usuário autenticado saia do grupo informado.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Saída do grupo realizada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo"),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: o owner não pode sair do grupo sem transferir a propriedade antes"),
+    })
     public ResponseEntity<Void> leaveGroup(
             @PathVariable @GroupKey Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        try {
-            groupMemberService.leaveGroup(groupId, userDetails.getUser().getId());
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        groupMemberService.leaveGroup(groupId, userDetails.getUser().getId());
+        return ResponseEntity.noContent().build();
     }
 
     @CheckOwner(service = GroupService.class)
@@ -188,6 +169,7 @@ public class GroupMemberController {
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para promover membros"),
             @ApiResponse(responseCode = "404", description = "Grupo ou membro não encontrado"),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: não é possível promover a si mesmo ou o membro já é admin/owner"),
     })
     public ResponseEntity<GroupMemberResponse> promoteToAdmin(
             @Parameter(description = "ID do grupo", example = "1")
@@ -195,14 +177,9 @@ public class GroupMemberController {
             @Parameter(description = "ID do usuário a ser promovido", example = "1")
             @PathVariable Long userId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        try {
-            groupMemberService.promoteToAdmin(groupId, userId, userDetails.getUser().getId());
-            GroupMember member = groupMemberService.getMember(groupId, userId)
-                    .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
-            return ResponseEntity.ok(groupConverter.toMemberResponse(member));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        groupMemberService.promoteToAdmin(groupId, userId, userDetails.getUser().getId());
+        GroupMember member = groupMemberService.getMemberOrThrow(groupId, userId);
+        return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
 
     @CheckOwner(service = GroupService.class)
@@ -214,6 +191,7 @@ public class GroupMemberController {
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para rebaixar membros"),
             @ApiResponse(responseCode = "404", description = "Grupo ou membro não encontrado"),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: não é possível rebaixar a si mesmo ou o membro não é admin"),
     })
     public ResponseEntity<GroupMemberResponse> demoteToMember(
             @Parameter(description = "ID do grupo", example = "1")
@@ -221,13 +199,8 @@ public class GroupMemberController {
             @Parameter(description = "ID do admin a ser rebaixado", example = "1")
             @PathVariable Long userId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        try {
-            groupMemberService.demoteToMember(groupId, userId, userDetails.getUser().getId());
-            GroupMember member = groupMemberService.getMember(groupId, userId)
-                    .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
-            return ResponseEntity.ok(groupConverter.toMemberResponse(member));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        groupMemberService.demoteToMember(groupId, userId, userDetails.getUser().getId());
+        GroupMember member = groupMemberService.getMemberOrThrow(groupId, userId);
+        return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
 }

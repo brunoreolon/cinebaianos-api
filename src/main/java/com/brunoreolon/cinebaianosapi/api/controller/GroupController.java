@@ -51,8 +51,9 @@ public class GroupController {
             description = "Cria um novo grupo. O usuário autenticado será definido como o owner do grupo.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Grupo criado com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos"),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "409", description = "Tag ou slug já existente em outro grupo"),
     })
     public ResponseEntity<GroupResponse> createGroup(@Valid @RequestBody GroupRequest request,
                                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -71,15 +72,17 @@ public class GroupController {
             description = "Atualiza as configurações de um grupo existente. Apenas o owner ou admin do grupo podem executar esta operação.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Grupo atualizado com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos"),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para atualizar este grupo"),
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Tag ou slug já existente em outro grupo"),
     })
     public ResponseEntity<GroupResponse> update(@PathVariable @GroupKey Long groupId,
                                                 @Valid @RequestBody GroupUpdateRequest request) {
         Group groupUpdate = groupConverter.toEntiy(request);
         groupUpdate.setId(groupId);
+        groupService.validateRequiredFields(groupUpdate);
 
         Group existingGroup = groupService.get(groupId);
         existingGroup = groupConverter.merge(groupUpdate, existingGroup);
@@ -123,14 +126,10 @@ public class GroupController {
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
     public ResponseEntity<GroupDetailResponse> getGroupWithMovies(@PathVariable @GroupKey Long groupId) {
-        try {
-            Group group = groupService.getGroupWithMovies(groupId);
-            GroupDetailResponse groupResponse = groupConverter.toGroupWithMoviesResponse(group);
+        Group group = groupService.getGroupWithMovies(groupId);
+        GroupDetailResponse groupResponse = groupConverter.toGroupWithMoviesResponse(group);
 
-            return ResponseEntity.ok(groupResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(groupResponse);
     }
 
     @CheckGroupMember(service = GroupMemberService.class)
@@ -140,19 +139,16 @@ public class GroupController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Grupo definido como padrão com sucesso"),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo"),
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
     public ResponseEntity<Void> setAsDefaultGroup(
             @Parameter(description = "ID do grupo", example = "1")
             @PathVariable @GroupKey Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        try {
-            Long userId = userDetails.getUser().getId();
-            groupMemberService.setAsDefaultGroup(userId, groupId);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Long userId = userDetails.getUser().getId();
+        groupMemberService.setAsDefaultGroup(userId, groupId);
+        return ResponseEntity.noContent().build();
     }
 
     @CheckOwner(service = GroupService.class)
@@ -164,19 +160,16 @@ public class GroupController {
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para transferir propriedade"),
             @ApiResponse(responseCode = "404", description = "Grupo ou novo owner não encontrado"),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: novo owner é o próprio atual, não é membro ativo ou não possui o papel necessário"),
     })
     public ResponseEntity<GroupResponse> transferOwnership(
             @Parameter(description = "ID do grupo", example = "1")
             @PathVariable @ResourceKey Long groupId,
             @Parameter(description = "ID do novo owner", example = "1")
             @PathVariable Long newOwnerId) {
-        try {
-            groupService.transferOwnership(groupId, newOwnerId);
-            Group group = groupService.getById(groupId);
-            return ResponseEntity.ok(groupConverter.toResponse(group));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        groupService.transferOwnership(groupId, newOwnerId);
+        Group group = groupService.getById(groupId);
+        return ResponseEntity.ok(groupConverter.toResponse(group));
     }
 
     @CheckOwner(service = GroupService.class)
@@ -190,12 +183,8 @@ public class GroupController {
             @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
     })
     public ResponseEntity<Void> delete(@PathVariable @ResourceKey Long groupId) {
-        try {
-            groupService.deleteById(groupId);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        groupService.deleteById(groupId);
+        return ResponseEntity.noContent().build();
     }
 
 }

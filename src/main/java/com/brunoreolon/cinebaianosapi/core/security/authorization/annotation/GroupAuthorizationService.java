@@ -9,6 +9,14 @@ import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
 public interface GroupAuthorizationService {
 
     /**
+     * Verifica se o grupo informado existe.
+     *
+     * @param groupId ID do grupo
+     * @return true se o grupo existe
+     */
+    boolean groupExists(Long groupId);
+
+    /**
      * Verifica se o usuário é membro ativo do grupo.
      *
      * @param groupId ID do grupo
