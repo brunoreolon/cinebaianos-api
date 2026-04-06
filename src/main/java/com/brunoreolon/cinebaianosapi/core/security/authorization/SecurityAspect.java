@@ -7,10 +7,12 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Che
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.AuthorizationGroupNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.OwnershipAccessDeniedException;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.GroupAuthorizationService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.AuthorizationService;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.OwnableServiceRegistry;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.GroupAuthorizationServiceRegistry;
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import lombok.AllArgsConstructor;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;

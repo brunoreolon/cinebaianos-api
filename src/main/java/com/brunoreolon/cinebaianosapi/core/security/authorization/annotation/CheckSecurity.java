@@ -6,7 +6,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.GroupAuthorizationService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 
 /**

@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.model.group.response;
 
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,4 +18,3 @@ public class GroupPermissionsResponse {
     private boolean canTransferOwnership;
 
 }
-

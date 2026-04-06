@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.core.security.authorization.annotation;
+package com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
 

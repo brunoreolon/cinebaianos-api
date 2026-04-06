@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.domain.model;
+package com.brunoreolon.cinebaianosapi.core.security.authorization.enums;
 
 public enum GroupMemberRole {
 

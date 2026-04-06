@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupConflictException;
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupInvalidOperationException;
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupNotFoundException;

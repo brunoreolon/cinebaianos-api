@@ -1,9 +1,9 @@
 package com.brunoreolon.cinebaianosapi.core.security.authorization.service;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupAuthorizationService;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.GroupAuthorizationService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.Ownable;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import lombok.AllArgsConstructor;

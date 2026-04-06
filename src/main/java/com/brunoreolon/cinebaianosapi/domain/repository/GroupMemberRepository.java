@@ -1,7 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.repository;
 
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

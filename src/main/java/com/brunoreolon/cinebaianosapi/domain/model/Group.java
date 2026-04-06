@@ -1,15 +1,12 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
-import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
-import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.Ownable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,4 +14,3 @@ public class GroupPermissions {
     private boolean canTransferOwnership;
 
 }
-

@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.Ownable;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;

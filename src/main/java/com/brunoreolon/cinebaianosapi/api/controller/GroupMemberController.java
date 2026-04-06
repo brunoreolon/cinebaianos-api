@@ -13,7 +13,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Res
 import com.brunoreolon.cinebaianosapi.domain.model.CustomUserDetails;
 import com.brunoreolon.cinebaianosapi.domain.model.Group;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupPermissions;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupService;

@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.core.security.authorization.service;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupAuthorizationService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.GroupAuthorizationService;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;

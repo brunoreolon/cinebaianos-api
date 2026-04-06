@@ -1,7 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteNotFoundException;

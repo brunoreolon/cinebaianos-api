@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.Ownable;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

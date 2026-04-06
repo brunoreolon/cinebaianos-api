@@ -1,6 +1,6 @@
-package com.brunoreolon.cinebaianosapi.core.security.authorization.annotation;
+package com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces;
 
-import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 
 /**
  * Interface para serviços que fornecem verificações de autorização relacionadas a grupos.
