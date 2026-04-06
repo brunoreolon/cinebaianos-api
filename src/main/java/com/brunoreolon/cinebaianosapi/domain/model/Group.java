@@ -84,6 +84,7 @@ public class Group implements Ownable<Long> {
 //    private List<VoteType> voteTypes = new ArrayList<>();
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("member.id ASC")
     private Set<GroupMember> members = new HashSet<>();
 
     public Boolean canActivate() {

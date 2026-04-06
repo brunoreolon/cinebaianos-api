@@ -73,6 +73,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
             join g.members m
             where m.member.id = :userId 
             and m.active = true
+            and g.active = true
             """)
     List<Group> findGroupsByMemberId(Long userId);
 

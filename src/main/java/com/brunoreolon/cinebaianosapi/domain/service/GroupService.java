@@ -90,6 +90,10 @@ public class GroupService implements OwnableService<Group, Long> {
         return groupRepository.findAllPublicGroups();
     }
 
+    public List<Group> getGroupsByUser(Long userId) {
+        return groupRepository.findGroupsByMemberId(userId);
+    }
+
     public Group getGroupMembers(Long id) {
         return groupRepository.findGroupWithMembers(id);
     }

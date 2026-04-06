@@ -2,14 +2,18 @@ package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.UserConverter;
 import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
+import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
+import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
-import com.brunoreolon.cinebaianosapi.domain.model.User;
+import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
+import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
+import com.brunoreolon.cinebaianosapi.domain.service.GroupService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,9 +34,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.brunoreolon.cinebaianosapi.api.model.ValidationGroups.*;
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -44,9 +50,12 @@ public class UserRegistrationController {
     private final UserRegistratioService userRegistratioService;
     private final UserRepository userRepository;
     private final UserConverter userConverter;
+    private final GroupService groupService;
+    private final GroupMemberService groupMemberService;
+    private final GroupConverter groupConverter;
 
     @PostMapping
-    @RequireRole(roles = {Role.ADMIN}, allowBot = true)
+    @RequireRole(roles = {ADMIN}, allowBot = true)
     @Operation(summary = "Criar usuário", description = "Cria um novo usuário no sistema. Permite criação por administradores ou bots autorizados.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -61,7 +70,7 @@ public class UserRegistrationController {
     }
 
     @GetMapping
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Listar usuários", description = "Retorna todos os usuários cadastrados. É possível incluir ou excluir bots do resultado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuários retornados com sucesso", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -83,7 +92,7 @@ public class UserRegistrationController {
     }
 
     @GetMapping("/{userId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Buscar usuário por ID", description = "Retorna os detalhes de um usuário específico pelo seu ID.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário encontrado", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -98,7 +107,7 @@ public class UserRegistrationController {
     }
 
     @GetMapping("/me")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Consultar dados do usuário logado", description = "Retorna os detalhes do usuário autenticado com base no token de acesso.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Dados do usuário retornados com sucesso", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -117,8 +126,42 @@ public class UserRegistrationController {
         return ResponseEntity.ok(userConverter.toDetailResponse(user));
     }
 
+    @GetMapping("/me/groups")
+    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @Operation(summary = "Listar grupos ativos do usuário logado",
+            description = "Retorna todos os grupos ativos dos quais o usuário autenticado participa.")
+    public ResponseEntity<List<GroupResponse>> getMyGroups(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<Group> groups = groupService.getGroupsByUser(userDetails.getUser().getId());
+        return ResponseEntity.ok(groupConverter.toResponseList(groups));
+    }
+
+    @GetMapping("/me/groups/default")
+    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @Operation(summary = "Obter grupo padrão do usuário logado",
+            description = "Retorna o grupo selecionado como padrão para o usuário autenticado.")
+    public ResponseEntity<GroupResponse> getMyDefaultGroup(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Optional<Group> group = groupMemberService.getDefaultGroup(userDetails.getUser().getId());
+
+        return group
+                .map(value -> ResponseEntity.ok(groupConverter.toResponse(value)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/me/groups/{groupId}/default")
+    @CheckGroupMember(service = GroupMemberService.class)
+    @Operation(summary = "Definir grupo padrão do usuário logado",
+            description = "Marca o grupo informado como padrão para o usuário autenticado.")
+    public ResponseEntity<Void> setMyDefaultGroup(
+            @PathVariable @GroupKey Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        groupMemberService.setAsDefaultGroup(userDetails.getUser().getId(), groupId);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{userId}")
-    @RequireRole(roles = {Role.ADMIN})
+    @RequireRole(roles = {ADMIN})
     @Operation(summary = "Excluir usuário", description = "Remove um usuário do sistema com base no ID do usuário. Apenas administradores podem executar esta operação.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário excluído com sucesso"),

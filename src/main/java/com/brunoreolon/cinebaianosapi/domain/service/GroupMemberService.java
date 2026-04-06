@@ -24,9 +24,32 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
         return groupMemberRepository.findByGroupIdAndMemberId(groupId, userId);
     }
 
+    public GroupMember getMemberOrThrow(Long groupId, Long userId) {
+        return getMember(groupId, userId)
+                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+    }
+
+    public List<GroupMember> getActiveByUser(Long userId) {
+        return groupMemberRepository.findByMemberIdAndActiveTrueOrderByJoinedAtDesc(userId);
+    }
+
+    public List<Group> getActiveGroupsByUser(Long userId) {
+        return getActiveByUser(userId).stream()
+                .map(GroupMember::getGroup)
+                .toList();
+    }
+
+    public Optional<GroupMember> getDefaultMembership(Long userId) {
+        return groupMemberRepository.findByMemberIdAndActiveTrueAndSelectedTrue(userId);
+    }
+
+    public Optional<Group> getDefaultGroup(Long userId) {
+        return getDefaultMembership(userId).map(GroupMember::getGroup);
+    }
+
     @Transactional
     public void setAsDefaultGroup(Long userId, Long groupId) {
-        List<GroupMember> activeMembers = groupMemberRepository.findByMemberIdAndActiveTrue(userId);
+        List<GroupMember> activeMembers = getActiveByUser(userId);
 
         GroupMember selectedMember = null;
 
@@ -65,6 +88,7 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
                 throw new RuntimeException("Usuário já é membro do grupo");
 
             groupMember.activate();
+            groupMember.select();
 
             return groupMemberRepository.save(groupMember);
         }
@@ -90,15 +114,46 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     }
 
     @Transactional
-    public void removeMember(Long groupId, Long userId) {
+    public GroupMember reactivateMember(Long groupId, Long userId) {
         GroupMember member = getMember(groupId, userId)
                 .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+        if (member.getActive()) {
+            throw new RuntimeException("Usuário já é membro do grupo");
+        }
+
+        List<GroupMember> activeMembers = getActiveByUser(userId);
+        for (GroupMember gm : activeMembers) {
+            gm.unselect();
+        }
+        groupMemberRepository.saveAll(activeMembers);
+
+        member.activate();
+        member.select();
+
+        return groupMemberRepository.save(member);
+    }
+
+    @Transactional
+    public void removeMember(Long groupId, Long userId) {
+        GroupMember member = getMemberOrThrow(groupId, userId);
 
         if (member.getRole() == GroupMemberRole.OWNER) {
             throw new RuntimeException("Owner não pode ser removido do grupo");
         }
 
+        boolean selected = member.getSelected();
         member.disable();
+        member.unselect();
+
+        if (selected) {
+            ensureDefaultGroupSelected(userId);
+        }
+    }
+
+    @Transactional
+    public void leaveGroup(Long groupId, Long userId) {
+        removeMember(groupId, userId);
     }
 
     @Transactional
@@ -123,10 +178,24 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
     @Transactional
     public void revokeAdmin(Long groupId, Long userId) {
-        GroupMember member = getMember(groupId, userId)
-                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+        GroupMember member = getMemberOrThrow(groupId, userId);
 
         member.demoteToMember();
+    }
+
+    public GroupPermissions getPermissions(Long groupId, Long userId) {
+        Optional<GroupMember> member = getMember(groupId, userId)
+                .filter(GroupMember::getActive);
+
+        if (member.isEmpty()) {
+            return new GroupPermissions(false, null, false, false);
+        }
+
+        GroupMemberRole role = member.get().getRole();
+        boolean canManage = role.atLeast(GroupMemberRole.ADMIN);
+        boolean canTransferOwnership = role == GroupMemberRole.OWNER;
+
+        return new GroupPermissions(true, role, canManage, canTransferOwnership);
     }
 
     public List<GroupMember> getActiveMembers(Long groupId) {
@@ -161,6 +230,20 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     @Override
     public String currentUserKeyName() {
         return "memberId";
+    }
+
+    private void ensureDefaultGroupSelected(Long userId) {
+        List<GroupMember> activeMembers = getActiveByUser(userId);
+
+        if (activeMembers.isEmpty()) {
+            return;
+        }
+
+        boolean hasSelected = activeMembers.stream().anyMatch(GroupMember::getSelected);
+        if (!hasSelected) {
+            activeMembers.get(0).select();
+            groupMemberRepository.save(activeMembers.get(0));
+        }
     }
 
 }

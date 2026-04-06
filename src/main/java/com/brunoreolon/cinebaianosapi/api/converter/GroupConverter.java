@@ -5,12 +5,14 @@ import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupUpdateRequest
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailWithMembersResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
+import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupPermissionsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
 import com.brunoreolon.cinebaianosapi.domain.model.Group;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
+import com.brunoreolon.cinebaianosapi.domain.model.GroupPermissions;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
 import lombok.AllArgsConstructor;
@@ -85,6 +87,15 @@ public class GroupConverter {
         return members.stream()
                 .map(this::toMemberResponse)
                 .toList();
+    }
+
+    public GroupPermissionsResponse toPermissionsResponse(GroupPermissions permissions) {
+        return new GroupPermissionsResponse(
+                permissions.isMember(),
+                permissions.getRole(),
+                permissions.isCanManage(),
+                permissions.isCanTransferOwnership()
+        );
     }
 
     public GroupDetailWithMembersResponse toGroupWithMembersResponse(Group group) {

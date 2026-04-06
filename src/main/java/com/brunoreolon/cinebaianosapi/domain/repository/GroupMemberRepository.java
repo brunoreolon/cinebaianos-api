@@ -20,6 +20,10 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
 
     List<GroupMember> findByMemberIdAndActiveTrue(Long groupId);
 
+    List<GroupMember> findByMemberIdAndActiveTrueOrderByJoinedAtDesc(Long memberId);
+
+    Optional<GroupMember> findByMemberIdAndActiveTrueAndSelectedTrue(Long memberId);
+
     // Contar membros ativos
     Long countByGroupIdAndActiveTrue(Long groupId);
 
