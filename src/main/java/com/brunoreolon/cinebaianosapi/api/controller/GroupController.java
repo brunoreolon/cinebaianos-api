@@ -119,21 +119,6 @@ public class GroupController {
     }
 
     @CheckGroupMember(service = GroupMemberService.class)
-    @GetMapping("/{groupId}/movies")
-    @Operation(summary = "Obter grupo com filmes",
-            description = "Retorna um grupo com todos os seus filmes associados.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Grupo com filmes encontrado", content = @Content(schema = @Schema(implementation = GroupDetailResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
-    })
-    public ResponseEntity<GroupDetailResponse> getGroupWithMovies(@PathVariable @GroupKey Long groupId) {
-        Group group = groupService.getGroupWithMovies(groupId);
-        GroupDetailResponse groupResponse = groupConverter.toGroupWithMoviesResponse(group);
-
-        return ResponseEntity.ok(groupResponse);
-    }
-
-    @CheckGroupMember(service = GroupMemberService.class)
     @PutMapping("/{groupId}/set-default")
     @Operation(summary = "Definir grupo como padrão",
             description = "Define um grupo como o padrão do usuário autenticado. Este será o grupo utilizado por padrão nas operações do usuário.")

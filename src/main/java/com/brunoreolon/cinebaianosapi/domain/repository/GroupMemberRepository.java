@@ -14,6 +14,8 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
 
     boolean existsByGroupIdAndMemberIdAndActiveTrue(Long groupId, Long memberId);
 
+    boolean existsByGroupIdAndMemberIdAndActiveTrueAndRoleIn(Long groupId, Long memberId, Collection<GroupMemberRole> roles);
+
     Optional<GroupMember> findByGroupIdAndMemberId(Long groupId, Long userId);
 
     List<GroupMember> findByGroupIdAndActiveTrue(Long groupId);

@@ -236,16 +236,12 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
     @Override
     public boolean isMember(Long groupId, Long userId) {
-        return getMember(groupId, userId)
-                .map(GroupMember::getActive)
-                .orElse(false);
+        return groupMemberRepository.existsByGroupIdAndMemberIdAndActiveTrue(groupId, userId);
     }
 
     @Override
     public boolean hasRole(Long groupId, Long userId, GroupMemberRole requiredRole) {
-        return getMember(groupId, userId)
-                .map(m -> m.getActive() && m.getRole().atLeast(requiredRole))
-                .orElse(false);
+        return groupMemberRepository.existsByGroupIdAndMemberIdAndActiveTrueAndRoleIn(groupId, userId, List.of(requiredRole));
     }
 
     @Override
@@ -274,6 +270,12 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
         if (!hasSelected) {
             activeMembers.get(0).select();
             groupMemberRepository.save(activeMembers.get(0));
+        }
+    }
+
+    public void validateMember(Long groupId, Long userId) {
+        if (!isMember(groupId, userId)) {
+            throw new GroupInvalidOperationException("group.user.must.be.member.message", new Object[]{userId, groupId});
         }
     }
 
