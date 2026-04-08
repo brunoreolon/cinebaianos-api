@@ -37,4 +37,16 @@ public class BusinessPermissionService {
         }
     }
 
+    /**
+     * Checa se o usuário pode remover o voto por outro usuário
+     */
+    public void checkCanRemoveVoteFor(Long voterId) {
+        User logged = userContextService.getLoggedUser()
+                .orElseThrow(() -> new OwnershipAccessDeniedException("auth.user_not_authenticated"));
+
+        if (!userContextService.isBot() && !Objects.equals(logged.getId(), voterId)) {
+            throw new OwnershipAccessDeniedException("auth.cannot_remove_vote_for_other");
+        }
+    }
+
 }

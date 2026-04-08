@@ -115,6 +115,7 @@ public class GroupVoteController {
             @Parameter(description = "ID do filme", example = "42")
             @PathVariable @ResourceKey Long movieId) {
 
+        permissionService.checkCanRemoveVoteFor(voterId);
         voteService.deleteByGroup(voterId, groupId, movieId);
         return ResponseEntity.noContent().build();
     }
