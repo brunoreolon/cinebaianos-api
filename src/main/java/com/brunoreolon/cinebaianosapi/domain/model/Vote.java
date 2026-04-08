@@ -16,19 +16,20 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Table(name = "group_votes")
 public class Vote implements Ownable<Long> {
 
-    @Valid
-    @EmbeddedId
-    private VoteId voteId;
-
-    @MapsId("movieId")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "movie_id")
-    private Movie movie;
+    @EqualsAndHashCode.Include
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @NotNull
-    @MapsId("voterId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_movie_id")
+    private GroupMovie groupMovie;
+
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voter_id")
     private User voter;

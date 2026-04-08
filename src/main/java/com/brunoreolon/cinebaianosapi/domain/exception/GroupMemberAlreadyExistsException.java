@@ -17,4 +17,3 @@ public class GroupMemberAlreadyExistsException extends BusinessException {
         );
     }
 }
-

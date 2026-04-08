@@ -8,4 +8,3 @@ public class GroupMemberNotFoundException extends EntityNotFoundException {
         super(message, args, ApiErrorCode.GROUP_MEMBER_NOT_FOUND);
     }
 }
-

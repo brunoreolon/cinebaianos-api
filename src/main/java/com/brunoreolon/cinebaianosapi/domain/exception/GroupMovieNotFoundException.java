@@ -8,3 +8,4 @@ public class GroupMovieNotFoundException extends EntityNotFoundException {
         super(message, args, ApiErrorCode.MOVIE_NOT_FOUND);
     }
 }
+

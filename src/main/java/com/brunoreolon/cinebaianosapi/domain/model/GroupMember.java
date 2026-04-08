@@ -106,6 +106,18 @@ public class GroupMember implements Ownable<Long> {
         }
     }
 
+    public boolean isAdmin() {
+        return getRole() == GroupMemberRole.ADMIN;
+    }
+
+    public boolean isOwner() {
+        return getRole() == GroupMemberRole.OWNER;
+    }
+
+    public boolean canManage() {
+        return getRole().atLeast(GroupMemberRole.ADMIN);
+    }
+
     @Override
     public Long getOwnerId() {
         return getMember().getId();

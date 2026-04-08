@@ -39,7 +39,7 @@ public class GroupMovieService {
         Group group = groupService.getById(groupId);
         User user = userService.get(chooserId);
 
-        if (group.isOnlyAdminAddMovie()) {
+        if (group.getOnlyAdminAddMovie()) {
             boolean isAdmin = groupMemberService.hasRole(groupId, chooserId, GroupMemberRole.ADMIN);
             if (!isAdmin) {
                 throw new GroupMovieInvalidOperationException("only.admin.can.add.movies.message");

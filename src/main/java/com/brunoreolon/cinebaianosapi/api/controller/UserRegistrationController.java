@@ -69,8 +69,8 @@ public class UserRegistrationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userConverter.toDetailResponse(newUser));
     }
 
-    @GetMapping
     @RequireRole(roles = {ADMIN, USER})
+    @GetMapping
     @Operation(summary = "Listar usuários", description = "Retorna todos os usuários cadastrados. É possível incluir ou excluir bots do resultado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuários retornados com sucesso", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -91,8 +91,8 @@ public class UserRegistrationController {
         return ResponseEntity.ok().body(userConverter.toDetailResponseList(users));
     }
 
-    @GetMapping("/{userId}")
     @RequireRole(roles = {ADMIN, USER})
+    @GetMapping("/{userId}")
     @Operation(summary = "Buscar usuário por ID", description = "Retorna os detalhes de um usuário específico pelo seu ID.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário encontrado", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -106,8 +106,8 @@ public class UserRegistrationController {
         return ResponseEntity.ok().body(userConverter.toDetailResponse(user));
     }
 
-    @GetMapping("/me")
     @RequireRole(roles = {ADMIN, USER})
+    @GetMapping("/me")
     @Operation(summary = "Consultar dados do usuário logado", description = "Retorna os detalhes do usuário autenticado com base no token de acesso.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Dados do usuário retornados com sucesso", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -126,8 +126,8 @@ public class UserRegistrationController {
         return ResponseEntity.ok(userConverter.toDetailResponse(user));
     }
 
-    @GetMapping("/me/groups")
     @RequireRole(roles = {USER, SUPER_ADMIN})
+    @GetMapping("/me/groups")
     @Operation(summary = "Listar grupos ativos do usuário logado",
             description = "Retorna todos os grupos ativos dos quais o usuário autenticado participa.")
     public ResponseEntity<List<GroupResponse>> getMyGroups(
@@ -136,8 +136,8 @@ public class UserRegistrationController {
         return ResponseEntity.ok(groupConverter.toResponseList(groups));
     }
 
-    @GetMapping("/me/groups/default")
     @RequireRole(roles = {USER, SUPER_ADMIN})
+    @GetMapping("/me/groups/default")
     @Operation(summary = "Obter grupo padrão do usuário logado",
             description = "Retorna o grupo selecionado como padrão para o usuário autenticado.")
     public ResponseEntity<GroupResponse> getMyDefaultGroup(
@@ -149,8 +149,8 @@ public class UserRegistrationController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/me/groups/{groupId}/default")
     @CheckGroupMember(service = GroupMemberService.class)
+    @PutMapping("/me/groups/{groupId}/default")
     @Operation(summary = "Definir grupo padrão do usuário logado",
             description = "Marca o grupo informado como padrão para o usuário autenticado.")
     public ResponseEntity<Void> setMyDefaultGroup(
@@ -160,8 +160,8 @@ public class UserRegistrationController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{userId}")
     @RequireRole(roles = {ADMIN})
+    @DeleteMapping("/{userId}")
     @Operation(summary = "Excluir usuário", description = "Remove um usuário do sistema com base no ID do usuário. Apenas administradores podem executar esta operação.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário excluído com sucesso"),
@@ -176,8 +176,8 @@ public class UserRegistrationController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/{userId}")
     @CheckOwner(service = UserRegistratioService.class, allowAdmin = true)
+    @PatchMapping("/{userId}")
     @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário existente. Administradores podem atualizar qualquer usuário, outros só podem atualizar seu próprio registro.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),

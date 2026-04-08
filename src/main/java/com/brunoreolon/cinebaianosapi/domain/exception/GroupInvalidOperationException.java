@@ -26,4 +26,3 @@ public class GroupInvalidOperationException extends BusinessException {
         );
     }
 }
-

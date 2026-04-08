@@ -60,6 +60,14 @@ public class VoteTypeRegistrationService {
         return voteTypeRepository.findAllByActiveOrderByIdAsc(active);
     }
 
+    public List<VoteType> getAllGlobal(Boolean active) {
+        return voteTypeRepository.findAllByGroupIsNullAndActiveOrderByIdAsc(active);
+    }
+
+    public List<VoteType> getAllByGroup(Long groupId, Boolean active) {
+        return voteTypeRepository.findAllByGroupIdAndActiveOrderByIdAsc(groupId, active);
+    }
+
     @Transactional
     public void delete(Long id) {
         VoteType voteType = get(id);

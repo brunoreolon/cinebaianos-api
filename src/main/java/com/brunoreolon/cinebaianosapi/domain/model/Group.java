@@ -9,7 +9,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @NoArgsConstructor
@@ -51,8 +53,8 @@ public class Group implements Ownable<Long> {
     @Enumerated(EnumType.STRING)
     private JoinPolicy joinPolicy;
 
-    private boolean onlyAdminAddMovie = false;
-    private boolean allowGlobalVotes = true;
+    private Boolean onlyAdminAddMovie = false;
+    private Boolean allowGlobalVotes = true;
     private int voteChangeDeadlineDays;
     private int movieNewDays;
     private int inviteMaxUses;
@@ -77,8 +79,8 @@ public class Group implements Ownable<Long> {
     @OneToMany(mappedBy = "group")
     private Set<GroupMovie> movies = new HashSet<>();
 
-//    @OneToMany(mappedBy = "group")
-//    private List<VoteType> voteTypes = new ArrayList<>();
+    @OneToMany(mappedBy = "group")
+    private List<VoteType> voteTypes = new ArrayList<>();
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("member.id ASC")

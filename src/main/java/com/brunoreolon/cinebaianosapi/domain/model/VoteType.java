@@ -25,6 +25,10 @@ public class VoteType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private Group group;
+
     @NotBlank
     @Column(unique = true)
     private String name;
@@ -75,6 +79,10 @@ public class VoteType {
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap());
 
         this.active = false;
+    }
+
+    public boolean isGlobal() {
+        return getGroup() == null;
     }
 
 }

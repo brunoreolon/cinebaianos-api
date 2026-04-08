@@ -32,7 +32,7 @@ public class VoteConverter {
 //    }
 
     public VoteDetailResponse toDetailResponse(Vote vote) {
-        Movie movie = vote.getMovie();
+        Movie movie = vote.getGroupMovie().getMovie();
         User voter = vote.getVoter();
         VoteSummaryResponse voteSummary = new VoteSummaryResponse(
                 vote.getVote().getId(),
@@ -50,7 +50,8 @@ public class VoteConverter {
     }
 
     public UserMovieVoteResponse toUserMovieVoteResponse(Vote vote) {
-        MovieSummaryResponse map1 = new MovieSummaryResponse(vote.getMovie().getId(), vote.getMovie().getTitle(), vote.getMovie().getTmdbId());
+        Movie movie = vote.getGroupMovie().getMovie();
+        MovieSummaryResponse map1 = new MovieSummaryResponse(movie.getId(), movie.getTitle(), movie.getTmdbId());
         VoteSummaryResponse map2 = modelMapper.map(vote, VoteSummaryResponse.class);
 
         return new UserMovieVoteResponse(map1, map2);

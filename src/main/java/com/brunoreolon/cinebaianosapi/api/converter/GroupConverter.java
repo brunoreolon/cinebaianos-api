@@ -108,8 +108,8 @@ public class GroupConverter {
         response.setActive(group.getActive());
         response.setVisibility(group.getVisibility());
         response.setJoinPolicy(group.getJoinPolicy());
-        response.setOnlyAdminAddMovie(group.isOnlyAdminAddMovie());
-        response.setAllowGlobalVotes(group.isAllowGlobalVotes());
+        response.setOnlyAdminAddMovie(group.getOnlyAdminAddMovie());
+        response.setAllowGlobalVotes(group.getAllowGlobalVotes());
         response.setVoteChangeDeadlineDays(group.getVoteChangeDeadlineDays());
         response.setMovieNewDays(group.getMovieNewDays());
         response.setInviteMaxUses(group.getInviteMaxUses());

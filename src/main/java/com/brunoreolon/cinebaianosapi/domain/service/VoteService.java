@@ -5,10 +5,12 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.Own
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.VoteNotFoundException;
+import com.brunoreolon.cinebaianosapi.domain.exception.VoteTypeNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
+import com.brunoreolon.cinebaianosapi.domain.repository.GroupMemberRepository;
+import com.brunoreolon.cinebaianosapi.domain.repository.GroupMovieRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.VoteRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,57 +24,65 @@ import java.util.List;
 public class VoteService implements OwnableService<Vote, VoteId> {
 
     private final MovieService movieService;
-    private final UserRegistratioService userRegistratioService;
     private final VoteTypeRegistrationService voteTypeRegistrationService;
     private final VoteRepository voteRepository;
+    private final GroupService groupService;
+    private final GroupMemberRepository groupMemberRepository;
+    private final GroupMovieRepository groupMovieRepository;
 
-    @Value("${vote.update-limit-days}")
-    private int voteUpdateLimitDays;
-
-    public VoteService(@Lazy MovieService movieService, UserRegistratioService userRegistratioService,
-                       VoteTypeRegistrationService voteTypeRegistrationService, VoteRepository voteRepository) {
+    public VoteService(@Lazy MovieService movieService, VoteTypeRegistrationService voteTypeRegistrationService,
+                       VoteRepository voteRepository, @Lazy GroupService groupService,
+                       GroupMemberRepository groupMemberRepository, GroupMovieRepository groupMovieRepository) {
         this.movieService = movieService;
-        this.userRegistratioService = userRegistratioService;
         this.voteTypeRegistrationService = voteTypeRegistrationService;
         this.voteRepository = voteRepository;
+        this.groupService = groupService;
+        this.groupMemberRepository = groupMemberRepository;
+        this.groupMovieRepository = groupMovieRepository;
     }
 
     @Transactional
-    public Vote register(Long userId, Long movieId, Long voteId) {
-        User voter = userRegistratioService.get(userId);
-        Movie movie = movieService.get(movieId);
+    public Vote registerByGroup(Long userId, Long groupId, Long movieId, Long voteId) {
+        Group group = groupService.get(groupId);
+        VoteType voteType = getVoteType(voteId);
+        GroupMember voter = getGroupMember(userId, group);
 
-        if (voteRepository.existsById(new VoteId(movieId, userId))) {
-            throw new VoteAlreadyRegisteredException("vote.already.registered.message", new Object[]{userId, movieId});
-        }
+        validateVoteTypeIsValidForGroup(group, voteType);
+        validateGlobalVoteTypeAllowedForGroup(voteId, group, voteType);
 
-        return save(voter, movie, voteId);
+        GroupMovie groupMovie = getGroupMovie(movieId, group);
+
+        boolean voteExists = voteRepository.existsByGroupMovieAndVoterId(groupMovie, userId);
+        if (voteExists) throw new VoteAlreadyRegisteredException("vote.already.registered.message", new Object[]{userId, movieId});
+
+        return saveByGroup(voter.getMember(), groupMovie, voteType);
     }
 
-    @Transactional
-    public Vote register(User voter, Movie movie, Long voteId) {
-        return save(voter, movie, voteId);
-    }
-
-    @Transactional
-    public Vote update(Long userId, Long movieId, Long voteId) {
-        Vote existingVote = getVote(userId, movieId);
-
-        long daysElapsed = ChronoUnit.DAYS.between(
-                existingVote.getCreatedAt(),
-                LocalDateTime.now()
-        );
-
-        if (daysElapsed > voteUpdateLimitDays) {
+    private void validateVoteTypeIsValidForGroup(Group group, VoteType voteType) {
+        if (!voteType.isGlobal() && !voteType.getGroup().getId().equals(group.getId())) {
             throw new BusinessException(
-                    "vote.modification.expired.title",
-                    "vote.modification.expired.message",
-                    new Object[]{daysElapsed, voteUpdateLimitDays},
-                    HttpStatus.UNPROCESSABLE_ENTITY
+                    "vote.type.not.valid.for.group.title",
+                    "vote.type.not.valid.for.group.message",
+                    new Object[]{voteType.getId(), group.getId()},
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.VOTE_TYPE_NOT_FOUND.asMap()
             );
         }
+    }
 
+    @Transactional
+    public Vote updateByGroup(Long userId, Long groupId, Long movieId, Long voteId) {
+        Group group = groupService.get(groupId);
+        GroupMovie groupMovie = getGroupMovie(movieId, group);
+        Vote existingVote = getVote(userId, movieId, groupMovie);
         VoteType voteType = voteTypeRegistrationService.get(voteId);
+
+        validateVoteTypeIsValidForGroup(group, voteType);
+        validateGlobalVoteTypeAllowedForGroup(voteId, group, voteType);
+
+        long daysElapsed = getDaysElapsed(existingVote);
+        validateDaysElapsed(daysElapsed, group.getVoteChangeDeadlineDays());
+
         existingVote.setVote(voteType);
 
         return voteRepository.save(existingVote);
@@ -96,33 +106,100 @@ public class VoteService implements OwnableService<Vote, VoteId> {
     }
 
     @Transactional
-    public void delete(Long userId, Long movieId) {
-        Vote vote = getVote(userId, movieId);
+    public void deleteByGroup(Long userId, Long groupId, Long movieId) {
+        Group group = groupService.get(groupId);
+        GroupMovie groupMovie = getGroupMovie(movieId, group);
+
+        Vote vote = getVote(userId, movieId, groupMovie);
+
         voteRepository.delete(vote);
     }
 
-    private Vote save(User voter, Movie movie, Long voteId) {
-        VoteType voteType = voteTypeRegistrationService.getOptional(voteId)
+    private GroupMember getGroupMember(Long userId, Group group) {
+        return groupMemberRepository.findByGroupIdAndMemberId(group.getId(), userId)
                 .orElseThrow(() -> new BusinessException(
-                        "vote.type.not.found.title",
+                        "group.member.not.found.title",
+                        "group.member.not.found.message",
+                        new Object[]{userId, group.getId()},
+                        HttpStatus.BAD_REQUEST
+                ));
+    }
+
+    private void validateGlobalVoteTypeAllowedForGroup(Long voteId, Group group, VoteType voteType) {
+        Boolean allowGlobalVotes = group.getAllowGlobalVotes();
+
+        if (Boolean.FALSE.equals(allowGlobalVotes) && voteType.isGlobal()) {
+            throw new BusinessException(
+                    "vote.type.global.not.allowed.title",
+                    "vote.type.global.not.allowed.message",
+                    new Object[]{voteId, group.getId()},
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.VOTE_INVALID_STATUS.asMap()
+            );
+        }
+    }
+
+    private long getDaysElapsed(Vote existingVote) {
+        return ChronoUnit.DAYS.between(
+                existingVote.getCreatedAt(),
+                LocalDateTime.now()
+        );
+    }
+
+    private void validateDaysElapsed(long daysElapsed, long voteChangeDeadlineDays) {
+        if (daysElapsed > voteChangeDeadlineDays) {
+            throw new BusinessException(
+                    "vote.modification.expired.title",
+                    "vote.modification.expired.message",
+                    new Object[]{daysElapsed, voteChangeDeadlineDays},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+    }
+
+    private Vote getVote(Long userId, Long movieId, GroupMovie groupMovie) {
+        return voteRepository.findByGroupMovieAndVoterId(groupMovie, userId)
+                .orElseThrow(() -> new VoteNotFoundException(
+                        "vote.not.found.message",
+                        new Object[]{userId, movieId},
+                        HttpStatus.BAD_REQUEST,
+                        ApiErrorCode.VOTE_TYPE_NOT_FOUND
+                ));
+    }
+
+    private GroupMovie getGroupMovie(Long movieId, Group group) {
+        return groupMovieRepository.findByGroupIdAndMovieId(group.getId(), movieId)
+                .orElseThrow(() -> new BusinessException(
+                        "group.movie.not.found.title",
+                        "group.movie.not.found.message",
+                        new Object[]{group.getId(), movieId},
+                        HttpStatus.NOT_FOUND
+                ));
+    }
+
+    private VoteType getVoteType(Long voteId) {
+        return voteTypeRegistrationService.getOptional(voteId)
+                .filter(VoteType::isActive)
+                .orElseThrow(() -> new VoteTypeNotFoundException(
                         "vote.type.not.found.message",
                         new Object[]{voteId},
                         HttpStatus.BAD_REQUEST,
-                        ApiErrorCode.VOTE_TYPE_NOT_FOUND.asMap()));
+                        ApiErrorCode.VOTE_TYPE_NOT_FOUND));
+    }
 
+    private Vote saveByGroup(User voter, GroupMovie groupMovie, VoteType voteType) {
         if (!voteType.isActive()) {
             throw new BusinessException(
                     "vote.type.inactive.title",
                     "vote.type.inactive.message",
-                    new Object[]{voteId},
+                    new Object[]{voteType.getId()},
                     HttpStatus.BAD_REQUEST,
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap()
             );
         }
 
         Vote newVote = Vote.builder()
-                .voteId(new VoteId(movie.getId(), voter.getId()))
-                .movie(movie)
+                .groupMovie(groupMovie)
                 .voter(voter)
                 .vote(voteType)
                 .build();

@@ -11,4 +11,3 @@ public class GroupConflictException extends BusinessException {
         super(GROUP_CONFLICT_TITLE, message, args, HttpStatus.CONFLICT, ApiErrorCode.GROUP_CONFLICT.asMap());
     }
 }
-

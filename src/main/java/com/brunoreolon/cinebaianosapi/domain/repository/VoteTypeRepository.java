@@ -9,6 +9,11 @@ import java.util.Optional;
 public interface VoteTypeRepository extends JpaRepository<VoteType, Long> {
 
     Optional<VoteType> findByName(String name);
+
     List<VoteType> findAllByActiveOrderByIdAsc(Boolean active);
+
+    List<VoteType> findAllByGroupIsNullAndActiveOrderByIdAsc(Boolean active);
+
+    List<VoteType> findAllByGroupIdAndActiveOrderByIdAsc(Long groupId, Boolean active);
 
 }

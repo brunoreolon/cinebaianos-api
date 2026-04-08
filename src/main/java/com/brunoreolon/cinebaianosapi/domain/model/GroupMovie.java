@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @NoArgsConstructor
@@ -33,8 +35,8 @@ public class GroupMovie {
     @JoinColumn(name = "chooser_id")
     private User chooser;
 
-//    @OneToMany(mappedBy = "groupMovie")
-//    private List<Vote> votes = new ArrayList<>();
+    @OneToMany(mappedBy = "groupMovie")
+    private List<Vote> votes = new ArrayList<>();
 
     @CreationTimestamp()
     @Column(updatable = false, nullable = false)
