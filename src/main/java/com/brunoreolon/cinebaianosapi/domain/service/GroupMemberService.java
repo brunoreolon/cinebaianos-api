@@ -9,11 +9,13 @@ import com.brunoreolon.cinebaianosapi.domain.exception.GroupMemberAlreadyExistsE
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupMemberNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
+import com.brunoreolon.cinebaianosapi.domain.repository.GroupMemberBanRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupMemberRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +25,7 @@ import java.util.Optional;
 public class GroupMemberService implements GroupAuthorizationService, OwnableService<GroupMember, GroupMemberId> {
 
     private final GroupMemberRepository groupMemberRepository;
+    private final GroupMemberBanRepository groupMemberBanRepository;
     private final GroupService groupService;
     private final UserRegistratioService userRegistratioService;
 
@@ -78,6 +81,8 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
     @Transactional
     public GroupMember addMember(Group group, User user, GroupMemberRole role) {
+        ensureMemberIsNotBanned(group.getId(), user.getId());
+
         Optional<GroupMember> member = getMember(group.getId(), user.getId());
 
         List<GroupMember> activeMembers = groupMemberRepository.findByMemberIdAndActiveTrue(user.getId());
@@ -121,6 +126,8 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
     @Transactional
     public GroupMember reactivateMember(Long groupId, Long userId) {
+        ensureMemberIsNotBanned(groupId, userId);
+
         GroupMember member = getMemberOrThrow(groupId, userId);
 
         if (member.getActive()) {
@@ -210,7 +217,7 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
         Optional<GroupMember> member = getMember(groupId, userId)
                 .filter(GroupMember::getActive);
 
-        if (member.isEmpty()) {
+        if (member.isEmpty() || isBanned(groupId, userId)) {
             return new GroupPermissions(false, null, false, false);
         }
 
@@ -249,7 +256,56 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
         return groupMemberRepository.existsByGroupIdAndMemberIdAndActiveTrueAndRoleIn(groupId, userId, qualifyingRoles);
     }
 
-    @Override
+    public boolean isBanned(Long groupId, Long userId) {
+        return groupMemberBanRepository.existsActiveBan(groupId, userId, LocalDateTime.now());
+    }
+
+    @Transactional
+    public void banMember(Long groupId, Long memberId, Long bannedById, String reason, LocalDateTime expiresAt) {
+        if (reason == null || reason.isBlank()) {
+            throw new GroupInvalidOperationException("group.member.ban.reason.required.message");
+        }
+
+        if (expiresAt != null && !expiresAt.isAfter(LocalDateTime.now())) {
+            throw new GroupInvalidOperationException("group.member.ban.expires.invalid.message");
+        }
+
+        GroupMember member = getMemberOrThrow(groupId, memberId);
+        if (member.isOwner()) {
+            throw new GroupInvalidOperationException("group.member.ban.owner.not.allowed.message");
+        }
+
+        if (isBanned(groupId, memberId)) {
+            throw new GroupInvalidOperationException("group.member.already.banned.message", new Object[]{memberId, groupId});
+        }
+
+        Group group = groupService.getById(groupId);
+        User bannedMember = userRegistratioService.get(memberId);
+        User bannedBy = userRegistratioService.get(bannedById);
+
+        GroupMemberBan ban = GroupMemberBan.builder()
+                .group(group)
+                .member(bannedMember)
+                .bannedBy(bannedBy)
+                .reason(reason.trim())
+                .expiresAt(expiresAt)
+                .build();
+
+        groupMemberBanRepository.save(ban);
+
+        if (member.getActive()) {
+            removeMember(groupId, memberId);
+        }
+    }
+
+    @Transactional
+    public void unbanMember(Long groupId, Long memberId) {
+        int updated = groupMemberBanRepository.expireActiveBans(groupId, memberId, LocalDateTime.now());
+        if (updated == 0) {
+            throw new GroupInvalidOperationException("group.member.not.banned.message", new Object[]{memberId, groupId});
+        }
+    }
+
     public GroupMember get(GroupMemberId groupMemberId) {
         return getMemberOrThrow(groupMemberId.getGroupId(), groupMemberId.getMemberId());
     }
@@ -281,6 +337,14 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     public void validateMember(Long groupId, Long userId) {
         if (!isMember(groupId, userId)) {
             throw new GroupInvalidOperationException("group.user.must.be.member.message", new Object[]{userId, groupId});
+        }
+
+        ensureMemberIsNotBanned(groupId, userId);
+    }
+
+    private void ensureMemberIsNotBanned(Long groupId, Long userId) {
+        if (isBanned(groupId, userId)) {
+            throw new GroupInvalidOperationException("group.member.banned.message", new Object[]{userId, groupId});
         }
     }
 

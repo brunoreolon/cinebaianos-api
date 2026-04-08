@@ -113,4 +113,24 @@ public class Group implements Ownable<Long> {
         return getOwner().getId();
     }
 
+    public boolean isBanned() {
+        return bannedAt != null && (expiresAt == null || expiresAt.isAfter(LocalDateTime.now()));
+    }
+
+    public void ban(User bannedBy, String reason, LocalDateTime expiresAt) {
+        this.bannedBy = bannedBy;
+        this.banReason = reason;
+        this.bannedAt = LocalDateTime.now();
+        this.expiresAt = expiresAt;
+        this.active = false;
+    }
+
+    public void unban() {
+        this.bannedBy = null;
+        this.banReason = null;
+        this.bannedAt = null;
+        this.expiresAt = null;
+        this.active = true;
+    }
+
 }

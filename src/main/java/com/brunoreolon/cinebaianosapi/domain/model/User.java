@@ -150,4 +150,22 @@ public class User implements Ownable<Long> {
         this.getRoles().remove(UserRole.ADMIN);
     }
 
+    public boolean isBanned() {
+        return bannedAt != null && (expiresAt == null || expiresAt.isAfter(LocalDateTime.now()));
+    }
+
+    public void ban(User bannedBy, String reason, LocalDateTime expiresAt) {
+        this.bannedBy = bannedBy;
+        this.banReason = reason;
+        this.bannedAt = LocalDateTime.now();
+        this.expiresAt = expiresAt;
+    }
+
+    public void unban() {
+        this.bannedBy = null;
+        this.banReason = null;
+        this.bannedAt = null;
+        this.expiresAt = null;
+    }
+
 }

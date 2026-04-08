@@ -63,6 +63,15 @@ public class GroupJoinRequestService {
             throw new GroupConflictException("group.member.already.exists.message", new Object[]{groupId, userId});
         }
 
+        if (groupMemberService.isBanned(groupId, userId)) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.member.banned.message",
+                    new Object[]{userId, groupId},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
         boolean hasPendingRequest = groupJoinRequestRepository
                 .existsByGroupIdAndUserIdAndStatus(groupId, userId, GroupJoinRequestStatus.PENDING);
         if (hasPendingRequest) {

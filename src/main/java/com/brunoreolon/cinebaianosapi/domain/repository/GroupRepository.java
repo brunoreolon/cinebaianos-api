@@ -2,10 +2,12 @@ package com.brunoreolon.cinebaianosapi.domain.repository;
 
 import com.brunoreolon.cinebaianosapi.domain.model.Group;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,5 +85,19 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 //            order by vt.id
 //            """)
 //    Optional<Group> findAllByVoteTypes(Long groupId);
+
+    @Modifying
+    @Query("""
+            update Group g
+            set g.bannedAt = null,
+                g.bannedBy = null,
+                g.banReason = null,
+                g.expiresAt = null,
+                g.active = true
+            where g.bannedAt is not null
+              and g.expiresAt is not null
+              and g.expiresAt <= :now
+            """)
+    int clearExpiredBans(@Param("now") LocalDateTime now);
 
 }

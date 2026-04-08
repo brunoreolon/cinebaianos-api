@@ -2,15 +2,18 @@ package com.brunoreolon.cinebaianosapi.domain.service;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
+import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupConflictException;
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupInvalidOperationException;
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupNotFoundException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupRepository;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -128,6 +131,55 @@ public class GroupService implements OwnableService<Group, Long> {
         } else {
             throw new GroupInvalidOperationException("group.new.owner.must.be.admin.message");
         }
+    }
+
+    @Transactional
+    public void banGroup(Long groupId, Long bannedById, String reason, LocalDateTime expiresAt) {
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.ban.reason.required.message",
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (expiresAt != null && !expiresAt.isAfter(LocalDateTime.now())) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.ban.expires.invalid.message",
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        Group group = getById(groupId);
+        User bannedBy = userRegistratioService.get(bannedById);
+
+        if (group.isBanned()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.already.banned.message",
+                    new Object[]{groupId},
+                    HttpStatus.CONFLICT
+            );
+        }
+
+        group.ban(bannedBy, reason.trim(), expiresAt);
+    }
+
+    @Transactional
+    public void unbanGroup(Long groupId) {
+        Group group = getById(groupId);
+
+        if (!group.isBanned()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.not.banned.message",
+                    new Object[]{groupId},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        group.unban();
     }
 
     public void validateRequiredFields(Group group) {

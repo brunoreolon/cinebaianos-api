@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
+import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupMemberBanRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailWithMembersResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupPermissionsResponse;
@@ -32,8 +33,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.Valid;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.SUPER_ADMIN;
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.USER;
@@ -203,4 +207,29 @@ public class GroupMemberController {
         GroupMember member = groupMemberService.getMemberOrThrow(groupId, userId);
         return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
+
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
+    @PostMapping("/{groupId}/members/{userId}/ban")
+    @Operation(summary = "Banir membro do grupo",
+            description = "Permite banimento temporario ou definitivo de um membro no contexto do grupo.")
+    public ResponseEntity<Void> banMember(
+            @PathVariable @GroupKey Long groupId,
+            @PathVariable Long userId,
+            @Valid @RequestBody GroupMemberBanRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        groupMemberService.banMember(groupId, userId, userDetails.getUser().getId(), request.getReason(), request.getExpiresAt());
+        return ResponseEntity.noContent().build();
+    }
+
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
+    @DeleteMapping("/{groupId}/members/{userId}/ban")
+    @Operation(summary = "Remover banimento de membro do grupo",
+            description = "Remove banimento ativo do membro no grupo informado.")
+    public ResponseEntity<Void> unbanMember(
+            @PathVariable @GroupKey Long groupId,
+            @PathVariable Long userId) {
+        groupMemberService.unbanMember(groupId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

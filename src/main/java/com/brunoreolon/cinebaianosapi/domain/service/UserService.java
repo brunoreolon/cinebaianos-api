@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -209,6 +210,63 @@ public class UserService {
                         summary.getMoviesPendingVote()
                 )
         );
+    }
+
+    @Transactional
+    public void banUser(Long targetUserId, Long bannedById, String reason, LocalDateTime expiresAt) {
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.ban.reason.required.message",
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (expiresAt != null && !expiresAt.isAfter(LocalDateTime.now())) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.ban.expires.invalid.message",
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (targetUserId.equals(bannedById)) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.ban.self.not.allowed.message",
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        User target = userRegistratioService.get(targetUserId);
+        User bannedBy = userRegistratioService.get(bannedById);
+
+        if (target.isBanned()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.already.banned.message",
+                    new Object[]{targetUserId},
+                    HttpStatus.CONFLICT
+            );
+        }
+
+        target.ban(bannedBy, reason.trim(), expiresAt);
+    }
+
+    @Transactional
+    public void unbanUser(Long userId) {
+        User user = userRegistratioService.get(userId);
+
+        if (!user.isBanned()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.not.banned.message",
+                    new Object[]{userId},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        user.unban();
     }
 
 }
