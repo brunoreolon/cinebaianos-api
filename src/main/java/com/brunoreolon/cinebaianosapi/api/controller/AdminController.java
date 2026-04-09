@@ -5,10 +5,11 @@ import com.brunoreolon.cinebaianosapi.api.model.user.request.UserResetPasswordRe
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserStatusActiveAccountUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserStatusAdminUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserBanRequest;
+import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupResponse;
+import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeStatusUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupBanRequest;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
 import com.brunoreolon.cinebaianosapi.domain.model.CustomUserDetails;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupService;
@@ -29,6 +30,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
@@ -42,6 +45,15 @@ public class AdminController {
     private final UserService userService;
     private final GroupService groupService;
     private final VoteTypeService voteTypeService;
+    private final GroupConverter groupConverter;
+
+    @RequireRole(roles = {SUPER_ADMIN})
+    @GetMapping("/groups")
+    @Operation(summary = "Listar grupos para administração",
+            description = "Retorna todos os grupos cadastrados no sistema para visão administrativa global.")
+    public ResponseEntity<List<GroupResponse>> listGroups() {
+        return ResponseEntity.ok(groupConverter.toResponseList(groupService.getAllForAdmin()));
+    }
 
     @RequireRole(roles = {SUPER_ADMIN})
     @PostMapping("/users/{userId}/reset-password")

@@ -81,6 +81,10 @@ public class GroupService implements OwnableService<Group, Long> {
         return groupRepository.findAll();
     }
 
+    public List<Group> getAllForAdmin() {
+        return groupRepository.findAllForAdmin();
+    }
+
     public Group getById(Long groupId) {
         return groupRepository.findById(groupId)
                 .orElseThrow(() -> new GroupNotFoundException("group.not.found.message", new Object[]{groupId}));
