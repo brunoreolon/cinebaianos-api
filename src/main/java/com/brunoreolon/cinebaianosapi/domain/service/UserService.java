@@ -206,16 +206,18 @@ public class UserService {
                 user.isBanned()
         );
 
-        UserSummaryProjection summary = userStatsRepository.findUserSummaryById(userId);
+        UserSummaryProjection summary = null;
+//        UserSummaryProjection summary = userStatsRepository.findUserSummaryById(userId);
 
         return new com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse(
                 userDetail,
-                new UserStats(
-                        summary.getTotalMoviesAdded(),
-                        summary.getTotalVotesGiven(),
-                        summary.getTotalVotesReceived(),
-                        summary.getMoviesPendingVote()
-                )
+                null
+//                new UserStats(
+//                        summary.getTotalMoviesAdded(),
+//                        summary.getTotalVotesGiven(),
+//                        summary.getTotalVotesReceived(),
+//                        summary.getMoviesPendingVote()
+//                )
         );
     }
 

@@ -29,11 +29,11 @@ public class MovieConverter {
         MovieWithChooserResponse response = modelMapper.map(movie, MovieWithChooserResponse.class);
         response.setPosterPath(pathUtil.fullPosterPath(response.getPosterPath()));
 
-        response.setVotes(
-                movie.getVotes().stream()
-                        .map(this::toUsersVotesSummaryResponse)
-                        .toList()
-        );
+//        response.setVotes(
+//                movie.getVotes().stream()
+//                        .map(this::toUsersVotesSummaryResponse)
+//                        .toList()
+//        );
 
         return response;
     }
@@ -65,10 +65,11 @@ public class MovieConverter {
         String posterPath = response.getMovie().getPosterPath();
         response.getMovie().setPosterPath(pathUtil.fullPosterPath(posterPath));
 
-        Vote vote = movie.getVotes().stream()
-                .filter(v -> v.getVoter().getId().equals(chooserId))
-                .findFirst()
-                .orElse(null);
+        Vote vote = null;
+//        Vote vote = movie.getVotes().stream()
+//                .filter(v -> v.getVoter().getId().equals(chooserId))
+//                .findFirst()
+//                .orElse(null);
 
         if (vote != null) {
             VoteTypeSummaryResponse voteTypeSummaryResponse = new VoteTypeSummaryResponse(
