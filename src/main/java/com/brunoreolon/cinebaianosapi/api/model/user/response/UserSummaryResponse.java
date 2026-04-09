@@ -13,5 +13,6 @@ public class UserSummaryResponse {
 
     private Long id;
     private String name;
+    private String avatar;
 
 }

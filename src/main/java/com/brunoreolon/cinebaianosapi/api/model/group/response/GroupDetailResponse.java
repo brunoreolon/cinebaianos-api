@@ -24,6 +24,10 @@ public class GroupDetailResponse {
     private String slug;
     private UserSummaryResponse owner;
     private boolean active;
+    private boolean banned;
+    private LocalDateTime bannedAt;
+    private String banReason;
+    private LocalDateTime expiresAt;
     private GroupVisibility visibility;
     private JoinPolicy joinPolicy;
     private boolean onlyAdminAddMovie;

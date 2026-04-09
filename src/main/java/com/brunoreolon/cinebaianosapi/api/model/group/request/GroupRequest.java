@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -24,10 +25,12 @@ public class GroupRequest {
 
     @NotBlank
     @Size(min = 4, max = 6)
+    @Pattern(regexp = "^[A-Za-z0-9_]{4,6}$")
     private String tag;
 
     @NotBlank
     @Size(min = 4, max = 30)
+    @Pattern(regexp = "^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$")
     private String slug;
 
     @NotNull

@@ -13,6 +13,8 @@ public class GroupInviteResponse {
 
     private Long id;
     private Long groupId;
+    private String groupName;
+    private String groupTag;
     private String token;
     private GroupInviteType inviteType;
     private GroupInviteStatus status;

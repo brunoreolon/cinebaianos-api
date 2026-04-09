@@ -17,17 +17,28 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     @Query("""
             select distinct g
             from Group g
+            left join fetch g.owner
             left join fetch g.movies gm
+            left join fetch gm.chooser
             left join fetch gm.movie m
             left join fetch m.genres
+            left join fetch gm.votes v
+            left join fetch v.voter
+            left join fetch v.vote
             where g.id = :groupId
             order by g.id
             """)
     Optional<Group> findGroupWithMovies(Long groupId);
 
-    Optional<Group> findByTag(String tag);
+    boolean existsByTagIgnoreCase(String tag);
 
-    Optional<Group> findBySlug(String slug);
+    boolean existsByTagIgnoreCaseAndIdNot(String tag, Long id);
+
+    Optional<Group> findBySlugIgnoreCase(String slug);
+
+    boolean existsBySlugIgnoreCase(String slug);
+
+    boolean existsBySlugIgnoreCaseAndIdNot(String slug, Long id);
 
     @Query("""
             select g
@@ -75,9 +86,16 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
             join g.members m
             where m.member.id = :userId 
             and m.active = true
-            and g.active = true
             """)
     List<Group> findGroupsByMemberId(Long userId);
+
+    @Query("""
+            select g
+            from Group g
+            left join fetch g.owner
+            order by g.createdAt desc
+            """)
+    List<Group> findAllForAdmin();
 
 //    @Query("""
 //            from Group g

@@ -4,16 +4,21 @@ import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailWithMembersResponse;
+import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberBanResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupPermissionsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
+import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteSummaryResponse;
 import com.brunoreolon.cinebaianosapi.domain.model.Group;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
+import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberBan;
+import com.brunoreolon.cinebaianosapi.domain.model.GroupMovie;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupPermissions;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
+import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,15 +30,15 @@ import java.util.List;
 @Component
 public class GroupConverter {
 
-    private final UserConverter userConverter;
     private final ModelMapper modelMapper;
     private final PosterPathUtil pathUtil;
 
     public GroupDetailResponse toGroupWithMoviesResponse(Group group) {
         GroupDetailResponse groupResponse = modelMapper.map(group, GroupDetailResponse.class);
+        applyGroupStatus(group, groupResponse);
 
         List<MovieWithChooserResponse> movies = group.getMovies().stream()
-                .map(gm -> toMovieResponse(gm.getMovie()))
+                .map(this::toMovieResponse)
                 .toList();
 
         groupResponse.setMovies(movies);
@@ -41,15 +46,25 @@ public class GroupConverter {
         return groupResponse;
     }
 
-    public MovieWithChooserResponse toMovieResponse(Movie movie) {
-        MovieWithChooserResponse movieResponse = modelMapper.map(movie, MovieWithChooserResponse.class);
-        movieResponse.setPosterPath(pathUtil.fullPosterPath(movieResponse.getPosterPath()));
+    public MovieWithChooserResponse toMovieResponse(GroupMovie groupMovie) {
+        Movie movie = groupMovie.getMovie();
 
-        List<UsersVotesSummaryResponse> list = movie.getVotes().stream()
-                .map(userConverter::toUsersVotesSummary)
-                .toList();
-
-        movieResponse.setVotes(list);
+        MovieWithChooserResponse movieResponse = new MovieWithChooserResponse();
+        movieResponse.setId(movie.getId());
+        movieResponse.setTitle(movie.getTitle());
+        movieResponse.setYear(movie.getYear() != null ? String.valueOf(movie.getYear()) : null);
+        movieResponse.setTmdbId(movie.getTmdbId() != null ? String.valueOf(movie.getTmdbId()) : null);
+        movieResponse.setDateAdded(groupMovie.getDateAdded());
+        movieResponse.setPosterPath(pathUtil.fullPosterPath(movie.getPosterPath()));
+        movieResponse.setSynopsis(movie.getSynopsis());
+        movieResponse.setDirector(movie.getDirector());
+        movieResponse.setGenres(movie.getGenres().stream()
+                .map(genre -> modelMapper.map(genre, com.brunoreolon.cinebaianosapi.api.model.genre.GenreResponse.class))
+                .toList());
+        movieResponse.setChooser(modelMapper.map(groupMovie.getChooser(), com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse.class));
+        movieResponse.setVotes(groupMovie.getVotes().stream()
+                .map(this::toUsersVotesSummaryResponse)
+                .toList());
 
         return movieResponse;
     }
@@ -63,7 +78,9 @@ public class GroupConverter {
     }
 
     public GroupResponse toResponse(Group group) {
-        return modelMapper.map(group, GroupResponse.class);
+        GroupResponse response = modelMapper.map(group, GroupResponse.class);
+        applyGroupStatus(group, response);
+        return response;
     }
 
     public List<GroupResponse> toResponseList(List<Group> groups) {
@@ -106,6 +123,10 @@ public class GroupConverter {
         response.setSlug(group.getSlug());
         response.setOwner(modelMapper.map(group.getOwner(), UserSummaryResponse.class));
         response.setActive(group.getActive());
+        response.setBanned(group.isBanned());
+        response.setBannedAt(group.getBannedAt());
+        response.setBanReason(group.getBanReason());
+        response.setExpiresAt(group.getExpiresAt());
         response.setVisibility(group.getVisibility());
         response.setJoinPolicy(group.getJoinPolicy());
         response.setOnlyAdminAddMovie(group.getOnlyAdminAddMovie());
@@ -122,6 +143,52 @@ public class GroupConverter {
 
         response.setMembers(members);
         return response;
+    }
+
+    private UsersVotesSummaryResponse toUsersVotesSummaryResponse(Vote vote) {
+        VoteSummaryResponse voteSummary = new VoteSummaryResponse(
+                vote.getVote().getId(),
+                vote.getVote().getDescription(),
+                vote.getVote().getColor(),
+                vote.getVote().getEmoji(),
+                vote.getCreatedAt()
+        );
+
+        UsersVotesSummaryResponse response = new UsersVotesSummaryResponse();
+        response.setVoter(modelMapper.map(vote.getVoter(), com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse.class));
+        response.setVote(voteSummary);
+        return response;
+    }
+
+    private void applyGroupStatus(Group group, GroupResponse response) {
+        response.setBanned(group.isBanned());
+        response.setBannedAt(group.getBannedAt());
+        response.setBanReason(group.getBanReason());
+        response.setExpiresAt(group.getExpiresAt());
+    }
+
+    private void applyGroupStatus(Group group, GroupDetailResponse response) {
+        response.setBanned(group.isBanned());
+        response.setBannedAt(group.getBannedAt());
+        response.setBanReason(group.getBanReason());
+        response.setExpiresAt(group.getExpiresAt());
+    }
+
+    public GroupMemberBanResponse toBanResponse(GroupMemberBan ban) {
+        GroupMemberBanResponse response = new GroupMemberBanResponse();
+        response.setId(ban.getId());
+        response.setMember(modelMapper.map(ban.getMember(), UserSummaryResponse.class));
+        response.setBannedBy(modelMapper.map(ban.getBannedBy(), UserSummaryResponse.class));
+        response.setReason(ban.getReason());
+        response.setCreatedAt(ban.getCreatedAt());
+        response.setExpiresAt(ban.getExpiresAt());
+        return response;
+    }
+
+    public List<GroupMemberBanResponse> toBanResponseList(List<GroupMemberBan> bans) {
+        return bans.stream()
+                .map(this::toBanResponse)
+                .toList();
     }
 
     public Group merge(Group source, Group target) {

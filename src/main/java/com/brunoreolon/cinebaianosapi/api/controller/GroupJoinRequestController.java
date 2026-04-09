@@ -72,6 +72,26 @@ public class GroupJoinRequestController {
         return ResponseEntity.ok(response);
     }
 
+    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @GetMapping("/{groupId}/join-requests/me")
+    @Operation(summary = "Consultar minha solicitacao pendente")
+    public ResponseEntity<GroupJoinRequestResponse> getMyPendingRequest(
+            @PathVariable @GroupKey Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        GroupJoinRequest request = groupJoinRequestService.getMyPendingRequest(groupId, userDetails.getUser().getId());
+        return ResponseEntity.ok(groupAccessConverter.toJoinRequestResponse(request));
+    }
+
+    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @DeleteMapping("/{groupId}/join-requests/me")
+    @Operation(summary = "Cancelar minha solicitacao pendente")
+    public ResponseEntity<Void> cancelMyPendingRequest(
+            @PathVariable @GroupKey Long groupId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        groupJoinRequestService.cancelMyPendingRequest(groupId, userDetails.getUser().getId());
+        return ResponseEntity.noContent().build();
+    }
+
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
     @PutMapping("/{groupId}/join-requests/{requestId}/approve")
     @Operation(summary = "Aprovar solicitacao de entrada")

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface GroupMemberBanRepository extends JpaRepository<GroupMemberBan, Long> {
 
@@ -32,6 +33,16 @@ public interface GroupMemberBanRepository extends JpaRepository<GroupMemberBan, 
     int expireActiveBans(@Param("groupId") Long groupId,
                          @Param("memberId") Long memberId,
                          @Param("now") LocalDateTime now);
+
+    @Query("""
+            select b
+            from GroupMemberBan b
+            where b.group.id = :groupId
+              and (b.expiresAt is null or b.expiresAt > :now)
+            order by b.createdAt desc
+            """)
+    List<GroupMemberBan> findActiveBansByGroup(@Param("groupId") Long groupId,
+                                               @Param("now") LocalDateTime now);
 
     @Modifying
     @Query("""

@@ -21,7 +21,9 @@ public class UserDetailResponse {
     private String biography;
     private LocalDateTime Joined;
     private boolean isAdmin;
+    private boolean superAdmin;
     private boolean isBot;
     private boolean active;
+    private boolean banned;
 
 }

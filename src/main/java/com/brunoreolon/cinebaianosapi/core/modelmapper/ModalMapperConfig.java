@@ -1,6 +1,5 @@
 package com.brunoreolon.cinebaianosapi.core.modelmapper;
 
-import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.request.UserRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
@@ -61,7 +60,10 @@ public class ModalMapperConfig {
                 .addMappings(mapper -> mapper.skip(User::setId));
 
         modelMapper.typeMap(User.class, UserSummaryResponse.class)
-                .addMappings(mapper -> mapper.map(User::getId, UserSummaryResponse::setId));
+                .addMappings(mapper -> {
+                    mapper.map(User::getId, UserSummaryResponse::setId);
+                    mapper.map(User::getAvatar, UserSummaryResponse::setAvatar);
+                });
 
         modelMapper.typeMap(Group.class, Group.class).addMappings(mapper -> {
             mapper.skip(Group::setActive);

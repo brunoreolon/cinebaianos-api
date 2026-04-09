@@ -3,7 +3,7 @@ package com.brunoreolon.cinebaianosapi.api.controller;
 import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupUpdateRequest;
-import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailResponse;
+import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupAvailabilityResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
@@ -65,6 +65,32 @@ public class GroupController {
         Group newGroup = groupService.save(group, ownerId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(groupConverter.toResponse(newGroup));
+    }
+
+    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @GetMapping("/availability")
+    @Operation(summary = "Validar disponibilidade de tag e slug",
+            description = "Verifica se a tag e/ou slug informados podem ser usados por um novo grupo.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Disponibilidade validada com sucesso", content = @Content(schema = @Schema(implementation = GroupAvailabilityResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+    })
+    public ResponseEntity<GroupAvailabilityResponse> checkAvailability(
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) String slug,
+            @RequestParam(required = false) Long excludeGroupId) {
+        GroupAvailabilityResponse.FieldAvailability tagAvailability = buildFieldAvailability(
+                tag,
+                groupService::normalizeTag,
+                value -> groupService.isTagAvailable(value, excludeGroupId)
+        );
+        GroupAvailabilityResponse.FieldAvailability slugAvailability = buildFieldAvailability(
+                slug,
+                groupService::normalizeSlug,
+                value -> groupService.isSlugAvailable(value, excludeGroupId)
+        );
+
+        return ResponseEntity.ok(new GroupAvailabilityResponse(tagAvailability, slugAvailability));
     }
 
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
@@ -171,6 +197,18 @@ public class GroupController {
     public ResponseEntity<Void> delete(@PathVariable @ResourceKey Long groupId) {
         groupService.deleteById(groupId);
         return ResponseEntity.noContent().build();
+    }
+
+    private GroupAvailabilityResponse.FieldAvailability buildFieldAvailability(
+            String rawValue,
+            java.util.function.Function<String, String> normalizer,
+            java.util.function.Predicate<String> availabilityCheck) {
+        if (rawValue == null || rawValue.isBlank()) {
+            return null;
+        }
+
+        String normalizedValue = normalizer.apply(rawValue);
+        return new GroupAvailabilityResponse.FieldAvailability(normalizedValue, availabilityCheck.test(rawValue));
     }
 
 }

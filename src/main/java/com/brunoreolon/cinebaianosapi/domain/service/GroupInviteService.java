@@ -50,8 +50,13 @@ public class GroupInviteService {
             }
         }
 
-        int inviteMaxUses = maxUses == null ? group.getInviteMaxUses() : maxUses;
-        validateInviteLimits(inviteMaxUses, group.getInviteMaxUses());
+        int inviteMaxUses;
+        if (inviteType == GroupInviteType.DIRECT) {
+            inviteMaxUses = 1;
+        } else {
+            inviteMaxUses = maxUses == null ? group.getInviteMaxUses() : maxUses;
+            validateInviteLimits(inviteMaxUses, group.getInviteMaxUses());
+        }
 
         GroupInvite invite = GroupInvite.builder()
                 .group(group)
@@ -78,6 +83,10 @@ public class GroupInviteService {
         return groupInviteRepository.findByGroupIdAndStatusOrderByCreatedAtDesc(groupId, GroupInviteStatus.PENDING);
     }
 
+    public List<GroupInvite> getPendingReceivedInvites(Long userId) {
+        return groupInviteRepository.findPendingReceivedInvites(userId, GroupInviteStatus.PENDING, LocalDateTime.now());
+    }
+
     @Transactional
     public void revokeInvite(Long groupId, Long inviteId) {
         GroupInvite invite = getInviteByGroup(inviteId, groupId);
@@ -88,6 +97,37 @@ public class GroupInviteService {
                     "group.invite.invalid.status.message",
                     new Object[]{invite.getStatus()},
                     HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        invite.revoke();
+    }
+
+    @Transactional
+    public void declineInvite(Long inviteId, Long userId) {
+        GroupInvite invite = groupInviteRepository.findById(inviteId)
+                .orElseThrow(() -> new BusinessException(
+                        "entity.not.found.title",
+                        "group.invite.not.found.message",
+                        new Object[]{inviteId},
+                        HttpStatus.NOT_FOUND
+                ));
+
+        if (!invite.isPending()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.invite.invalid.status.message",
+                    new Object[]{invite.getStatus()},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (!invite.canBeUsedBy(userId) || invite.getInvitedUser() == null) {
+            throw new BusinessException(
+                    "access.denied.title",
+                    "group.invite.user.not.allowed.message",
+                    new Object[]{invite.getId()},
+                    HttpStatus.FORBIDDEN
             );
         }
 
@@ -143,6 +183,9 @@ public class GroupInviteService {
         }
 
         if (groupMemberService.isMember(invite.getGroup().getId(), userId)) {
+            if (invite.getInviteType() == GroupInviteType.DIRECT) {
+                invite.revoke();
+            }
             throw new GroupConflictException("group.member.already.exists.message", new Object[]{invite.getGroup().getId(), userId});
         }
 

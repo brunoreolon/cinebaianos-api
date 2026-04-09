@@ -44,7 +44,7 @@ public class VoteConverter {
 
         return new VoteDetailResponse(
                 new MovieSummaryResponse(movie.getId(), movie.getTitle(), movie.getTmdbId()),
-                new UserSummaryResponse(voter.getId(), voter.getName()),
+                new UserSummaryResponse(voter.getId(), voter.getName(), voter.getAvatar()),
                 voteSummary
         );
     }

@@ -6,6 +6,7 @@ import com.brunoreolon.cinebaianosapi.api.model.user.request.UserRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteSummaryResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
@@ -31,7 +32,10 @@ public class UserConverter {
     }
 
     public UserDetailResponse toDetailResponse(User user) {
-        return modelMapper.map(user, UserDetailResponse.class);
+        UserDetailResponse response = modelMapper.map(user, UserDetailResponse.class);
+        response.setSuperAdmin(user.hasRole(UserRole.SUPER_ADMIN));
+        response.setBanned(user.isBanned());
+        return response;
     }
 
     public UserWithMoviesResponse toWithMoviesResponse(User user) {

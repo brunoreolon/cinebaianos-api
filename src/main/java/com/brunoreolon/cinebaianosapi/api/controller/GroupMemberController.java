@@ -3,6 +3,7 @@ package com.brunoreolon.cinebaianosapi.api.controller;
 import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupMemberBanRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailWithMembersResponse;
+import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberBanResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupPermissionsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
@@ -14,6 +15,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Res
 import com.brunoreolon.cinebaianosapi.domain.model.CustomUserDetails;
 import com.brunoreolon.cinebaianosapi.domain.model.Group;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
+import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberBan;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupPermissions;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
@@ -38,6 +40,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+
+import java.util.List;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.SUPER_ADMIN;
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.USER;
@@ -206,6 +210,22 @@ public class GroupMemberController {
         groupMemberService.demoteToMember(groupId, userId, userDetails.getUser().getId());
         GroupMember member = groupMemberService.getMemberOrThrow(groupId, userId);
         return ResponseEntity.ok(groupConverter.toMemberResponse(member));
+    }
+
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
+    @GetMapping("/{groupId}/members/bans")
+    @Operation(summary = "Listar banimentos ativos do grupo",
+            description = "Retorna todos os banimentos ativos (não expirados) do grupo. Apenas o owner ou admin podem executar esta operação.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de banimentos retornada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão"),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
+    })
+    public ResponseEntity<List<GroupMemberBanResponse>> getActiveBans(
+            @PathVariable @GroupKey Long groupId) {
+        List<GroupMemberBan> bans = groupMemberService.getActiveBans(groupId);
+        return ResponseEntity.ok(groupConverter.toBanResponseList(bans));
     }
 
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)

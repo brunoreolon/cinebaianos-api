@@ -260,6 +260,10 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
         return groupMemberBanRepository.existsActiveBan(groupId, userId, LocalDateTime.now());
     }
 
+    public List<GroupMemberBan> getActiveBans(Long groupId) {
+        return groupMemberBanRepository.findActiveBansByGroup(groupId, LocalDateTime.now());
+    }
+
     @Transactional
     public void banMember(Long groupId, Long memberId, Long bannedById, String reason, LocalDateTime expiresAt) {
         if (reason == null || reason.isBlank()) {

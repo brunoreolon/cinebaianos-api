@@ -13,6 +13,8 @@ public class GroupAccessConverter {
         GroupInviteResponse response = new GroupInviteResponse();
         response.setId(invite.getId());
         response.setGroupId(invite.getGroup().getId());
+        response.setGroupName(invite.getGroup().getName());
+        response.setGroupTag(invite.getGroup().getTag());
         response.setToken(invite.getToken());
         response.setInviteType(invite.getInviteType());
         response.setStatus(invite.getStatus());

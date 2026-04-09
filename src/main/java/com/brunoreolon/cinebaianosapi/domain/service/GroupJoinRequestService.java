@@ -98,6 +98,25 @@ public class GroupJoinRequestService {
         return groupJoinRequestRepository.findByGroupIdAndStatusOrderByCreatedAtDesc(groupId, GroupJoinRequestStatus.PENDING);
     }
 
+    public GroupJoinRequest getMyPendingRequest(Long groupId, Long userId) {
+        groupService.getById(groupId);
+
+        return groupJoinRequestRepository
+                .findFirstByGroupIdAndUserIdAndStatusOrderByCreatedAtDesc(groupId, userId, GroupJoinRequestStatus.PENDING)
+                .orElseThrow(() -> new BusinessException(
+                        "entity.not.found.title",
+                        "group.join.request.pending.not.found.for.user.message",
+                        new Object[]{userId, groupId},
+                        HttpStatus.NOT_FOUND
+                ));
+    }
+
+    @Transactional
+    public void cancelMyPendingRequest(Long groupId, Long userId) {
+        GroupJoinRequest request = getMyPendingRequest(groupId, userId);
+        request.cancel();
+    }
+
     @Transactional
     public GroupJoinRequest approve(Long groupId, Long requestId, Long reviewerId) {
         GroupJoinRequest request = getByGroup(groupId, requestId);

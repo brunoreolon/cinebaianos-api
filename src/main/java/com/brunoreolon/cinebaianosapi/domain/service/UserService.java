@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserStats;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByAdminEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByRecoverEvent;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
@@ -67,8 +68,10 @@ public class UserService {
                         user.getBiography(),
                         user.getCreatedAt(),
                         user.isAdmin(),
+                        user.hasRole(UserRole.SUPER_ADMIN),
                         user.getIsBot(),
-                        user.getActive()
+                        user.getActive(),
+                        user.isBanned()
                 ),
                 getVoteReceivedSummaryForUser(user, votesToConsider)
         );
@@ -94,8 +97,10 @@ public class UserService {
                         user.getBiography(),
                         user.getCreatedAt(),
                         user.isAdmin(),
+                        user.hasRole(UserRole.SUPER_ADMIN),
                         user.getIsBot(),
-                        user.getActive()
+                        user.getActive(),
+                        user.isBanned()
                 ),
                 getVoteGivenSummaryForUser(user, votesToConsider)
         );
@@ -195,8 +200,10 @@ public class UserService {
                 user.getBiography(),
                 user.getCreatedAt(),
                 user.isAdmin(),
+                user.hasRole(UserRole.SUPER_ADMIN),
                 user.getIsBot(),
-                user.getActive()
+                user.getActive(),
+                user.isBanned()
         );
 
         UserSummaryProjection summary = userStatsRepository.findUserSummaryById(userId);

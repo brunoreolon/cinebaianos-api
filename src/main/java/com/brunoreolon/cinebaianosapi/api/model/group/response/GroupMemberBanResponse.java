@@ -1,7 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.model.group.response;
 
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,15 +12,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
-public class GroupMemberResponse {
+public class GroupMemberBanResponse {
 
+    private Long id;
     private UserSummaryResponse member;
-    private GroupMemberRole role;
-    private Boolean active;
-    private Boolean selected;
-    private Boolean banned;
-    private LocalDateTime joinedAt;
-    private LocalDateTime leftAt;
+    private UserSummaryResponse bannedBy;
+    private String reason;
+    private LocalDateTime createdAt;
+    private LocalDateTime expiresAt;
 
 }
-

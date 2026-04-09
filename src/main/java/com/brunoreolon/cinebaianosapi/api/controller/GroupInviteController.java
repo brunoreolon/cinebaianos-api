@@ -70,6 +70,18 @@ public class GroupInviteController {
         return ResponseEntity.ok(response);
     }
 
+    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @GetMapping("/invites/received")
+    @Operation(summary = "Listar convites recebidos")
+    public ResponseEntity<List<GroupInviteResponse>> getReceivedInvites(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<GroupInviteResponse> response = groupInviteService.getPendingReceivedInvites(userDetails.getUser().getId())
+                .stream()
+                .map(groupAccessConverter::toInviteResponse)
+                .toList();
+        return ResponseEntity.ok(response);
+    }
+
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
     @DeleteMapping("/{groupId}/invites/{inviteId}")
     @Operation(summary = "Revogar convite do grupo")
@@ -89,5 +101,15 @@ public class GroupInviteController {
         GroupMember member = groupInviteService.acceptInvite(request.getToken(), userDetails.getUser().getId());
         return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
-    
+
+    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @DeleteMapping("/invites/{inviteId}/decline")
+    @Operation(summary = "Recusar convite recebido")
+    public ResponseEntity<Void> declineInvite(
+            @PathVariable Long inviteId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        groupInviteService.declineInvite(inviteId, userDetails.getUser().getId());
+        return ResponseEntity.noContent().build();
+    }
+
 }
