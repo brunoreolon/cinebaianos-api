@@ -7,6 +7,7 @@ import com.brunoreolon.cinebaianosapi.domain.event.GroupJoinRequestReviewedEvent
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordRecoveredEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByAdminEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByRecoverEvent;
+import com.brunoreolon.cinebaianosapi.domain.event.SignupVerificationCodeRequestedEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.UserCreatedEvent;
 import com.brunoreolon.cinebaianosapi.domain.model.Email;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
@@ -26,6 +27,13 @@ public class EmailListener {
     public EmailListener(NotificationService notificationService, EmailUtil emailUtil) {
         this.notificationService = notificationService;
         this.emailUtil = emailUtil;
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
+    public void signupVerificationCodeRequestedListener(SignupVerificationCodeRequestedEvent event) {
+        Email email = emailUtil.signupVerificationCode(event.email(), event.name(), event.code());
+        notificationService.send(email);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

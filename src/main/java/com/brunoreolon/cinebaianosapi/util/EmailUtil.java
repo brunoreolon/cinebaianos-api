@@ -16,6 +16,67 @@ public class EmailUtil {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+    public Email signupVerificationCode(String email, String name, String code) {
+        String subject = "Confirme seu cadastro - CineBaianos";
+        String content = """
+                <html>
+                  <head>
+                    <meta charset="UTF-8">
+                    <style>
+                      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; line-height: 1.6; color: #333; }
+                      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                      .header { text-align: center; margin-bottom: 30px; }
+                      .code-container { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); border-radius: 8px; padding: 30px; text-align: center; margin: 30px 0; }
+                      .code { font-family: 'Courier New', 'Courier', monospace; font-size: 42px; font-weight: bold; letter-spacing: 8px; color: white; word-break: break-all; }
+                      .code-label { font-size: 14px; color: rgba(255, 255, 255, 0.8); margin-bottom: 15px; text-transform: uppercase; }
+                      .expiration { background-color: #f5f5f5; border-left: 4px solid #667eea; padding: 15px; border-radius: 4px; font-size: 14px; color: #666; margin: 20px 0; }
+                      .footer { text-align: center; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+                      .footer-text { font-size: 12px; color: #999; }
+                      .warning { background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px; margin: 15px 0; font-size: 13px; color: #856404; }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <div class="header">
+                        <h2 style="margin: 0; color: #667eea;">CineBaianos</h2>
+                        <p style="margin: 5px 0 0 0; color: #999;">Confirmação de Cadastro</p>
+                      </div>
+                      
+                      <p>Olá, <b>%s</b>!</p>
+                      <p>Bem-vindo ao <b>CineBaianos</b>! 🎬</p>
+                      <p>Para concluir seu cadastro, use o código de verificação abaixo:</p>
+                      
+                      <div class="code-container">
+                        <div class="code-label">Seu código de verificação</div>
+                        <div class="code">%s</div>
+                      </div>
+                      
+                      <div class="expiration">
+                        ⏱️ <b>Importante:</b> Este código expira em <b>10 minutos</b>. Use-o antes que o tempo se esgote.
+                      </div>
+                      
+                      <p>Se você não solicitou este cadastro, ignore este email. Nenhuma ação será necessária.</p>
+                      
+                      <div class="warning">
+                        <b>Segurança:</b> Nunca compartilhe este código com ninguém. A CineBaianos nunca pedirá seu código por mensagem ou ligação.
+                      </div>
+                      
+                      <div class="footer">
+                        <p class="footer-text">CineBaianos &copy; 2026 | Todos os direitos reservados</p>
+                        <p class="footer-text">Dúvidas? Entre em contato com nosso suporte</p>
+                      </div>
+                    </div>
+                  </body>
+                </html>
+                """.formatted(name, code);
+
+        return Email.builder()
+                .to(email)
+                .subject(subject)
+                .content(content)
+                .build();
+    }
+
     public Email newUser(User user, String newPassword) {
         String subject = "Sua senha temporária - CineBaianos";
         String content = """

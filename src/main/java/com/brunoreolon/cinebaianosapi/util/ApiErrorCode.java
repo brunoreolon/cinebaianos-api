@@ -20,6 +20,13 @@ public enum ApiErrorCode {
     USER_ALREADY_REGISTERED("user_already_registered"),
     USER_IN_USE("user_in_use"),
 
+    // Signup
+    SIGNUP_CODE_INVALID("signup_code_invalid"),
+    SIGNUP_CODE_EXPIRED("signup_code_expired"),
+    SIGNUP_ATTEMPTS_EXCEEDED("signup_attempts_exceeded"),
+    SIGNUP_RESEND_COOLDOWN("signup_resend_cooldown"),
+    SIGNUP_RESEND_LIMIT("signup_resend_limit"),
+
     // Groups
     GROUP_NOT_FOUND("group_not_found"),
     GROUP_MEMBER_NOT_FOUND("group_member_not_found"),
