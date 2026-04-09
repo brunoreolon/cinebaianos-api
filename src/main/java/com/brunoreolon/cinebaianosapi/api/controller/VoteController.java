@@ -91,61 +91,61 @@ public class VoteController {
         return ResponseEntity.ok().body(response);
     }
 
-    @PostMapping
-    @RequireRole(roles = {ADMIN, USER})
-    @Operation(summary = "Registrar voto", description = "Registra um voto dado por um usuário para um filme específico.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Voto registrado com sucesso", content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para registrar este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
-    })
-    public ResponseEntity<VoteDetailResponse> registerVote(
-            @Parameter(description = "Detalhes do voto")
-            @Valid @RequestBody VoteRequest voteRequest) {
-        permissionService.checkCanVoteFor(voteRequest.getVoter().getId());
-
-        Vote newVote = voteService.register(voteRequest.getVoter().getId(), voteRequest.getMovie().getId(), voteRequest.getVote());
-        return ResponseEntity.status(HttpStatus.CREATED).body(voteConverter.toDetailResponse(newVote));
-    }
-
-    @PutMapping("/users/{voterId}/movies/{movieId}")
-    @CheckOwner(service = VoteService.class)
-    @Operation(summary = "Atualizar voto", description = "Atualiza o voto de um usuário para um filme específico.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Voto atualizado com sucesso", content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para atualizar este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
-    })
-    public ResponseEntity<VoteDetailResponse> updateVote(
-            @Parameter(description = "ID do votante", example = "1")
-            @PathVariable @ResourceKey Long voterId,
-
-            @Parameter(description = "ID do filme", example = "42")
-            @PathVariable @ResourceKey Long movieId,
-
-            @Parameter(description = "Novo tipo de voto")
-            @Valid @RequestBody VoteTypeId voteTypeId) {
-        Vote newVote = voteService.update(voterId, movieId, voteTypeId.getId());
-        return ResponseEntity.ok().body(voteConverter.toDetailResponse(newVote));
-    }
-
-    @DeleteMapping("/users/{voterId}/movies/{movieId}")
-    @CheckOwner(service = VoteService.class, allowBot = true)
-    @Operation(summary = "Excluir voto", description = "Remove o voto de um usuário para um filme específico.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Voto excluído com sucesso"),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
-    })
-    public ResponseEntity<Void> deleteVote(
-            @Parameter(description = "ID do votante", example = "1")
-            @PathVariable @ResourceKey Long voterId,
-
-            @Parameter(description = "ID do filme", example = "42")
-            @PathVariable @ResourceKey Long movieId) {
-        voteService.delete(voterId, movieId);
-        return ResponseEntity.noContent().build();
-    }
+//    @PostMapping
+//    @RequireRole(roles = {ADMIN, USER})
+//    @Operation(summary = "Registrar voto", description = "Registra um voto dado por um usuário para um filme específico.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "201", description = "Voto registrado com sucesso", content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
+//            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+//            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para registrar este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+//    })
+//    public ResponseEntity<VoteDetailResponse> registerVote(
+//            @Parameter(description = "Detalhes do voto")
+//            @Valid @RequestBody VoteRequest voteRequest) {
+//        permissionService.checkCanVoteFor(voteRequest.getVoter().getId());
+//
+//        Vote newVote = voteService.register(voteRequest.getVoter().getId(), voteRequest.getMovie().getId(), voteRequest.getVote());
+//        return ResponseEntity.status(HttpStatus.CREATED).body(voteConverter.toDetailResponse(newVote));
+//    }
+//
+//    @PutMapping("/users/{voterId}/movies/{movieId}")
+//    @CheckOwner(service = VoteService.class)
+//    @Operation(summary = "Atualizar voto", description = "Atualiza o voto de um usuário para um filme específico.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "Voto atualizado com sucesso", content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
+//            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para atualizar este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+//            @ApiResponse(responseCode = "404", description = "Voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+//    })
+//    public ResponseEntity<VoteDetailResponse> updateVote(
+//            @Parameter(description = "ID do votante", example = "1")
+//            @PathVariable @ResourceKey Long voterId,
+//
+//            @Parameter(description = "ID do filme", example = "42")
+//            @PathVariable @ResourceKey Long movieId,
+//
+//            @Parameter(description = "Novo tipo de voto")
+//            @Valid @RequestBody VoteTypeId voteTypeId) {
+//        Vote newVote = voteService.update(voterId, movieId, voteTypeId.getId());
+//        return ResponseEntity.ok().body(voteConverter.toDetailResponse(newVote));
+//    }
+//
+//    @DeleteMapping("/users/{voterId}/movies/{movieId}")
+//    @CheckOwner(service = VoteService.class, allowBot = true)
+//    @Operation(summary = "Excluir voto", description = "Remove o voto de um usuário para um filme específico.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "204", description = "Voto excluído com sucesso"),
+//            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+//            @ApiResponse(responseCode = "404", description = "Voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+//    })
+//    public ResponseEntity<Void> deleteVote(
+//            @Parameter(description = "ID do votante", example = "1")
+//            @PathVariable @ResourceKey Long voterId,
+//
+//            @Parameter(description = "ID do filme", example = "42")
+//            @PathVariable @ResourceKey Long movieId) {
+//        voteService.delete(voterId, movieId);
+//        return ResponseEntity.noContent().build();
+//    }
 
     @GetMapping("{movieId}/votes")
     @RequireRole(roles = {ADMIN, USER})

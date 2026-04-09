@@ -60,10 +60,10 @@ public class MovieService implements OwnableService<Movie, Long> {
 
         Movie newMovie = movieRepository.save(movie);
 
-        if (vote != null) {
-            Vote newVote = voteService.register(chooser, movie, vote);
-            newMovie.getVotes().add(newVote);
-        }
+//        if (vote != null) {
+//            Vote newVote = voteService.register(chooser, movie, vote);
+//            newMovie.getVotes().add(newVote);
+//        }
 
         return newMovie;
     }
