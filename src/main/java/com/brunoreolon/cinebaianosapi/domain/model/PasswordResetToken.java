@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity
-@Getter
 @NoArgsConstructor
+@Getter
+@Entity
 public class PasswordResetToken {
 
     @Id
@@ -17,7 +17,7 @@ public class PasswordResetToken {
     private String token;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "discord_id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(nullable = false)

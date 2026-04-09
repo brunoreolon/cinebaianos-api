@@ -16,7 +16,6 @@ import static com.brunoreolon.cinebaianosapi.api.model.ValidationGroups.*;
 @Setter
 public class UserRequest {
 
-    @NotBlank(groups = {UserCreateGroup.class})
     private String discordId;
 
     @NotBlank(groups = {UserCreateGroup.class, UserUpdateGroup.class})

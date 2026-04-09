@@ -15,4 +15,8 @@ public class EntityNotFoundException extends BusinessException {
         super(ENTITY_NOT_FOUND_TITLE, message, args, HttpStatus.NOT_FOUND, apiErrorCode.asMap());
     }
 
+    public EntityNotFoundException(String message, Object[] args, HttpStatus httpStatus, ApiErrorCode apiErrorCode) {
+        super(ENTITY_NOT_FOUND_TITLE, message, args, httpStatus, apiErrorCode.asMap());
+    }
+
 }

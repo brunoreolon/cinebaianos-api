@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
  * <p>Isola o uso direto do Spring Security,
  * permitindo desacoplamento e facilidade de testes.</p>
  */
-
 @Component
 public class AuthenticationFacade {
 

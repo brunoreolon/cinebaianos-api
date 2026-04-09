@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 public class UserDetailResponse {
 
+    private Long id;
     private String discordId;
     private String name;
     private String email;
@@ -20,7 +21,9 @@ public class UserDetailResponse {
     private String biography;
     private LocalDateTime Joined;
     private boolean isAdmin;
+    private boolean superAdmin;
     private boolean isBot;
     private boolean active;
+    private boolean banned;
 
 }

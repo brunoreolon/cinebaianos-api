@@ -20,6 +20,20 @@ public enum ApiErrorCode {
     USER_ALREADY_REGISTERED("user_already_registered"),
     USER_IN_USE("user_in_use"),
 
+    // Signup
+    SIGNUP_CODE_INVALID("signup_code_invalid"),
+    SIGNUP_CODE_EXPIRED("signup_code_expired"),
+    SIGNUP_ATTEMPTS_EXCEEDED("signup_attempts_exceeded"),
+    SIGNUP_RESEND_COOLDOWN("signup_resend_cooldown"),
+    SIGNUP_RESEND_LIMIT("signup_resend_limit"),
+
+    // Groups
+    GROUP_NOT_FOUND("group_not_found"),
+    GROUP_MEMBER_NOT_FOUND("group_member_not_found"),
+    GROUP_MEMBER_ALREADY_EXISTS("group_member_already_exists"),
+    GROUP_CONFLICT("group_conflict"),
+    GROUP_INVALID_OPERATION("group_invalid_operation"),
+
     // Movies
     MOVIE_NOT_FOUND("movie_not_found"),
     MOVIE_ALREADY_REGISTERED("movie_already_registered"),

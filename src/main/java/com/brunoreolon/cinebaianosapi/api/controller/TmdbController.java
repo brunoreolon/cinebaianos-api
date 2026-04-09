@@ -8,7 +8,6 @@ import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.service.TmdbService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/tmdb")
@@ -38,7 +38,7 @@ public class TmdbController {
     private final TmdbProperties tmdbProperties;
 
     @GetMapping("/search/movies-details")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar filmes com os detalhes pelo título",
             description = "Realiza uma busca de filmes no TMDb usando o título e, opcionalmente, o ano de lançamento."
@@ -69,7 +69,7 @@ public class TmdbController {
     }
 
     @GetMapping("/search/movies")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar filmes pelo título",
             description = "Realiza uma busca de filmes no TMDb usando o título e, opcionalmente, o ano de lançamento."
@@ -98,7 +98,7 @@ public class TmdbController {
     }
 
     @GetMapping("/movies/{movieId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar detalhes de filme pelo ID",
             description = "Retorna informações detalhadas de um filme do TMDb a partir do seu ID."

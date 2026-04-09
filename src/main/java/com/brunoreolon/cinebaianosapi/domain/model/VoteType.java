@@ -6,22 +6,28 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.http.HttpStatus;
 
-@Entity
+import java.time.LocalDateTime;
+
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
-@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
 public class VoteType {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private Group group;
 
     @NotBlank
     @Column(unique = true)
@@ -35,14 +41,22 @@ public class VoteType {
 
     private String emoji;
 
-    private boolean active;
+    private Boolean active = true;
 
-    public boolean canActivate() {
-        return !this.isActive();
+    @CreationTimestamp()
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
+
+    public Boolean isActive() {
+        return this.getActive() == true;
     }
 
-    public boolean canDisable() {
-        return this.isActive();
+    public Boolean canActivate() {
+        return !this.getActive();
+    }
+
+    public Boolean canDisable() {
+        return this.getActive();
     }
 
     public void activate() {
@@ -65,6 +79,10 @@ public class VoteType {
                     ApiErrorCode.VOTE_INVALID_STATUS.asMap());
 
         this.active = false;
+    }
+
+    public boolean isGlobal() {
+        return getGroup() == null;
     }
 
 }

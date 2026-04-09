@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieNotFoundException;
@@ -29,7 +29,7 @@ public class MovieService implements OwnableService<Movie, Long> {
     private final VoteService voteService;
 
     @Transactional
-    public Movie save(Movie movie, String chooserID, Long vote) {
+    public Movie save(Movie movie, Long chooserId, Long vote) {
         boolean tmdbIdAlreadyExists = movieRepository.findByTmdbId(movie.getTmdbId())
                 .filter(m -> !m.equals(movie))
                 .isPresent();
@@ -37,7 +37,7 @@ public class MovieService implements OwnableService<Movie, Long> {
         if (tmdbIdAlreadyExists)
             throw new MovieAlreadyRegisteredException("movie.already.registered.message", new Object[]{movie.getTmdbId()});
 
-        User chooser = userRegistratioService.get(chooserID);
+        User chooser = userRegistratioService.get(chooserId);
 
         if (chooser.getIsBot())
             throw new BusinessException(
@@ -53,7 +53,7 @@ public class MovieService implements OwnableService<Movie, Long> {
             movie.setSynopsis("Filme não possui sinopse");
 
         if (movie.getDirector() == null || movie.getDirector().isEmpty())
-            movie.setSynopsis("Diretor não encontrado");
+            movie.setDirector("Diretor não encontrado");
 
         if (movie.getDuration() == null)
             movie.setDuration(0);

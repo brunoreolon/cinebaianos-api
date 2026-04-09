@@ -4,12 +4,12 @@ import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-@Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Embeddable
 public class VoteId {
 
     @NotNull
@@ -18,6 +18,6 @@ public class VoteId {
 
     @NotNull
     @EqualsAndHashCode.Include
-    private String voterId;
+    private Long voterId;
 
 }

@@ -4,8 +4,8 @@ import com.brunoreolon.cinebaianosapi.domain.event.UserCreatedEvent;
 import com.brunoreolon.cinebaianosapi.domain.exception.EntityInUseException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.UserNotFoundException;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserRegistratioService implements OwnableService<User, String> {
+public class UserRegistratioService implements OwnableService<User, Long> {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -33,17 +33,25 @@ public class UserRegistratioService implements OwnableService<User, String> {
     public User create(User user) {
         validateEmail(user);
 
-        boolean existsById = userRepository.existsById(user.getDiscordId());
+        if (user.getDiscordId() != null) {
+            String discordId = user.getDiscordId().trim();
 
-        if (existsById)
-            throw new UserAlreadyRegisteredException("user.discordid.already.registered.message", new Object[]{user.getDiscordId()});
+            if (discordId.isEmpty()) {
+                user.setDiscordId(null);
+            } else {
+                user.setDiscordId(discordId);
+
+                boolean existsById = userRepository.existsByDiscordId(user.getDiscordId());
+                if (existsById)
+                    throw new UserAlreadyRegisteredException("user.discordid.already.registered.message", new Object[]{user.getDiscordId()});
+            }
+        }
 
         String newPassword = generateRandomPassword(8);
 
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
-        user.activate();
-        user.setRoles(Set.of(Role.USER));
+        user.setRoles(Set.of(UserRole.USER));
         User newUser = userRepository.save(user);
 
         publisher.publishEvent(new UserCreatedEvent(newUser, newPassword));
@@ -54,9 +62,7 @@ public class UserRegistratioService implements OwnableService<User, String> {
     private String generateRandomPassword(int length) {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@";
         SecureRandom random = new SecureRandom();
-        return random.ints(length, 0, chars.length())
-                .mapToObj(i -> String.valueOf(chars.charAt(i)))
-                .collect(Collectors.joining());
+        return random.ints(length, 0, chars.length()).mapToObj(i -> String.valueOf(chars.charAt(i))).collect(Collectors.joining());
     }
 
     public User update(User user) {
@@ -65,9 +71,7 @@ public class UserRegistratioService implements OwnableService<User, String> {
     }
 
     private void validateEmail(User user) {
-        boolean emailAlreadyExists = userRepository.findByEmail(user.getEmail())
-                .filter(v -> !v.equals(user))
-                .isPresent();
+        boolean emailAlreadyExists = userRepository.findByEmail(user.getEmail()).filter(v -> !v.equals(user)).isPresent();
 
         if (emailAlreadyExists)
             throw new UserAlreadyRegisteredException("user.email.registered.message", new Object[]{user.getEmail()});
@@ -82,21 +86,20 @@ public class UserRegistratioService implements OwnableService<User, String> {
         return userRepository.findAll();
     }
 
-    public void delete(String discordId) {
-        User user = get(discordId);
+    public void delete(Long userId) {
+        User user = get(userId);
 
         try {
             userRepository.delete(user);
             userRepository.flush();
         } catch (DataIntegrityViolationException ex) {
-            throw new EntityInUseException("user.in.use.title", new Object[]{discordId}, ApiErrorCode.USER_IN_USE);
+            throw new EntityInUseException("user.in.use.title", new Object[]{userId}, ApiErrorCode.USER_IN_USE);
         }
     }
 
     @Override
-    public User get(String discordId) {
-        return userRepository.findByDiscordId(discordId)
-                .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{discordId}));
+    public User get(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{userId}));
     }
 
 }

@@ -1,7 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
-public enum Role {
+public enum GroupVisibility {
 
-    USER, ADMIN
+    PUBLIC, PRIVATE
 
 }

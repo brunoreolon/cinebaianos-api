@@ -36,8 +36,8 @@ public class GenreService {
                 ));
     }
 
-    public Map<String, Integer> getGenreRankingsByUser(String discordId) {
-        List<String> genres = movieRepository.findGenresByChooserDiscordId(discordId);
+    public Map<String, Integer> getGenreRankingsByUser(Long userId) {
+        List<String> genres = movieRepository.findGenresByChooserId(userId);
 
         return genres.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.summingInt(e -> 1)));

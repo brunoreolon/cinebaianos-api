@@ -4,6 +4,9 @@ import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.auth.request.LoginRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.request.PasswordRecoveryRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.request.ResetPasswordRequest;
+import com.brunoreolon.cinebaianosapi.api.model.auth.request.SignupResendRequest;
+import com.brunoreolon.cinebaianosapi.api.model.auth.request.SignupStartRequest;
+import com.brunoreolon.cinebaianosapi.api.model.auth.request.SignupVerifyRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.RefreshRequest;
 import com.brunoreolon.cinebaianosapi.api.model.auth.response.TokenResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.service.JwtService;
@@ -16,6 +19,7 @@ import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import com.brunoreolon.cinebaianosapi.domain.service.JwtBlacklistService;
 import com.brunoreolon.cinebaianosapi.domain.service.PasswordRecoveryService;
 import com.brunoreolon.cinebaianosapi.domain.service.RefreshTokenService;
+import com.brunoreolon.cinebaianosapi.domain.service.SignupService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,6 +51,50 @@ public class AuthController {
     private final JwtBlacklistService jwtBlacklistService;
     private final PasswordRecoveryService recoveryService;
     private final UserService userService;
+    private final SignupService signupService;
+
+    @PostMapping("/signup/start")
+    @Operation(summary = "Iniciar cadastro público", description = "Recebe nome, email e senha, gera código de verificação e envia por email.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "Solicitação de cadastro recebida"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Email já cadastrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "429", description = "Limite de tentativas/reenvio excedido", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> signupStart(
+            @RequestBody @Valid SignupStartRequest request
+    ) {
+        signupService.start(request.getName(), request.getEmail(), request.getPassword());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/signup/verify")
+    @Operation(summary = "Confirmar código de cadastro", description = "Confirma o código enviado por email e efetiva a criação da conta.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Conta confirmada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Código inválido/expirado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Email já cadastrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "429", description = "Muitas tentativas", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> signupVerify(
+            @RequestBody @Valid SignupVerifyRequest request
+    ) {
+        signupService.verify(request.getEmail(), request.getCode());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/signup/resend")
+    @Operation(summary = "Reenviar código de cadastro", description = "Reenvia o código de confirmação para o email informado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Solicitação de reenvio processada"),
+            @ApiResponse(responseCode = "429", description = "Aguarde antes de reenviar", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> signupResend(
+            @RequestBody @Valid SignupResendRequest request
+    ) {
+        signupService.resend(request.getEmail());
+        return ResponseEntity.noContent().build();
+    }
 
     @PostMapping("/login")
     @Operation(summary = "Login do usuário", description = "Autentica um usuário e retorna tokens de acesso e refresh.")
@@ -155,7 +203,7 @@ public class AuthController {
                 recoveryService.validate(request.getToken());
 
         userService.resetPasswordByRecover(
-                resetToken.getUser().getDiscordId(),
+                resetToken.getUser().getId(),
                 request.getNewPassword()
         );
 

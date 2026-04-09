@@ -19,9 +19,9 @@ public class Converters {
                 return genres.getFirst().getName();
             };
 
-    public static final Converter<LocalDate, String> DATE_CONVERTER = ctx -> {
+    public static final Converter<LocalDate, Integer> DATE_CONVERTER = ctx -> {
         LocalDate releaseDate = ctx.getSource();
-        return releaseDate == null ? "" : String.valueOf(releaseDate.getYear());
+        return releaseDate == null ? 0 : releaseDate.getYear();
     };
 
 }

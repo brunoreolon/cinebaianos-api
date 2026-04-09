@@ -1,8 +1,13 @@
 package com.brunoreolon.cinebaianosapi.domain.listenner;
 
+import com.brunoreolon.cinebaianosapi.domain.event.GroupDirectInviteCreatedEvent;
+import com.brunoreolon.cinebaianosapi.domain.event.GroupInviteAcceptedEvent;
+import com.brunoreolon.cinebaianosapi.domain.event.GroupJoinRequestCreatedEvent;
+import com.brunoreolon.cinebaianosapi.domain.event.GroupJoinRequestReviewedEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordRecoveredEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByAdminEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByRecoverEvent;
+import com.brunoreolon.cinebaianosapi.domain.event.SignupVerificationCodeRequestedEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.UserCreatedEvent;
 import com.brunoreolon.cinebaianosapi.domain.model.Email;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
@@ -22,6 +27,13 @@ public class EmailListener {
     public EmailListener(NotificationService notificationService, EmailUtil emailUtil) {
         this.notificationService = notificationService;
         this.emailUtil = emailUtil;
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
+    public void signupVerificationCodeRequestedListener(SignupVerificationCodeRequestedEvent event) {
+        Email email = emailUtil.signupVerificationCode(event.email(), event.name(), event.code());
+        notificationService.send(email);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -56,6 +68,63 @@ public class EmailListener {
     public void redefinicaoSenhaByAdminListener(PasswordResetByAdminEvent event) {
         User user = event.user();
         Email email = emailUtil.resetPasswordByAdmin(user, event.password());
+
+        notificationService.send(email);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
+    public void conviteDiretoCriadoListener(GroupDirectInviteCreatedEvent event) {
+        Email email = emailUtil.directGroupInvite(
+                event.invite().getInvitedUser(),
+                event.invite().getCreatedBy(),
+                event.invite().getGroup(),
+                event.invite().getToken(),
+                event.invite().getExpiresAt()
+        );
+
+        notificationService.send(email);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
+    public void conviteAceitoListener(GroupInviteAcceptedEvent event) {
+        Email emailForCreator = emailUtil.groupInviteAcceptedForCreator(
+                event.invite().getCreatedBy(),
+                event.acceptedBy(),
+                event.invite().getGroup()
+        );
+
+        Email emailForAcceptedUser = emailUtil.groupInviteAcceptedForMember(
+                event.acceptedBy(),
+                event.invite().getGroup()
+        );
+
+        notificationService.send(emailForCreator);
+        notificationService.send(emailForAcceptedUser);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
+    public void solicitacaoEntradaCriadaListener(GroupJoinRequestCreatedEvent event) {
+        for (User recipient : event.recipients()) {
+            Email email = emailUtil.groupJoinRequestCreated(
+                    recipient,
+                    event.request().getUser(),
+                    event.request().getGroup()
+            );
+            notificationService.send(email);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
+    public void solicitacaoEntradaRevisadaListener(GroupJoinRequestReviewedEvent event) {
+        Email email = emailUtil.groupJoinRequestReviewed(
+                event.request().getUser(),
+                event.request().getGroup(),
+                event.approved()
+        );
 
         notificationService.send(email);
     }

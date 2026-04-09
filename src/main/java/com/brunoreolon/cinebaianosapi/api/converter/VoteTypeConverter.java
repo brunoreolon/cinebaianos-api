@@ -25,7 +25,9 @@ public class VoteTypeConverter {
     }
 
     public VoteTypeDetailResponse toDetailResponse(VoteType voteType) {
-        return modelMapper.map(voteType, VoteTypeDetailResponse.class);
+        VoteTypeDetailResponse response = modelMapper.map(voteType, VoteTypeDetailResponse.class);
+        response.setGlobal(voteType.isGlobal());
+        return response;
     }
 
     public List<VoteTypeDetailResponse> toDetailResponseList(List<VoteType> voteTypes) {

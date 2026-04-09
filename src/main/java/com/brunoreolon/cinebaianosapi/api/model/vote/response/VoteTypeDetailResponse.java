@@ -17,5 +17,6 @@ public class VoteTypeDetailResponse {
     private String color;
     private String emoji;
     private boolean active;
+    private boolean global;
 
 }

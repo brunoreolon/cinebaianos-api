@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecificationExecutor<Movie> {
 
-    Optional<Movie> findByTmdbId(String tmdbId);
+    Optional<Movie> findByTmdbId(Long tmdbId);
 
     @Query("""
                 SELECT m FROM Movie m 
@@ -61,8 +61,8 @@ public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecific
                 SELECT g.name
                 FROM Movie m
                 JOIN m.genres g
-                WHERE m.chooser.discordId = :discordId
+                WHERE m.chooser.id = :userId
             """)
-    List<String> findGenresByChooserDiscordId(@Param("discordId") String discordId);
+    List<String> findGenresByChooserId(@Param("userId") Long userId);
 
 }

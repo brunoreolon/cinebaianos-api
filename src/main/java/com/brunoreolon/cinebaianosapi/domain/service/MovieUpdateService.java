@@ -83,7 +83,7 @@ public class MovieUpdateService {
 
         try {
             ClientMovieDetailsResponse details = tmdbClient.getMovieDetails(
-                    Long.parseLong(movie.getTmdbId()),
+                    movie.getTmdbId(),
                     tmdbProperties.getApiKey(),
                     "pt-BR",
                     "credits"

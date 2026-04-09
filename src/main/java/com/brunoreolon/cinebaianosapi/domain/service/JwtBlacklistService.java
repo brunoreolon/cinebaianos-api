@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class JwtBlacklistService {
+
     private final Set<String> blacklist = ConcurrentHashMap.newKeySet();
 
     public void blacklist(String token) {
@@ -20,4 +21,5 @@ public class JwtBlacklistService {
     public void removeExpired(String token) {
         blacklist.remove(token);
     }
+
 }

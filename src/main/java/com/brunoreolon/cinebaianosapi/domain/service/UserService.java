@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserStats;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByAdminEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByRecoverEvent;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -36,14 +38,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher publisher;
 
-    public List<Movie> getAllMovies(String discordId) {
-        return userRepository.findAllMoviesByDiscordId(discordId);
+    public List<Movie> getAllMovies(Long userId) {
+        return userRepository.findAllMoviesById(userId);
     }
 
-    public User getWithMovies(String discordId) {
-        return userRepository.findByDiscordIdWithMovies(discordId)
+    public User getWithMovies(Long userId) {
+        return userRepository.findByIdWithMovies(userId)
                 .filter(u -> !u.getIsBot())
-                .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{discordId}));
+                .orElseThrow(() -> new UserNotFoundException("user.not.found.message", new Object[]{userId}));
     }
 
     public List<UserVoteStatsResponse> getVotesReceived(Long voteTypeId) {
@@ -58,15 +60,18 @@ public class UserService {
 
         return new UserVoteStatsResponse(
                 new UserDetailResponse(
+                        user.getId(),
                         user.getDiscordId(),
                         user.getName(),
                         user.getEmail(),
                         user.getAvatar(),
                         user.getBiography(),
-                        user.getCreated(),
+                        user.getCreatedAt(),
                         user.isAdmin(),
+                        user.hasRole(UserRole.SUPER_ADMIN),
                         user.getIsBot(),
-                        user.getActive()
+                        user.getActive(),
+                        user.isBanned()
                 ),
                 getVoteReceivedSummaryForUser(user, votesToConsider)
         );
@@ -84,15 +89,18 @@ public class UserService {
 
         return new UserVoteStatsResponse(
                 new UserDetailResponse(
+                        user.getId(),
                         user.getDiscordId(),
                         user.getName(),
                         user.getEmail(),
                         user.getAvatar(),
                         user.getBiography(),
-                        user.getCreated(),
+                        user.getCreatedAt(),
                         user.isAdmin(),
+                        user.hasRole(UserRole.SUPER_ADMIN),
                         user.getIsBot(),
-                        user.getActive()
+                        user.getActive(),
+                        user.isBanned()
                 ),
                 getVoteGivenSummaryForUser(user, votesToConsider)
         );
@@ -128,28 +136,28 @@ public class UserService {
                 .toList();
     }
 
-    private User resetPassword(String discordId, String newPassword) {
-        User user = userRegistratioService.get(discordId);
+    private User resetPassword(Long userId, String newPassword) {
+        User user = userRegistratioService.get(userId);
         user.setPassword(passwordEncoder.encode(newPassword));
 
         return user;
     }
 
     @Transactional
-    public void resetPasswordByRecover(String discordId, String newPassword) {
-        User user = resetPassword(discordId, newPassword);
+    public void resetPasswordByRecover(Long userId, String newPassword) {
+        User user = resetPassword(userId, newPassword);
         publisher.publishEvent(new PasswordResetByRecoverEvent(user));
     }
 
     @Transactional
-    public void resetPasswordByAdmin(String discordId, String newPassword) {
-        User user = resetPassword(discordId, newPassword);
+    public void resetPasswordByAdmin(Long userId, String newPassword) {
+        User user = resetPassword(userId, newPassword);
         publisher.publishEvent(new PasswordResetByAdminEvent(user, newPassword));
     }
 
     @Transactional
-    public void changeActivationStatus(String discordId, boolean active) {
-        User user = userRegistratioService.get(discordId);
+    public void changeActivationStatus(Long userId, boolean active) {
+        User user = userRegistratioService.get(userId);
 
         if (active) {
             user.activate();
@@ -159,11 +167,11 @@ public class UserService {
     }
 
     @Transactional
-    public void updateStatusAdmin(String loggedUserIdentifier, String targetDiscordId, Boolean active) {
+    public void updateStatusAdmin(String loggedUserIdentifier, Long targetUserId, Boolean active) {
         User loggedUser = userRepository.findByEmail(loggedUserIdentifier)
                 .orElseThrow(() -> new IllegalStateException("Logged user not found"));
 
-        if (loggedUser.getDiscordId().equals(targetDiscordId)) {
+        if (loggedUser.getId().equals(targetUserId)) {
             throw new BusinessException(
                     "action.not.allowed.title",
                     "user.cannot_remove_own_admin.message",
@@ -171,7 +179,7 @@ public class UserService {
             );
         }
 
-        User user = userRegistratioService.get(targetDiscordId);
+        User user = userRegistratioService.get(targetUserId);
 
         if (active) {
             user.AddAdmin();
@@ -180,22 +188,25 @@ public class UserService {
         }
     }
 
-    public com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse getUserSummary(String discordId) {
-        User user = userRegistratioService.get(discordId);
+    public com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse getUserSummary(Long userId) {
+        User user = userRegistratioService.get(userId);
 
         UserDetailResponse userDetail = new UserDetailResponse(
+                user.getId(),
                 user.getDiscordId(),
                 user.getName(),
                 user.getEmail(),
                 user.getAvatar(),
                 user.getBiography(),
-                user.getCreated(),
+                user.getCreatedAt(),
                 user.isAdmin(),
+                user.hasRole(UserRole.SUPER_ADMIN),
                 user.getIsBot(),
-                user.getActive()
+                user.getActive(),
+                user.isBanned()
         );
 
-        UserSummaryProjection summary = userStatsRepository.findUserSummaryByDiscordId(discordId);
+        UserSummaryProjection summary = userStatsRepository.findUserSummaryById(userId);
 
         return new com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse(
                 userDetail,
@@ -206,6 +217,63 @@ public class UserService {
                         summary.getMoviesPendingVote()
                 )
         );
+    }
+
+    @Transactional
+    public void banUser(Long targetUserId, Long bannedById, String reason, LocalDateTime expiresAt) {
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.ban.reason.required.message",
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (expiresAt != null && !expiresAt.isAfter(LocalDateTime.now())) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.ban.expires.invalid.message",
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (targetUserId.equals(bannedById)) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.ban.self.not.allowed.message",
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        User target = userRegistratioService.get(targetUserId);
+        User bannedBy = userRegistratioService.get(bannedById);
+
+        if (target.isBanned()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.already.banned.message",
+                    new Object[]{targetUserId},
+                    HttpStatus.CONFLICT
+            );
+        }
+
+        target.ban(bannedBy, reason.trim(), expiresAt);
+    }
+
+    @Transactional
+    public void unbanUser(Long userId) {
+        User user = userRegistratioService.get(userId);
+
+        if (!user.isBanned()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "user.not.banned.message",
+                    new Object[]{userId},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        user.unban();
     }
 
 }

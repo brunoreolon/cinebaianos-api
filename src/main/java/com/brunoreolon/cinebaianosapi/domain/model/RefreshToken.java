@@ -9,12 +9,12 @@ import lombok.Setter;
 
 import java.time.Instant;
 
-@Entity
-@Table(name = "refresh_tokens")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@Entity
+@Table(name = "refresh_tokens")
 public class RefreshToken {
 
     @Id
@@ -25,7 +25,7 @@ public class RefreshToken {
     private String token;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "discord_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(nullable = false)
@@ -33,4 +33,5 @@ public class RefreshToken {
 
     @Column(nullable = false)
     private boolean active = true;
+
 }

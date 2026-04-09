@@ -1,11 +1,16 @@
 package com.brunoreolon.cinebaianosapi.domain.exception;
 
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
+import org.springframework.http.HttpStatus;
 
 public class VoteTypeNotFoundException extends EntityNotFoundException {
 
     public VoteTypeNotFoundException(String message, Object[] args) {
         super(message, args, ApiErrorCode.VOTE_TYPE_NOT_FOUND);
+    }
+
+    public VoteTypeNotFoundException(String message, Object[] args, HttpStatus httpStatus, ApiErrorCode apiErrorCode) {
+        super(message, args, httpStatus, apiErrorCode);
     }
 
 }

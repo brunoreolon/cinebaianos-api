@@ -12,7 +12,6 @@ import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfi
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.BusinessPermissionService;
 import com.brunoreolon.cinebaianosapi.domain.model.MovieVotes;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteService;
@@ -33,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/votes")
@@ -47,7 +47,7 @@ public class VoteController {
     private final VoteConverter voteConverter;
 
     @GetMapping("/received")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos recebidos", description = "Retorna a lista de votos recebidos pelos usuários, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de votos recebidos retornada com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -61,7 +61,7 @@ public class VoteController {
     }
 
     @GetMapping("/given")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos dados", description = "Retorna a lista de votos dados pelos usuários, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de votos dados retornada com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -74,8 +74,8 @@ public class VoteController {
         return ResponseEntity.ok().body(votesGiven);
     }
 
-    @GetMapping("/users/{discordId}/movies-votes")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @GetMapping("/users/{userId}/movies-votes")
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos de filmes de um usuário", description = "Retorna a lista de votos que um usuário deu em filmes.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Votos do usuário retornados com sucesso", content = @Content(schema = @Schema(implementation = UserMovieVoteResponse.class))),
@@ -83,16 +83,16 @@ public class VoteController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<List<UserMovieVoteResponse>> getUserMovieVotes(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId) {
-        List<Vote> votes = voteService.getVotesByUser(discordId);
+            @Parameter(description = "ID do usuário", example = "1")
+            @PathVariable Long userId) {
+        List<Vote> votes = voteService.getVotesByUser(userId);
         List<UserMovieVoteResponse> response = voteConverter.toUserMovieVoteResponseList(votes);
 
         return ResponseEntity.ok().body(response);
     }
 
     @PostMapping
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Registrar voto", description = "Registra um voto dado por um usuário para um filme específico.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Voto registrado com sucesso", content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
@@ -102,9 +102,9 @@ public class VoteController {
     public ResponseEntity<VoteDetailResponse> registerVote(
             @Parameter(description = "Detalhes do voto")
             @Valid @RequestBody VoteRequest voteRequest) {
-        permissionService.checkCanVoteFor(voteRequest.getVoter().getDiscordId());
+        permissionService.checkCanVoteFor(voteRequest.getVoter().getId());
 
-        Vote newVote = voteService.register(voteRequest.getVoter().getDiscordId(), voteRequest.getMovie().getId(), voteRequest.getVote());
+        Vote newVote = voteService.register(voteRequest.getVoter().getId(), voteRequest.getMovie().getId(), voteRequest.getVote());
         return ResponseEntity.status(HttpStatus.CREATED).body(voteConverter.toDetailResponse(newVote));
     }
 
@@ -117,8 +117,8 @@ public class VoteController {
             @ApiResponse(responseCode = "404", description = "Voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<VoteDetailResponse> updateVote(
-            @Parameter(description = "Discord ID do votante", example = "987654321098765432")
-            @PathVariable @ResourceKey String voterId,
+            @Parameter(description = "ID do votante", example = "1")
+            @PathVariable @ResourceKey Long voterId,
 
             @Parameter(description = "ID do filme", example = "42")
             @PathVariable @ResourceKey Long movieId,
@@ -138,8 +138,8 @@ public class VoteController {
             @ApiResponse(responseCode = "404", description = "Voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> deleteVote(
-            @Parameter(description = "Discord ID do votante", example = "987654321098765432")
-            @PathVariable @ResourceKey String voterId,
+            @Parameter(description = "ID do votante", example = "1")
+            @PathVariable @ResourceKey Long voterId,
 
             @Parameter(description = "ID do filme", example = "42")
             @PathVariable @ResourceKey Long movieId) {
@@ -148,7 +148,7 @@ public class VoteController {
     }
 
     @GetMapping("{movieId}/votes")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos recebidos por filme", description = "Retorna a contagem de votos recebidos por um filme específico.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Contagem de votos retornada com sucesso", content = @Content(schema = @Schema(implementation = MovieVotesResponse.class))),

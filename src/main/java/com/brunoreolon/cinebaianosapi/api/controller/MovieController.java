@@ -42,7 +42,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,6 +49,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -68,7 +68,7 @@ public class MovieController {
     private final TmdbProperties tmdbProperties;
 
     @PostMapping
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Adicionar filme pelo TMDb ID",
             description = "Recebe o TMDb ID de um filme, obtém os dados diretamente da API do TMDb e realiza o cadastro no sistema.")
     @ApiResponses(value = {
@@ -89,18 +89,18 @@ public class MovieController {
             language = tmdbProperties.getLanguage();
         }
 
-        permissionService.checkCanAddMovieFor(movieIdRequest.getChooser().getDiscordId());
+        permissionService.checkCanAddMovieFor(movieIdRequest.getChooser().getId());
 
         ClientMovieDetailsResponse movieDetails = tmdbService.getMovieDetails(movieIdRequest.getMovie().getId(), language);
         Movie movie = tmdbConverter.toEntityFromClientMovieDetail(movieDetails);
         Long voteId = getVoteId(movieIdRequest.getVote());
-        Movie newMovie = movieService.save(movie, movieIdRequest.getChooser().getDiscordId(), voteId);
+        Movie newMovie = movieService.save(movie, movieIdRequest.getChooser().getId(), voteId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(movieConverter.toWithChooserResponse(newMovie));
     }
 
     @PostMapping("/candidates")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Adicionar filme informando título e ano",
             description = """
                     Realiza uma busca no TMDb utilizando título e ano.
@@ -128,7 +128,7 @@ public class MovieController {
             language = tmdbProperties.getLanguage();
         }
 
-        permissionService.checkCanAddMovieFor(movieSearchRequest.getChooser().getDiscordId());
+        permissionService.checkCanAddMovieFor(movieSearchRequest.getChooser().getId());
 
         ClientResultsResponse response = tmdbService.search(movieSearchRequest.getTitle(), movieSearchRequest.getYear(), language);
         List<TmdbMovieResponse> tmdbMovieResponses = tmdbConverter.toMovieResponseList(response.getResults());
@@ -141,8 +141,8 @@ public class MovieController {
 
         Long voteId = getVoteId(movieSearchRequest.getVote());
 
-        Movie newMovie = movieService.save(movie, movieSearchRequest.getChooser().getDiscordId(), voteId);
-        MovieVoteDetailResponse movieVote = movieConverter.toMovieVoteDetailResponse(newMovie, newMovie.getChooser().getDiscordId());
+        Movie newMovie = movieService.save(movie, movieSearchRequest.getChooser().getId(), voteId);
+        MovieVoteDetailResponse movieVote = movieConverter.toMovieVoteDetailResponse(newMovie, newMovie.getChooser().getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(movieVote);
     }
@@ -152,7 +152,7 @@ public class MovieController {
     }
 
     @GetMapping
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar todos os filmes cadastrados",
             description = "Retorna uma lista paginada de filmes cadastrados, com suporte a filtros, ordenação e paginação."
@@ -193,7 +193,7 @@ public class MovieController {
     }
 
     @GetMapping("/{movieId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar filme por ID",
             description = "Retorna os detalhes completos de um filme cadastrado no sistema, incluindo avaliador e informações adicionais."
@@ -214,7 +214,7 @@ public class MovieController {
     }
 
     @DeleteMapping("/{movieId}")
-    @CheckOwner(service = MovieService.class)
+    @CheckOwner(service = MovieService.class, allowBot = true, allowAdmin = true)
     @Operation(
             summary = "Excluir filme",
             description = "Remove definitivamente um filme do sistema com base no ID informado."
@@ -235,11 +235,11 @@ public class MovieController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/users/{discordId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @GetMapping("/users/{userId}")
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar filmes por usuário",
-            description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu Discord ID."
+            description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu ID."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Filmes retornados com sucesso", content = @Content(schema = @Schema(implementation = UserWithMoviesResponse.class))),
@@ -249,17 +249,17 @@ public class MovieController {
     public ResponseEntity<UserWithMoviesResponse> getMoviesByUser(
             @Parameter(
                     description = "Identificador único do usuário",
-                    example = "987654321098765432"
+                    example = "1"
             )
-            @PathVariable String discordId) {
-        User user = userService.getWithMovies(discordId);
+            @PathVariable Long userId) {
+        User user = userService.getWithMovies(userId);
         UserWithMoviesResponse response = userConverter.toWithMoviesResponse(user);
 
         return ResponseEntity.ok().body(response);
     }
 
     @GetMapping("/awaiting-review")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar filmes aguardando avaliação",
             description = "Retorna uma lista paginada de filmes que ainda não receberam avaliação."

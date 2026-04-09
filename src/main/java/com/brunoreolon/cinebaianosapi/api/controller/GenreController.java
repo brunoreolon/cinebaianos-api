@@ -7,7 +7,6 @@ import com.brunoreolon.cinebaianosapi.api.model.genre.stats.GenreStatsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.GenreVoteBreakdownResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.domain.model.Genre;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.service.GenreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/genres")
@@ -37,7 +37,7 @@ public class GenreController {
     private final GenreConverter genreConverter;
 
     @GetMapping("/rankings")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Ranking de gêneros",
             description = "Retorna a lista de gêneros ordenada pelo total de filmes cadastrados em cada gênero."
@@ -52,7 +52,7 @@ public class GenreController {
     }
 
     @GetMapping("/vote-counts")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Contagem de votos por gênero",
             description = "Retorna a contagem detalhada de votos por gênero. Pode ser filtrado por um tipo de voto específico."
@@ -68,8 +68,8 @@ public class GenreController {
         return ResponseEntity.ok().body(genreVoteBreakdown);
     }
 
-    @GetMapping("/users/{discordId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @GetMapping("/users/{userId}")
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Gêneros por usuário",
             description = "Retorna a contagem de filmes por gênero cadastrados por um usuário específico."
@@ -80,14 +80,14 @@ public class GenreController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<List<GenreStatsResponse>> getGenresByUser(
-            @Parameter(description = "Discord ID do usuário", example = "987654321098765432")
-            @PathVariable String discordId) {
-        Map<String, Integer> genreCount = genreService.getGenreRankingsByUser(discordId);
+            @Parameter(description = "ID do usuário", example = "1")
+            @PathVariable Long userId) {
+        Map<String, Integer> genreCount = genreService.getGenreRankingsByUser(userId);
         return ResponseEntity.ok().body(genreConverter.toResponseList(genreCount));
     }
 
     @GetMapping()
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
+    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar todos os gêneros",
             description = "Retorna a lista completa de gêneros cadastrados no sistema."
