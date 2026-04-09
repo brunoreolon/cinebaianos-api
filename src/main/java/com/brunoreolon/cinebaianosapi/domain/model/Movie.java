@@ -54,8 +54,8 @@ public class Movie implements Ownable<Long> {
     @Column(updatable = false, nullable = false)
     private LocalDateTime dateAdded;
 
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    public Set<Vote> votes = new LinkedHashSet<>();
+//    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+//    public Set<Vote> votes = new LinkedHashSet<>();
 
     @ManyToMany
     @JoinTable(
