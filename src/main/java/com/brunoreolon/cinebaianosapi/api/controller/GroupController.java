@@ -186,7 +186,7 @@ public class GroupController {
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para transferir propriedade", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Grupo ou novo owner não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "422", description = "Operação inválida: novo owner é o próprio atual, não é membro ativo ou não possui o papel necessário", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: novo owner é o próprio atual, não é membro ativo ou está banido no grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<GroupResponse> transferOwnership(
             @Parameter(description = "ID do grupo", example = "1")
