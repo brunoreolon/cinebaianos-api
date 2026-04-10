@@ -44,7 +44,7 @@ public class TmdbController {
             description = "Realiza uma busca de filmes no TMDb usando o título e, opcionalmente, o ano de lançamento."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Filmes encontrados com sucesso", content = @Content(schema = @Schema(implementation = TmdbMovieResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Filmes encontrados com sucesso", content = @Content(schema = @Schema(implementation = TmdbMovieDetailsResponse.class))),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Nenhum filme encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
@@ -52,7 +52,7 @@ public class TmdbController {
             @Parameter(description = "Título do filme a ser buscado", required = true, example = "Matrix")
             @RequestParam(name = "title") String title,
 
-            @Parameter(description = "Ano de lançamento do filme", required = false, example = "1999")
+            @Parameter(description = "Ano de lançamento do filme", example = "1999")
             @RequestParam(name = "year", required = false) String year,
 
             @Parameter(description = "Idioma da busca (opcional, padrão do sistema será usado se não informado)", example = "pt-BR")
@@ -83,7 +83,7 @@ public class TmdbController {
             @Parameter(description = "Título do filme a ser buscado", required = true, example = "Matrix")
             @RequestParam(name = "title") String title,
 
-            @Parameter(description = "Ano de lançamento do filme", required = false, example = "1999")
+            @Parameter(description = "Ano de lançamento do filme", example = "1999")
             @RequestParam(name = "year", required = false) String year,
 
             @Parameter(description = "Idioma da busca (opcional, padrão do sistema será usado se não informado)", example = "pt-BR")

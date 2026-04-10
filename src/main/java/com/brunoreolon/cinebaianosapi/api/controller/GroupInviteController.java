@@ -2,6 +2,7 @@ package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.GroupAccessConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
+import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.AcceptGroupInviteRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupInviteCreateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupInviteResponse;
@@ -17,6 +18,11 @@ import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupInviteService;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -43,9 +49,20 @@ public class GroupInviteController {
 
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
     @PostMapping("/{groupId}/invites")
-    @Operation(summary = "Criar convite do grupo")
+    @Operation(summary = "Criar convite do grupo", description = "Cria um convite específico ou genérico para entrada no grupo. Apenas administradores do grupo podem executar esta operação.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Convite criado com sucesso", content = @Content(schema = @Schema(implementation = GroupInviteResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para criar convites", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo ou usuário convidado não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Já existe convite pendente conflitante", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Regra de convite inválida para o grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<GroupInviteResponse> createInvite(
+            @Parameter(description = "ID do grupo", example = "1")
             @PathVariable @GroupKey Long groupId,
+            @Parameter(description = "Dados do convite a ser criado")
             @Valid @RequestBody GroupInviteCreateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupInvite invite = groupInviteService.createInvite(
@@ -60,8 +77,16 @@ public class GroupInviteController {
 
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
     @GetMapping("/{groupId}/invites")
-    @Operation(summary = "Listar convites pendentes do grupo")
-    public ResponseEntity<List<GroupInviteResponse>> getPendingInvites(@PathVariable @GroupKey Long groupId) {
+    @Operation(summary = "Listar convites pendentes do grupo", description = "Retorna os convites pendentes do grupo informado. Apenas administradores do grupo podem executar esta operação.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Convites pendentes retornados com sucesso", content = @Content(schema = @Schema(implementation = GroupInviteResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para listar convites", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<List<GroupInviteResponse>> getPendingInvites(
+            @Parameter(description = "ID do grupo", example = "1")
+            @PathVariable @GroupKey Long groupId) {
         List<GroupInviteResponse> response = groupInviteService.getPendingInvitesByGroup(groupId)
                 .stream()
                 .map(groupAccessConverter::toInviteResponse)
@@ -71,7 +96,11 @@ public class GroupInviteController {
 
     @RequireMinimumRole(role = USER)
     @GetMapping("/invites/received")
-    @Operation(summary = "Listar convites recebidos")
+    @Operation(summary = "Listar convites recebidos", description = "Retorna os convites pendentes recebidos pelo usuário autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Convites recebidos retornados com sucesso", content = @Content(schema = @Schema(implementation = GroupInviteResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<List<GroupInviteResponse>> getReceivedInvites(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<GroupInviteResponse> response = groupInviteService.getPendingReceivedInvites(userDetails.getUser().getId())
@@ -83,9 +112,17 @@ public class GroupInviteController {
 
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
     @DeleteMapping("/{groupId}/invites/{inviteId}")
-    @Operation(summary = "Revogar convite do grupo")
+    @Operation(summary = "Revogar convite do grupo", description = "Revoga um convite pendente do grupo informado. Apenas administradores do grupo podem executar esta operação.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Convite revogado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para revogar convites", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo ou convite não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<Void> revokeInvite(
+            @Parameter(description = "ID do grupo", example = "1")
             @PathVariable @GroupKey Long groupId,
+            @Parameter(description = "ID do convite", example = "25")
             @PathVariable Long inviteId) {
         groupInviteService.revokeInvite(groupId, inviteId);
         return ResponseEntity.noContent().build();
@@ -93,8 +130,17 @@ public class GroupInviteController {
 
     @RequireMinimumRole(role = USER)
     @PostMapping("/invites/accept")
-    @Operation(summary = "Aceitar convite por token")
+    @Operation(summary = "Aceitar convite por token", description = "Aceita um convite recebido ou genérico utilizando o token informado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Convite aceito com sucesso", content = @Content(schema = @Schema(implementation = GroupMemberResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Convite não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Convite já foi utilizado ou o usuário já é membro do grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Convite expirado, cancelado ou incompatível com o usuário", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<GroupMemberResponse> acceptInvite(
+            @Parameter(description = "Token do convite a ser aceito")
             @Valid @RequestBody AcceptGroupInviteRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         GroupMember member = groupInviteService.acceptInvite(request.getToken(), userDetails.getUser().getId());
@@ -103,8 +149,15 @@ public class GroupInviteController {
 
     @RequireMinimumRole(role = USER)
     @DeleteMapping("/invites/{inviteId}/decline")
-    @Operation(summary = "Recusar convite recebido")
+    @Operation(summary = "Recusar convite recebido", description = "Recusa um convite pendente recebido pelo usuário autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Convite recusado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Convite não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Convite não pertence ao usuário autenticado ou não está pendente", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<Void> declineInvite(
+            @Parameter(description = "ID do convite recebido", example = "25")
             @PathVariable Long inviteId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         groupInviteService.declineInvite(inviteId, userDetails.getUser().getId());

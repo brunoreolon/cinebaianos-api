@@ -40,14 +40,15 @@ public class GroupVoteController {
 
     @CheckGroupMember(service = GroupMemberService.class, allowBot = true)
     @PostMapping
-    @Operation(summary = "Registrar voto no grupo", description = "Registra um voto dado por um usuário para um filme específico dentro de um grupo.")
+    @Operation(summary = "Registrar voto no grupo", description = "Registra um voto de um usuário em um filme específico dentro do grupo informado.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Voto registrado com sucesso", content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
             @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para registrar este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Grupo, filme ou tipo de voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "409", description = "Voto já existe para este filme neste grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+            @ApiResponse(responseCode = "409", description = "Voto já existe para este filme neste grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Tipo de voto não é válido para o grupo informado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<VoteDetailResponse> registerGroupVote(
             @Parameter(description = "ID do grupo", example = "1")
@@ -69,14 +70,14 @@ public class GroupVoteController {
 
     @CheckGroupMember(service = GroupMemberService.class, allowBot = true)
     @PutMapping("/users/{voterId}/movies/{movieId}")
-    @Operation(summary = "Atualizar voto no grupo", description = "Atualiza o voto de um usuário para um filme específico dentro de um grupo.")
+    @Operation(summary = "Atualizar voto no grupo", description = "Atualiza o voto de um usuário para um filme específico dentro do grupo informado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Voto atualizado com sucesso", content = @Content(schema = @Schema(implementation = VoteDetailResponse.class))),
             @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para atualizar este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Grupo, filme, voto ou tipo de voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "422", description = "Prazo para modificação de voto expirado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+            @ApiResponse(responseCode = "422", description = "Prazo para modificação de voto expirado ou tipo de voto não é válido para o grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<VoteDetailResponse> updateGroupVote(
             @Parameter(description = "ID do grupo", example = "1")
@@ -98,12 +99,13 @@ public class GroupVoteController {
 
     @CheckGroupMember(service = GroupMemberService.class, allowBot = true)
     @DeleteMapping("/users/{voterId}/movies/{movieId}")
-    @Operation(summary = "Excluir voto do grupo", description = "Remove o voto de um usuário para um filme específico dentro de um grupo.")
+    @Operation(summary = "Excluir voto do grupo", description = "Remove o voto de um usuário para um filme específico dentro do grupo informado.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Voto excluído com sucesso"),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir este voto", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Grupo, filme ou voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+            @ApiResponse(responseCode = "404", description = "Grupo, filme ou voto não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Operação inválida para o voto informado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> deleteGroupVote(
             @Parameter(description = "ID do grupo", example = "1")

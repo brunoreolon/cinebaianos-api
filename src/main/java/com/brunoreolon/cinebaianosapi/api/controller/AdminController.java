@@ -51,6 +51,11 @@ public class AdminController {
     @GetMapping("/groups")
     @Operation(summary = "Listar grupos para administração",
             description = "Retorna todos os grupos cadastrados no sistema para visão administrativa global.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Grupos retornados com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para visualizar grupos administrativamente", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<List<GroupResponse>> listGroups() {
         return ResponseEntity.ok(groupConverter.toResponseList(groupService.getAllForAdmin()));
     }
@@ -150,8 +155,19 @@ public class AdminController {
     @PostMapping("/users/{userId}/ban")
     @Operation(summary = "Banir usuario no sistema",
             description = "Permite banimento temporario ou definitivo de usuario no contexto global do sistema.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Usuário banido com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para banir usuários", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Usuário já possui banimento ativo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Operação inválida para o usuário informado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<Void> banUser(
+            @Parameter(description = "ID do usuário a ser banido", example = "1")
             @PathVariable @ResourceKey Long userId,
+            @Parameter(description = "Dados do banimento do usuário")
             @Valid @RequestBody UserBanRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         userService.banUser(userId, userDetails.getUser().getId(), request.getReason(), request.getExpiresAt());
@@ -162,7 +178,15 @@ public class AdminController {
     @DeleteMapping("/users/{userId}/ban")
     @Operation(summary = "Remover banimento de usuario no sistema",
             description = "Remove banimento global ativo de um usuario.")
-    public ResponseEntity<Void> unbanUser(@PathVariable @ResourceKey Long userId) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Banimento do usuário removido com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para remover banimento", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Usuário ou banimento não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> unbanUser(
+            @Parameter(description = "ID do usuário com banimento ativo", example = "1")
+            @PathVariable @ResourceKey Long userId) {
         userService.unbanUser(userId);
         return ResponseEntity.noContent().build();
     }
@@ -171,8 +195,19 @@ public class AdminController {
     @PostMapping("/groups/{groupId}/ban")
     @Operation(summary = "Banir grupo no sistema",
             description = "Permite banimento temporario ou definitivo de um grupo no contexto global do sistema.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Grupo banido com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para banir grupos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Grupo já possui banimento ativo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Operação inválida para o grupo informado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<Void> banGroup(
+            @Parameter(description = "ID do grupo a ser banido", example = "1")
             @PathVariable @ResourceKey Long groupId,
+            @Parameter(description = "Dados do banimento do grupo")
             @Valid @RequestBody GroupBanRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         groupService.banGroup(groupId, userDetails.getUser().getId(), request.getReason(), request.getExpiresAt());
@@ -183,7 +218,15 @@ public class AdminController {
     @DeleteMapping("/groups/{groupId}/ban")
     @Operation(summary = "Remover banimento de grupo no sistema",
             description = "Remove banimento global ativo de um grupo.")
-    public ResponseEntity<Void> unbanGroup(@PathVariable @ResourceKey Long groupId) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Banimento do grupo removido com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para remover banimento de grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo ou banimento não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> unbanGroup(
+            @Parameter(description = "ID do grupo com banimento ativo", example = "1")
+            @PathVariable @ResourceKey Long groupId) {
         groupService.unbanGroup(groupId);
         return ResponseEntity.noContent().build();
     }
