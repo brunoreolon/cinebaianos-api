@@ -102,7 +102,7 @@ public class User implements Ownable<Long> {
     }
 
     public Boolean isAdmin() {
-        return hasRole(UserRole.ADMIN);
+        return hasRole(UserRole.SUPER_ADMIN);
     }
 
     public Boolean canActivate() {
@@ -119,7 +119,7 @@ public class User implements Ownable<Long> {
                     "user.cannot.activate.title",
                     "user.cannot.activate.message",
                     HttpStatus.BAD_REQUEST,
-                    ApiErrorCode.VOTE_INVALID_STATUS.asMap());
+                    ApiErrorCode.USER_INVALID_OPERATION.asMap());
 
         this.active = true;
     }
@@ -130,7 +130,7 @@ public class User implements Ownable<Long> {
                     "user.cannot.disable.title",
                     "user.cannot.disable.message",
                     HttpStatus.BAD_REQUEST,
-                    ApiErrorCode.VOTE_INVALID_STATUS.asMap());
+                    ApiErrorCode.USER_INVALID_OPERATION.asMap());
 
         this.active = false;
     }
@@ -141,13 +141,29 @@ public class User implements Ownable<Long> {
     }
 
     public void AddAdmin() {
-        if (!this.hasRole(UserRole.ADMIN)) {
-            this.getRoles().add(UserRole.ADMIN);
+        if (isAdmin())
+            throw new BusinessException(
+                    "user.already.admin.title",
+                    "user.already.admin.message",
+                    new Object[]{getId()},
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.USER_INVALID_OPERATION.asMap());
+
+        if (!this.hasRole(UserRole.SUPER_ADMIN)) {
+            this.getRoles().add(UserRole.SUPER_ADMIN);
         }
     }
 
     public void RemoveAdmin() {
-        this.getRoles().remove(UserRole.ADMIN);
+        if (!isAdmin())
+            throw new BusinessException(
+                    "user.not.admin.title",
+                    "user.not.admin.message",
+                    new Object[]{getId()},
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.USER_INVALID_OPERATION.asMap());
+
+        this.getRoles().remove(UserRole.SUPER_ADMIN);
     }
 
     public boolean isBanned() {

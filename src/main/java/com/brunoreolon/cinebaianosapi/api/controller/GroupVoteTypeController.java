@@ -46,15 +46,6 @@ public class GroupVoteTypeController {
         return ResponseEntity.ok(voteTypeConverter.toDetailResponseList(votes));
     }
 
-    @CheckGroupMember(service = GroupMemberService.class)
-    @GetMapping("/global")
-    @Operation(summary = "Listar tipos de voto globais")
-    public ResponseEntity<List<VoteTypeDetailResponse>> listGlobalVoteTypes(
-            @PathVariable @GroupKey Long groupId) {
-        List<VoteType> votes = voteTypeRegistrationService.getAllGlobal(true);
-        return ResponseEntity.ok(voteTypeConverter.toDetailResponseList(votes));
-    }
-
     @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
     @PostMapping
     @Operation(summary = "Criar tipo de voto do grupo")

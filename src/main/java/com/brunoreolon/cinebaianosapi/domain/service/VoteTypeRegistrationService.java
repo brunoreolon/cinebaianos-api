@@ -37,8 +37,6 @@ public class VoteTypeRegistrationService {
         if (nameAlreadyExists)
             throw new VoteTypeAlreadyRegisteredException("vote-type.already.registered.message", new Object[]{voteType.getName()});
 
-        voteType.activate();
-
         if (voteType.getColor() == null || voteType.getColor().isBlank())
             voteType.setColor("#9810fa");
 
@@ -114,9 +112,11 @@ public class VoteTypeRegistrationService {
     private void ensureVoteTypeBelongsToGroup(VoteType voteType, Long groupId) {
         if (voteType.getGroup() == null || !voteType.getGroup().getId().equals(groupId)) {
             throw new BusinessException(
-                    "action.not.allowed.title",
-                    "action.not.allowed.message",
-                    HttpStatus.UNPROCESSABLE_ENTITY
+                    "vote.type.not.in.group.title",
+                    "vote.type.not.in.group.message",
+                    new Object[]{voteType.getId(), groupId},
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    ApiErrorCode.VOTE_TYPE_NOT_IN_GROUP.asMap()
             );
         }
     }
