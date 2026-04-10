@@ -9,6 +9,7 @@ import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
 import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.domain.exception.MultipleMoviesFoundException;
@@ -23,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -37,6 +39,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/groups/{groupId}/movies")
 @Tag(name = "Filmes em Grupos", description = "Operações relacionadas ao gerenciamento de filmes em grupos.")
+@SecurityRequirement(name = SecurityConfig.SECURITY)
 public class GroupMovieController {
 
     private final GroupMovieService groupMovieService;

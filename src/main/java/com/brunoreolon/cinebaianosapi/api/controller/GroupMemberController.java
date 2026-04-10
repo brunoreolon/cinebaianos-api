@@ -6,6 +6,7 @@ import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailWithMe
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberBanResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupPermissionsResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckOwner;
@@ -26,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +51,7 @@ import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.U
 @RestController
 @RequestMapping("/api/groups")
 @Tag(name = "Membros de Grupos", description = "Operações relacionadas ao gerenciamento de membros em grupos.")
+@SecurityRequirement(name = SecurityConfig.SECURITY)
 public class GroupMemberController {
 
     private final GroupMemberService groupMemberService;

@@ -4,6 +4,7 @@ import com.brunoreolon.cinebaianosapi.api.converter.VoteTypeConverter;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteTypeUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeDetailResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
@@ -12,6 +13,7 @@ import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteTypeRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -32,6 +34,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/groups/{groupId}/vote-types")
 @Tag(name = "Tipos de voto do grupo", description = "Operacoes de cadastro de tipos de voto no contexto de um grupo.")
+@SecurityRequirement(name = SecurityConfig.SECURITY)
 public class GroupVoteTypeController {
 
     private final VoteTypeRegistrationService voteTypeRegistrationService;
@@ -43,6 +46,24 @@ public class GroupVoteTypeController {
     public ResponseEntity<List<VoteTypeDetailResponse>> listGroupVoteTypes(
             @PathVariable @GroupKey Long groupId) {
         List<VoteType> votes = voteTypeRegistrationService.getAllByGroup(groupId, true);
+        return ResponseEntity.ok(voteTypeConverter.toDetailResponseList(votes));
+    }
+
+    @CheckGroupMember(service = GroupMemberService.class)
+    @GetMapping("/global")
+    @Operation(summary = "Listar tipos de voto globais")
+    public ResponseEntity<List<VoteTypeDetailResponse>> listGlobalVoteTypes(
+            @PathVariable @GroupKey Long groupId) {
+        List<VoteType> votes = voteTypeRegistrationService.getAllGlobal(true);
+        return ResponseEntity.ok(voteTypeConverter.toDetailResponseList(votes));
+    }
+
+    @CheckGroupMember(service = GroupMemberService.class)
+    @GetMapping("/available")
+    @Operation(summary = "Listar tipos de voto disponíveis para votação no grupo")
+    public ResponseEntity<List<VoteTypeDetailResponse>> listAvailableVoteTypes(
+            @PathVariable @GroupKey Long groupId) {
+        List<VoteType> votes = voteTypeRegistrationService.getAvailableByGroupForVoting(groupId);
         return ResponseEntity.ok(voteTypeConverter.toDetailResponseList(votes));
     }
 

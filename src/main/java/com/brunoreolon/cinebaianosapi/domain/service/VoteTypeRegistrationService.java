@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,6 +70,20 @@ public class VoteTypeRegistrationService {
 
     public List<VoteType> getAllByGroup(Long groupId, Boolean active) {
         return voteTypeRepository.findAllByGroupIdAndActiveOrderByIdAsc(groupId, active);
+    }
+
+    public List<VoteType> getAvailableByGroupForVoting(Long groupId) {
+        Group group = groupService.get(groupId);
+
+        List<VoteType> available = new ArrayList<>(getAllByGroup(groupId, true));
+
+        if (Boolean.TRUE.equals(group.getAllowGlobalVotes())) {
+            available.addAll(getAllGlobal(true));
+        }
+
+        available.sort(Comparator.comparing(VoteType::getId));
+
+        return available;
     }
 
     @Transactional
