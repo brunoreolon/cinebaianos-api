@@ -1,12 +1,15 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.Ownable;
+import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -96,14 +99,22 @@ public class Group implements Ownable<Long> {
 
     public void activate() {
         if (!this.canActivate())
-            throw new RuntimeException("Grupo já é ativo");
+            throw new BusinessException(
+                    "group.cannot.activate.title",
+                    "group.cannot.activate.message",
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.GROUP_INVALID_OPERATION.asMap());
 
         this.active = true;
     }
 
     public void disable() {
         if (!this.canDisable())
-            throw new RuntimeException("Grupo já desativado");
+            throw new BusinessException(
+                    "group.cannot.disable.title",
+                    "group.cannot.disable.message",
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.GROUP_INVALID_OPERATION.asMap());
 
         this.active = false;
     }
