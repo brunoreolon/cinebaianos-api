@@ -26,6 +26,15 @@ public interface GroupAuthorizationService {
     boolean isMember(Long groupId, Long userId);
 
     /**
+     * Verifica se o usuário possui banimento ativo no grupo.
+     *
+     * @param groupId ID do grupo
+     * @param userId ID do usuário
+     * @return true se o usuário estiver temporária ou permanentemente banido no grupo
+     */
+    boolean isBanned(Long groupId, Long userId);
+
+    /**
      * Verifica se o usuário tem a função especificada no grupo.
      *
      * @param groupId ID do grupo

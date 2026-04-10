@@ -110,8 +110,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
             set g.bannedAt = null,
                 g.bannedBy = null,
                 g.banReason = null,
-                g.expiresAt = null,
-                g.active = true
+                g.expiresAt = null
             where g.bannedAt is not null
               and g.expiresAt is not null
               and g.expiresAt <= :now

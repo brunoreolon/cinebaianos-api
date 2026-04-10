@@ -2,6 +2,7 @@ package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
 import com.brunoreolon.cinebaianosapi.api.converter.TmdbConverter;
+import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupDetailResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieIdRequest;
 import com.brunoreolon.cinebaianosapi.api.model.movie.request.MovieSearchRequest;
@@ -9,6 +10,7 @@ import com.brunoreolon.cinebaianosapi.api.model.tmdb.TmdbMovieResponse;
 import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.domain.exception.MultipleMoviesFoundException;
@@ -23,6 +25,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -37,6 +40,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/groups/{groupId}/movies")
 @Tag(name = "Filmes em Grupos", description = "Operações relacionadas ao gerenciamento de filmes em grupos.")
+@SecurityRequirement(name = SecurityConfig.SECURITY)
 public class GroupMovieController {
 
     private final GroupMovieService groupMovieService;
@@ -53,8 +57,9 @@ public class GroupMovieController {
             description = "Retorna todos os filmes adicionados a um grupo.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Filmes encontrados", content = @Content(schema = @Schema(implementation = GroupDetailResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo"),
-            @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<GroupDetailResponse> getGroupMovies(
             @Parameter(description = "ID do grupo", example = "1")
@@ -70,13 +75,14 @@ public class GroupMovieController {
             description = "Adiciona um filme ao grupo usando o TMDb ID. Se o filme ainda não existe no sistema, ele será criado globalmente e vinculado ao grupo.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Filme adicionado com sucesso", content = @Content(schema = @Schema(implementation = GroupDetailResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo ou não pode adicionar filmes"),
-            @ApiResponse(responseCode = "404", description = "Grupo ou filme não encontrado no TMDb"),
-            @ApiResponse(responseCode = "409", description = "Filme já foi adicionado a este grupo"),
-            @ApiResponse(responseCode = "422", description = "Operação inválida: apenas administradores podem adicionar filmes neste grupo"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo ou não pode adicionar filmes", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo ou filme não encontrado no TMDb", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Filme já foi adicionado a este grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: apenas administradores podem adicionar filmes neste grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<GroupDetailResponse> addMovieByTmdbId(
+            @Parameter(description = "Dados do filme a ser adicionado pelo TMDb ID")
             @Valid @RequestBody MovieIdRequest movieIdRequest,
             @Parameter(description = "ID do grupo", example = "1")
             @PathVariable @GroupKey Long groupId,
@@ -113,15 +119,16 @@ public class GroupMovieController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Filme adicionado com sucesso", content = @Content(schema = @Schema(implementation = GroupDetailResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo ou não pode adicionar filmes"),
-            @ApiResponse(responseCode = "404", description = "Filme não encontrado no TMDb"),
-            @ApiResponse(responseCode = "409", description = "Conflito: múltiplos filmes encontrados na busca ou já adicionado ao grupo"),
-            @ApiResponse(responseCode = "422", description = "Operação inválida: apenas administradores podem adicionar filmes neste grupo"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo ou não pode adicionar filmes", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Filme não encontrado no TMDb", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Conflito: múltiplos filmes encontrados na busca ou já adicionado ao grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: apenas administradores podem adicionar filmes neste grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<GroupDetailResponse> searchAndAddMovie(
             @Parameter(description = "ID do grupo", example = "1")
             @PathVariable @GroupKey Long groupId,
+            @Parameter(description = "Dados de busca do filme no TMDb")
             @Valid @RequestBody MovieSearchRequest movieSearchRequest,
             @Parameter(description = "Idioma para buscar dados no TMDb", example = "pt-BR")
             @RequestParam(name = "language", required = false) String language) {
@@ -164,10 +171,10 @@ public class GroupMovieController {
             description = "Remove um filme do grupo. Apenas o usuário que adicionou o filme ou um admin do grupo podem remover.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Filme removido com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo ou não tem permissão para remover"),
-            @ApiResponse(responseCode = "404", description = "Grupo ou filme não encontrado"),
-            @ApiResponse(responseCode = "422", description = "Operação inválida: apenas quem adicionou ou admin podem remover"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo ou não tem permissão para remover", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo ou filme não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: apenas quem adicionou ou admin podem remover", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<Void> removeMovieFromGroup(
             @Parameter(description = "ID do grupo", example = "1")

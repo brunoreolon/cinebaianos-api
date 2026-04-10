@@ -62,6 +62,7 @@ public class AuthController {
             @ApiResponse(responseCode = "429", description = "Limite de tentativas/reenvio excedido", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> signupStart(
+            @Parameter(description = "Dados iniciais do cadastro público")
             @RequestBody @Valid SignupStartRequest request
     ) {
         signupService.start(request.getName(), request.getEmail(), request.getPassword());
@@ -77,6 +78,7 @@ public class AuthController {
             @ApiResponse(responseCode = "429", description = "Muitas tentativas", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> signupVerify(
+            @Parameter(description = "Email e código de confirmação do cadastro")
             @RequestBody @Valid SignupVerifyRequest request
     ) {
         signupService.verify(request.getEmail(), request.getCode());
@@ -87,9 +89,11 @@ public class AuthController {
     @Operation(summary = "Reenviar código de cadastro", description = "Reenvia o código de confirmação para o email informado.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Solicitação de reenvio processada"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "429", description = "Aguarde antes de reenviar", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> signupResend(
+            @Parameter(description = "Email para reenvio do código de cadastro")
             @RequestBody @Valid SignupResendRequest request
     ) {
         signupService.resend(request.getEmail());
@@ -157,6 +161,7 @@ public class AuthController {
     @Operation(summary = "Logout do usuário", description = "Desativa o refresh token e coloca o access token na blacklist.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Logout realizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Refresh token inválido", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> logout(
@@ -180,6 +185,7 @@ public class AuthController {
     @Operation(summary = "Recuperação de senha", description = "Envia email para o usuário com token para redefinir senha.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Email de recuperação enviado"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Email não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<Void> recoverPassword(

@@ -24,6 +24,11 @@ public enum GroupMemberRole {
         public boolean canPromoteToAdmin() {
             return true;
         }
+
+        @Override
+        public boolean canBecomeOwner() {
+            return true;
+        }
     };
 
     private final int level;

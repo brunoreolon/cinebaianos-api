@@ -33,7 +33,7 @@ public class UserStatsController {
     private final UserRegistratioService userRegistratioService;
 
     @GetMapping("/{userId}/votes/received")
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @Operation(summary = "Votos recebidos por usuário", description = "Retorna estatísticas de votos recebidos por um usuário, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Estatísticas de votos recebidos retornadas com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -53,7 +53,7 @@ public class UserStatsController {
     }
 
     @GetMapping("/{userId}/votes/given")
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @Operation(summary = "Votos dados por usuário", description = "Retorna estatísticas de votos dados por um usuário, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Estatísticas de votos dados retornadas com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -73,7 +73,7 @@ public class UserStatsController {
     }
 
     @GetMapping("/{userId}/summary")
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @Operation(summary = "Resumo do usuário", description = "Retorna um resumo completo de estatísticas do usuário, incluindo votos e métricas gerais.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Resumo do usuário retornado com sucesso", content = @Content(schema = @Schema(implementation = UserSummaryResponse.class))),

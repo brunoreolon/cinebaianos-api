@@ -2,8 +2,7 @@ package com.brunoreolon.cinebaianosapi.core.security.authorization.enums;
 
 public enum UserRole {
 
-    SUPER_ADMIN(3),
-    ADMIN(2),
+    SUPER_ADMIN(2),
     USER(1);
 
     private final int level;

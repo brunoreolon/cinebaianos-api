@@ -55,7 +55,7 @@ public class UserRegistrationController {
     private final GroupConverter groupConverter;
 
     @PostMapping
-    @RequireRole(roles = {ADMIN}, allowBot = true)
+    @RequireMinimumRole(role = SUPER_ADMIN, allowBot = true)
     @Operation(summary = "Criar usuário", description = "Cria um novo usuário no sistema. Permite criação por administradores ou bots autorizados.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -69,7 +69,7 @@ public class UserRegistrationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userConverter.toDetailResponse(newUser));
     }
 
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @GetMapping
     @Operation(summary = "Listar usuários", description = "Retorna todos os usuários cadastrados. É possível incluir ou excluir bots do resultado.")
     @ApiResponses({
@@ -91,7 +91,7 @@ public class UserRegistrationController {
         return ResponseEntity.ok().body(userConverter.toDetailResponseList(users));
     }
 
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/{userId}")
     @Operation(summary = "Buscar usuário por ID", description = "Retorna os detalhes de um usuário específico pelo seu ID.")
     @ApiResponses({
@@ -106,7 +106,7 @@ public class UserRegistrationController {
         return ResponseEntity.ok().body(userConverter.toDetailResponse(user));
     }
 
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/me")
     @Operation(summary = "Consultar dados do usuário logado", description = "Retorna os detalhes do usuário autenticado com base no token de acesso.")
     @ApiResponses({
@@ -126,20 +126,29 @@ public class UserRegistrationController {
         return ResponseEntity.ok(userConverter.toDetailResponse(user));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/me/groups")
     @Operation(summary = "Listar grupos ativos do usuário logado",
             description = "Retorna todos os grupos ativos dos quais o usuário autenticado participa.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Grupos do usuário retornados com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<List<GroupResponse>> getMyGroups(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<Group> groups = groupService.getGroupsByUser(userDetails.getUser().getId());
         return ResponseEntity.ok(groupConverter.toResponseList(groups));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/me/groups/default")
     @Operation(summary = "Obter grupo padrão do usuário logado",
             description = "Retorna o grupo selecionado como padrão para o usuário autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Grupo padrão retornado com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Usuário não possui grupo padrão definido", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<GroupResponse> getMyDefaultGroup(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Optional<Group> group = groupMemberService.getDefaultGroup(userDetails.getUser().getId());
@@ -153,18 +162,25 @@ public class UserRegistrationController {
     @PutMapping("/me/groups/{groupId}/default")
     @Operation(summary = "Definir grupo padrão do usuário logado",
             description = "Marca o grupo informado como padrão para o usuário autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Grupo padrão definido com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<Void> setMyDefaultGroup(
+            @Parameter(description = "ID do grupo a ser definido como padrão", example = "1")
             @PathVariable @GroupKey Long groupId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         groupMemberService.setAsDefaultGroup(userDetails.getUser().getId(), groupId);
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @DeleteMapping("/{userId}")
     @Operation(summary = "Excluir usuário", description = "Remove um usuário do sistema com base no ID do usuário. Apenas administradores podem executar esta operação.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Usuário excluído com sucesso"),
+            @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para excluir outro usuário", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
@@ -173,7 +189,7 @@ public class UserRegistrationController {
             @Parameter(description = "ID do usuário a ser excluído", example = "5")
             @PathVariable @ResourceKey Long userId) {
         userRegistratioService.delete(userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @CheckOwner(service = UserRegistratioService.class, allowAdmin = true)

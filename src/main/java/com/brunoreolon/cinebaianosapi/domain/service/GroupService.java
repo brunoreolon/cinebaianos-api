@@ -117,27 +117,32 @@ public class GroupService implements OwnableService<Group, Long> {
     @Transactional
     public void transferOwnership(Long groupId, Long newOwnerId) {
         Group group = getById(groupId);
+
+        if (group.getOwner().getId().equals(newOwnerId)) {
+            throw new GroupInvalidOperationException("group.new.owner.same.as.current.message");
+        }
+
         User newOwner = userRegistratioService.get(newOwnerId);
 
         GroupMember oldOwnerMember = groupMemberService.getMember(groupId, group.getOwner().getId())
                 .orElseThrow(() -> new GroupInvalidOperationException("group.old.owner.not.found.message"));
 
-        if (oldOwnerMember.getMember().getId().equals(newOwnerId)) {
-            throw new GroupInvalidOperationException("group.new.owner.same.as.current.message");
-        }
-
         GroupMember newOwnerMember = groupMemberService.getMember(groupId, newOwnerId)
                 .orElseThrow(() -> new GroupInvalidOperationException("group.new.owner.must.be.member.message"));
 
-        if (newOwnerMember.getActive() && newOwnerMember.getRole().canBecomeOwner()) {
-            group.setOwner(newOwner);
-            groupRepository.save(group);
-
-            newOwnerMember.promoteToOwner();
-            oldOwnerMember.demoteToMember();
-        } else {
-            throw new GroupInvalidOperationException("group.new.owner.must.be.admin.message");
+        if (!Boolean.TRUE.equals(newOwnerMember.getActive())) {
+            throw new GroupInvalidOperationException("group.new.owner.must.be.active.member.message");
         }
+
+        if (groupMemberService.isBanned(groupId, newOwnerId)) {
+            throw new GroupInvalidOperationException("group.member.banned.message", new Object[]{newOwnerId, groupId});
+        }
+
+        group.setOwner(newOwner);
+        newOwnerMember.promoteToOwner();
+        oldOwnerMember.demoteToMember();
+
+        groupRepository.save(group);
     }
 
     @Transactional

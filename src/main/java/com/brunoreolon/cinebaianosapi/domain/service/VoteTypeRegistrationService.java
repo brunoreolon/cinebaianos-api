@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,8 +38,6 @@ public class VoteTypeRegistrationService {
 
         if (nameAlreadyExists)
             throw new VoteTypeAlreadyRegisteredException("vote-type.already.registered.message", new Object[]{voteType.getName()});
-
-        voteType.activate();
 
         if (voteType.getColor() == null || voteType.getColor().isBlank())
             voteType.setColor("#9810fa");
@@ -70,6 +70,20 @@ public class VoteTypeRegistrationService {
 
     public List<VoteType> getAllByGroup(Long groupId, Boolean active) {
         return voteTypeRepository.findAllByGroupIdAndActiveOrderByIdAsc(groupId, active);
+    }
+
+    public List<VoteType> getAvailableByGroupForVoting(Long groupId) {
+        Group group = groupService.get(groupId);
+
+        List<VoteType> available = new ArrayList<>(getAllByGroup(groupId, true));
+
+        if (Boolean.TRUE.equals(group.getAllowGlobalVotes())) {
+            available.addAll(getAllGlobal(true));
+        }
+
+        available.sort(Comparator.comparing(VoteType::getId));
+
+        return available;
     }
 
     @Transactional
@@ -114,9 +128,11 @@ public class VoteTypeRegistrationService {
     private void ensureVoteTypeBelongsToGroup(VoteType voteType, Long groupId) {
         if (voteType.getGroup() == null || !voteType.getGroup().getId().equals(groupId)) {
             throw new BusinessException(
-                    "action.not.allowed.title",
-                    "action.not.allowed.message",
-                    HttpStatus.UNPROCESSABLE_ENTITY
+                    "vote.type.not.in.group.title",
+                    "vote.type.not.in.group.message",
+                    new Object[]{voteType.getId(), groupId},
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    ApiErrorCode.VOTE_TYPE_NOT_IN_GROUP.asMap()
             );
         }
     }

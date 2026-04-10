@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.api.controller;
 
 import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
+import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupUpdateRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupAvailabilityResponse;
@@ -9,7 +10,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfi
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckOwner;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireMinimumRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
@@ -46,18 +47,20 @@ public class GroupController {
     private final GroupMemberService groupMemberService;
     private final GroupConverter groupConverter;
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @PostMapping
     @Operation(summary = "Criar novo grupo",
             description = "Cria um novo grupo. O usuário autenticado será definido como o owner do grupo.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Grupo criado com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "409", description = "Tag ou slug já existente em outro grupo"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Tag ou slug já existente em outro grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
-    public ResponseEntity<GroupResponse> createGroup(@Valid @RequestBody GroupRequest request,
-                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<GroupResponse> createGroup(
+            @Parameter(description = "Dados do grupo a ser criado")
+            @Valid @RequestBody GroupRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Group group = groupConverter.toEntiy(request);
 
         Long ownerId = userDetails.getUser().getId();
@@ -67,17 +70,20 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.CREATED).body(groupConverter.toResponse(newGroup));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/availability")
     @Operation(summary = "Validar disponibilidade de tag e slug",
             description = "Verifica se a tag e/ou slug informados podem ser usados por um novo grupo.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Disponibilidade validada com sucesso", content = @Content(schema = @Schema(implementation = GroupAvailabilityResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<GroupAvailabilityResponse> checkAvailability(
+            @Parameter(description = "Tag a ser validada", example = "cine-ba")
             @RequestParam(required = false) String tag,
+            @Parameter(description = "Slug a ser validado", example = "cine-baianos" )
             @RequestParam(required = false) String slug,
+            @Parameter(description = "ID do grupo a ser desconsiderado na validação, útil em edições", example = "1")
             @RequestParam(required = false) Long excludeGroupId) {
         GroupAvailabilityResponse.FieldAvailability tagAvailability = buildFieldAvailability(
                 tag,
@@ -99,14 +105,17 @@ public class GroupController {
             description = "Atualiza as configurações de um grupo existente. Apenas o owner ou admin do grupo podem executar esta operação.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Grupo atualizado com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para atualizar este grupo"),
-            @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
-            @ApiResponse(responseCode = "409", description = "Tag ou slug já existente em outro grupo"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos fornecidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para atualizar este grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Tag ou slug já existente em outro grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
-    public ResponseEntity<GroupResponse> update(@PathVariable @GroupKey Long groupId,
-                                                @Valid @RequestBody GroupUpdateRequest request) {
+    public ResponseEntity<GroupResponse> update(
+            @Parameter(description = "ID do grupo", example = "1")
+            @PathVariable @GroupKey Long groupId,
+            @Parameter(description = "Dados atualizados do grupo")
+            @Valid @RequestBody GroupUpdateRequest request) {
         Group groupUpdate = groupConverter.toEntiy(request);
         groupUpdate.setId(groupId);
         groupService.validateRequiredFields(groupUpdate);
@@ -119,12 +128,13 @@ public class GroupController {
         return ResponseEntity.ok(groupConverter.toResponse(groupUpdated));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping
     @Operation(summary = "Listar todos os grupos",
             description = "Retorna uma lista de todos os grupos públicos disponíveis.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de grupos retornada com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<List<GroupResponse>> getAll() {
         List<Group> groups = groupService.getAllPublicGroups();
@@ -137,9 +147,13 @@ public class GroupController {
             description = "Retorna os detalhes de um grupo específico.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Grupo encontrado", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
-    public ResponseEntity<GroupResponse> getById(@PathVariable @GroupKey Long groupId) {
+    public ResponseEntity<GroupResponse> getById(
+            @Parameter(description = "ID do grupo", example = "1")
+            @PathVariable @GroupKey Long groupId) {
         Group group = groupService.getById(groupId);
         return ResponseEntity.ok(groupConverter.toResponse(group));
     }
@@ -150,9 +164,9 @@ public class GroupController {
             description = "Define um grupo como o padrão do usuário autenticado. Este será o grupo utilizado por padrão nas operações do usuário.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Grupo definido como padrão com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo"),
-            @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não é membro do grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<Void> setAsDefaultGroup(
             @Parameter(description = "ID do grupo", example = "1")
@@ -169,10 +183,10 @@ public class GroupController {
             description = "Transfere a propriedade do grupo para outro membro. Apenas o owner atual pode executar esta operação.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Propriedade transferida com sucesso", content = @Content(schema = @Schema(implementation = GroupResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para transferir propriedade"),
-            @ApiResponse(responseCode = "404", description = "Grupo ou novo owner não encontrado"),
-            @ApiResponse(responseCode = "422", description = "Operação inválida: novo owner é o próprio atual, não é membro ativo ou não possui o papel necessário"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para transferir propriedade", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo ou novo owner não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Operação inválida: novo owner é o próprio atual, não é membro ativo ou está banido no grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
     public ResponseEntity<GroupResponse> transferOwnership(
             @Parameter(description = "ID do grupo", example = "1")
@@ -190,11 +204,13 @@ public class GroupController {
             description = "Remove completamente um grupo do sistema. Apenas o owner pode executar esta operação.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Grupo deletado com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para deletar este grupo"),
-            @ApiResponse(responseCode = "404", description = "Grupo não encontrado"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para deletar este grupo", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
     })
-    public ResponseEntity<Void> delete(@PathVariable @ResourceKey Long groupId) {
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID do grupo", example = "1")
+            @PathVariable @ResourceKey Long groupId) {
         groupService.deleteById(groupId);
         return ResponseEntity.noContent().build();
     }

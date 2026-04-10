@@ -2,11 +2,14 @@ package com.brunoreolon.cinebaianosapi.domain.model;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.Ownable;
+import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 
@@ -68,7 +71,11 @@ public class GroupMember implements Ownable<Long> {
 
     public void activate() {
         if (!this.canActivate())
-            throw new RuntimeException("Usuário já é ativo");
+            throw new BusinessException(
+                    "group.member.cannot.activate.title",
+                    "group.member.cannot.activate.message",
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.GROUP_INVALID_OPERATION.asMap());
 
         this.active = true;
         this.leftAt = null;
@@ -76,7 +83,11 @@ public class GroupMember implements Ownable<Long> {
 
     public void disable() {
         if (!this.canDisable())
-            throw new RuntimeException("Usuário já desativado");
+            throw new BusinessException(
+                    "group.member.cannot.disable.title",
+                    "group.member.cannot.disable.message",
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.GROUP_INVALID_OPERATION.asMap());
 
         this.active = false;
         this.leftAt = LocalDateTime.now();
@@ -86,7 +97,11 @@ public class GroupMember implements Ownable<Long> {
         if (getRole().canBecomeOwner()) {
             this.role = GroupMemberRole.OWNER;
         } else {
-            throw new RuntimeException("Operação não permitida");
+            throw new BusinessException(
+                    "group.member.cannot.promote.to.owner.title",
+                    "group.member.cannot.promote.to.owner.message",
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.GROUP_INVALID_OPERATION.asMap());
         }
     }
 
@@ -94,7 +109,11 @@ public class GroupMember implements Ownable<Long> {
         if (getRole().canPromoteToAdmin()) {
             this.role = GroupMemberRole.ADMIN;
         } else {
-            throw new RuntimeException("Operação não permitida");
+            throw new BusinessException(
+                    "group.member.cannot.promote.to.admin.title",
+                    "group.member.cannot.promote.to.admin.message",
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.GROUP_INVALID_OPERATION.asMap());
         }
     }
 
@@ -102,7 +121,11 @@ public class GroupMember implements Ownable<Long> {
         if (getRole().canDemoteToMember()) {
             this.role = GroupMemberRole.MEMBER;
         } else {
-            throw new RuntimeException("Operação não permitida");
+            throw new BusinessException(
+                    "group.member.cannot.demote.to_member.title",
+                    "group.member.cannot.demote.to_member.message",
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.GROUP_INVALID_OPERATION.asMap());
         }
     }
 

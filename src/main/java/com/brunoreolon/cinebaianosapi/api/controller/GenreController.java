@@ -36,8 +36,8 @@ public class GenreController {
     private final GenreService genreService;
     private final GenreConverter genreConverter;
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/rankings")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Ranking de gêneros",
             description = "Retorna a lista de gêneros ordenada pelo total de filmes cadastrados em cada gênero."
@@ -51,8 +51,8 @@ public class GenreController {
         return ResponseEntity.ok().body(genreConverter.toResponseList(genreRankings));
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/vote-counts")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Contagem de votos por gênero",
             description = "Retorna a contagem detalhada de votos por gênero. Pode ser filtrado por um tipo de voto específico."
@@ -68,8 +68,8 @@ public class GenreController {
         return ResponseEntity.ok().body(genreVoteBreakdown);
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/users/{userId}")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Gêneros por usuário",
             description = "Retorna a contagem de filmes por gênero cadastrados por um usuário específico."
@@ -86,8 +86,8 @@ public class GenreController {
         return ResponseEntity.ok().body(genreConverter.toResponseList(genreCount));
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping()
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar todos os gêneros",
             description = "Retorna a lista completa de gêneros cadastrados no sistema."

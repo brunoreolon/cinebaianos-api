@@ -26,9 +26,6 @@ public class OwnableServiceRegistry {
                 .filter(e -> type.isAssignableFrom(e.getKey()))
                 .map(Map.Entry::getValue)
                 .findFirst()
-//                .orElseThrow(() -> new IllegalStateException(
-//                        "OwnableService não encontrado para " + type.getName()
-//                ));
                 .orElseThrow(() -> new IllegalStateException("ownable.service.not.found"));
     }
 

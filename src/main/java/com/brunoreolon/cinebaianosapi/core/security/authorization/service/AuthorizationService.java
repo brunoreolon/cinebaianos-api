@@ -65,6 +65,17 @@ public class AuthorizationService {
     }
 
     /**
+     * Retorna true se o usuário atual possui a role mínima exigida (ou superior)
+     */
+    public boolean hasMinimalRole(UserRole role) {
+        User loggedUser = userContextService.getLoggedUser().orElse(null);
+        if (loggedUser == null) return false;
+
+        return loggedUser.getRoles().stream()
+                .anyMatch(ur -> ur.atLeast(role));
+    }
+
+    /**
      * Retorna true se o usuário atual é dono do recurso
      */
     public boolean isOwner(OwnableService service, Object resourceKey) {
@@ -83,6 +94,10 @@ public class AuthorizationService {
     public boolean authorize(GroupAuthorizationService service, Long groupId, GroupMemberRole requiredRole) {
         User loggedUser = userContextService.getLoggedUser().orElse(null);
         if (loggedUser == null) return false;
+
+        if (service.isBanned(groupId, loggedUser.getId())) {
+            return false;
+        }
 
         if (requiredRole == null) {
             return service.isMember(groupId, loggedUser.getId());
