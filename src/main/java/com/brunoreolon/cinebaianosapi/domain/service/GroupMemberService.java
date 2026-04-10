@@ -256,6 +256,7 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
         return groupMemberRepository.existsByGroupIdAndMemberIdAndActiveTrueAndRoleIn(groupId, userId, qualifyingRoles);
     }
 
+    @Override
     public boolean isBanned(Long groupId, Long userId) {
         return groupMemberBanRepository.existsActiveBan(groupId, userId, LocalDateTime.now());
     }
@@ -297,7 +298,7 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
 
         groupMemberBanRepository.save(ban);
 
-        if (member.getActive()) {
+        if (expiresAt == null && member.getActive()) {
             removeMember(groupId, memberId);
         }
     }

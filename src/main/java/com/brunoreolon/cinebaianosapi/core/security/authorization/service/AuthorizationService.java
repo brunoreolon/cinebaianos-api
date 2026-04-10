@@ -95,6 +95,10 @@ public class AuthorizationService {
         User loggedUser = userContextService.getLoggedUser().orElse(null);
         if (loggedUser == null) return false;
 
+        if (service.isBanned(groupId, loggedUser.getId())) {
+            return false;
+        }
+
         if (requiredRole == null) {
             return service.isMember(groupId, loggedUser.getId());
         } else {

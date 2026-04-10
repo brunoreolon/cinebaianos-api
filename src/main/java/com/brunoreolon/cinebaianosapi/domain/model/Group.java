@@ -133,7 +133,10 @@ public class Group implements Ownable<Long> {
         this.banReason = reason;
         this.bannedAt = LocalDateTime.now();
         this.expiresAt = expiresAt;
-        this.active = false;
+
+        if (expiresAt == null) {
+            this.active = false;
+        }
     }
 
     public void unban() {

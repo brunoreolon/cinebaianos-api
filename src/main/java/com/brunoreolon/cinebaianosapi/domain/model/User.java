@@ -175,6 +175,10 @@ public class User implements Ownable<Long> {
         this.banReason = reason;
         this.bannedAt = LocalDateTime.now();
         this.expiresAt = expiresAt;
+
+        if (expiresAt == null) {
+            this.active = false;
+        }
     }
 
     public void unban() {
@@ -182,6 +186,7 @@ public class User implements Ownable<Long> {
         this.banReason = null;
         this.bannedAt = null;
         this.expiresAt = null;
+        this.active = true;
     }
 
 }
