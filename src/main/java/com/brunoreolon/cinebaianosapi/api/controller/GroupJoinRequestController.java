@@ -6,7 +6,7 @@ import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupJoinRequestR
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireMinimumRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.domain.model.CustomUserDetails;
@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.SUPER_ADMIN;
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.USER;
 
 @AllArgsConstructor
@@ -39,7 +38,7 @@ public class GroupJoinRequestController {
     private final GroupConverter groupConverter;
     private final GroupAccessConverter groupAccessConverter;
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @PostMapping("/{groupId}/join")
     @Operation(summary = "Entrar em grupo OPEN")
     public ResponseEntity<GroupMemberResponse> joinOpenGroup(
@@ -49,7 +48,7 @@ public class GroupJoinRequestController {
         return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @PostMapping("/{groupId}/join-requests")
     @Operation(summary = "Criar solicitacao para grupo REQUEST")
     public ResponseEntity<GroupJoinRequestResponse> createJoinRequest(
@@ -72,7 +71,7 @@ public class GroupJoinRequestController {
         return ResponseEntity.ok(response);
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/{groupId}/join-requests/me")
     @Operation(summary = "Consultar minha solicitacao pendente")
     public ResponseEntity<GroupJoinRequestResponse> getMyPendingRequest(
@@ -82,7 +81,7 @@ public class GroupJoinRequestController {
         return ResponseEntity.ok(groupAccessConverter.toJoinRequestResponse(request));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @DeleteMapping("/{groupId}/join-requests/me")
     @Operation(summary = "Cancelar minha solicitacao pendente")
     public ResponseEntity<Void> cancelMyPendingRequest(

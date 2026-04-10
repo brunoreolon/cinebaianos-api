@@ -4,7 +4,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.*;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckOwner;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireMinimumRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.AuthorizationGroupNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.OwnershipAccessDeniedException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.GroupAuthorizationService;
@@ -26,9 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Aspect que intercepta endpoints anotados com @RequireRole, @CheckOwner, @CheckGroupMember, @CheckGroupRole ou @CheckGroupManager.
+ * Aspect que intercepta endpoints anotados com @RequireRole, @CheckOwner, @CheckGroupMember ou @CheckGroupRole.
  * <p>
- * - @RequireRole: verifica se o usuário possui a role ou se é bot do discord autorizado.
+ * - @RequireMinimumRole: verifica se o usuário possui a role mínima ou se é bot do discord autorizado.
  * - @CheckOwner: verifica se o usuário é dono do recurso ou se é bot/admin autorizado.
  * - @CheckGroupMember: verifica se o usuário é membro do grupo ou se é bot/admin autorizado.
  * - @CheckGroupRole: verifica se o usuário tem a função especificada no grupo ou se é bot/admin autorizado.
@@ -43,11 +43,11 @@ public class SecurityAspect {
     private final GroupAuthorizationServiceRegistry groupAuthorizationServiceRegistry;
 
     /**
-     * Intercepta RequireRole e lança exceção se o usuário não tiver permissão
+     * Intercepta RequireMinimumRole e lança exceção se o usuário não tiver permissão mínima
      */
-    @Before("@annotation(requireRole)")
-    public void checkRole(JoinPoint joinPoint, RequireRole requireRole) {
-        if (!authorizationService.hasAnyRole(requireRole.roles()) && !(requireRole.allowBot() && authorizationService.isBot())) {
+    @Before("@annotation(requireMinimumRole)")
+    public void checkRole(JoinPoint joinPoint, RequireMinimumRole requireMinimumRole) {
+        if (!authorizationService.hasMinimalRole(requireMinimumRole.role()) && !(requireMinimumRole.allowBot() && authorizationService.isBot())) {
             throw new OwnershipAccessDeniedException("auth.required_role.message");
         }
     }
@@ -85,7 +85,7 @@ public class SecurityAspect {
     }
 
     /**
-     * Intercepta CheckGroupRole e lança exceção se o usuário não tiver a função no grupo
+     * Intercepta CheckGroupRole e lança exceção se o usuário não tiver a função mínima no grupo
      */
     @Before("@annotation(checkGroupRole)")
     public void checkGroupRole(JoinPoint joinPoint, CheckGroupRole checkGroupRole) {
@@ -101,6 +101,9 @@ public class SecurityAspect {
         }
     }
 
+    /**
+     *
+     */
     private Object extractId(JoinPoint joinPoint, Class<? extends Annotation> annotationClass, OwnableService<?, ?> service) {
         Object[] args = joinPoint.getArgs();
         MethodSignature sig = (MethodSignature) joinPoint.getSignature();
@@ -148,6 +151,9 @@ public class SecurityAspect {
         return authorizationService.isOwner(service, id);
     }
 
+    /**
+     * Lógica de autorização final para grupos: função mínima, admin, bot
+     */
     private boolean authorizeGroupAccess(GroupAuthorizationService service, Long groupId, GroupMemberRole requiredRole,
                                          boolean allowAdmin, boolean allowBot) {
         if (allowBot && authorizationService.isBot()) return true;
@@ -156,6 +162,9 @@ public class SecurityAspect {
         return authorizationService.authorize(service, groupId, requiredRole);
     }
 
+    /**
+     * Logica para verficar se o grupo existe
+     */
     private void ensureGroupExists(GroupAuthorizationService service, Long groupId) {
         if (!service.groupExists(groupId)) {
             throw new AuthorizationGroupNotFoundException(new Object[]{groupId});

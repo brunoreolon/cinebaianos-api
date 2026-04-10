@@ -37,8 +37,8 @@ public class TmdbController {
     private final TmdbConverter tmdbConverter;
     private final TmdbProperties tmdbProperties;
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/search/movies-details")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar filmes com os detalhes pelo título",
             description = "Realiza uma busca de filmes no TMDb usando o título e, opcionalmente, o ano de lançamento."
@@ -68,8 +68,8 @@ public class TmdbController {
         return ResponseEntity.ok().body(movieDetailsResponseList);
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/search/movies")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar filmes pelo título",
             description = "Realiza uma busca de filmes no TMDb usando o título e, opcionalmente, o ano de lançamento."
@@ -97,8 +97,8 @@ public class TmdbController {
         return ResponseEntity.ok().body(tmdbConverter.toMovieResponseList(response.getResults()));
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/movies/{movieId}")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar detalhes de filme pelo ID",
             description = "Retorna informações detalhadas de um filme do TMDb a partir do seu ID."
@@ -122,4 +122,5 @@ public class TmdbController {
         ClientMovieDetailsResponse movieDetails = tmdbService.getMovieDetails(movieId, language);
         return ResponseEntity.ok().body(tmdbConverter.toMovieDetailsResponse(movieDetails));
     }
+
 }

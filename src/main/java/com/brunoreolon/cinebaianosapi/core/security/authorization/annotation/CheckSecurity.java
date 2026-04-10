@@ -17,17 +17,17 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole
 public @interface CheckSecurity {
 
     /**
-     * Verifica se o usuário possui qualquer uma das roles especificadas.
+     * Verifica se o usuário possui a funçao mínima requerida no sistema.
      * Também pode permitir bots do discord se allowBot = true.
      *
      * Exemplo de uso:
-     * @RequireRole(roles = {Role.ADMIN, Role.USER}, allowBot = true)
+     * @RequireMinimumRole(role = USER, allowBot = true)
      */
     @Retention(RUNTIME)
     @Target(METHOD)
-    @interface RequireRole {
-        UserRole[] roles();                   // Roles permitidas
-        boolean allowBot() default false; // Permitir execução por bot do discord
+    @interface RequireMinimumRole {
+        UserRole role();                   // Função mínima requerida no sistema
+        boolean allowBot() default false;  // Permitir execução por bot do discord
     }
 
     /**
@@ -61,7 +61,7 @@ public @interface CheckSecurity {
     }
 
     /**
-     * Verifica se o usuário logado tem a função especificada no grupo.
+     * Verifica se o usuário logado tem a função mínima especificada no grupo.
      * Pode permitir administradores e bots do discord opcionalmente.
      *
      * Exemplo de uso:
@@ -71,7 +71,7 @@ public @interface CheckSecurity {
     @Target(METHOD)
     @interface CheckGroupRole {
         Class<? extends GroupAuthorizationService> service(); // Serviço que fornece verificações de grupo
-        GroupMemberRole role();             // Função requerida no grupo
+        GroupMemberRole role();             // Função mínima requerida no grupo
         boolean allowAdmin() default false; // Permitir admin
         boolean allowBot() default false;   // Permitir bot do discord
     }

@@ -55,7 +55,7 @@ public class UserRegistrationController {
     private final GroupConverter groupConverter;
 
     @PostMapping
-    @RequireRole(roles = {ADMIN}, allowBot = true)
+    @RequireMinimumRole(role = SUPER_ADMIN, allowBot = true)
     @Operation(summary = "Criar usuário", description = "Cria um novo usuário no sistema. Permite criação por administradores ou bots autorizados.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso", content = @Content(schema = @Schema(implementation = UserDetailResponse.class))),
@@ -69,7 +69,7 @@ public class UserRegistrationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userConverter.toDetailResponse(newUser));
     }
 
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @GetMapping
     @Operation(summary = "Listar usuários", description = "Retorna todos os usuários cadastrados. É possível incluir ou excluir bots do resultado.")
     @ApiResponses({
@@ -91,7 +91,7 @@ public class UserRegistrationController {
         return ResponseEntity.ok().body(userConverter.toDetailResponseList(users));
     }
 
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/{userId}")
     @Operation(summary = "Buscar usuário por ID", description = "Retorna os detalhes de um usuário específico pelo seu ID.")
     @ApiResponses({
@@ -106,7 +106,7 @@ public class UserRegistrationController {
         return ResponseEntity.ok().body(userConverter.toDetailResponse(user));
     }
 
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/me")
     @Operation(summary = "Consultar dados do usuário logado", description = "Retorna os detalhes do usuário autenticado com base no token de acesso.")
     @ApiResponses({
@@ -126,7 +126,7 @@ public class UserRegistrationController {
         return ResponseEntity.ok(userConverter.toDetailResponse(user));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/me/groups")
     @Operation(summary = "Listar grupos ativos do usuário logado",
             description = "Retorna todos os grupos ativos dos quais o usuário autenticado participa.")
@@ -136,7 +136,7 @@ public class UserRegistrationController {
         return ResponseEntity.ok(groupConverter.toResponseList(groups));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/me/groups/default")
     @Operation(summary = "Obter grupo padrão do usuário logado",
             description = "Retorna o grupo selecionado como padrão para o usuário autenticado.")
@@ -160,7 +160,7 @@ public class UserRegistrationController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @DeleteMapping("/{userId}")
     @Operation(summary = "Excluir usuário", description = "Remove um usuário do sistema com base no ID do usuário. Apenas administradores podem executar esta operação.")
     @ApiResponses({

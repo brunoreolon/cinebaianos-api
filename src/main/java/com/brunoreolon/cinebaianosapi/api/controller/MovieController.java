@@ -67,8 +67,8 @@ public class MovieController {
     private final UserConverter userConverter;
     private final TmdbProperties tmdbProperties;
 
+    @RequireMinimumRole(role = USER)
     @PostMapping
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Adicionar filme pelo TMDb ID",
             description = "Recebe o TMDb ID de um filme, obtém os dados diretamente da API do TMDb e realiza o cadastro no sistema.")
     @ApiResponses(value = {
@@ -99,8 +99,8 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.CREATED).body(movieConverter.toWithChooserResponse(newMovie));
     }
 
+    @RequireMinimumRole(role = USER)
     @PostMapping("/candidates")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Adicionar filme informando título e ano",
             description = """
                     Realiza uma busca no TMDb utilizando título e ano.
@@ -151,8 +151,8 @@ public class MovieController {
         return voteType.map(VoteTypeId::getId).orElse(null);
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Listar todos os filmes cadastrados",
             description = "Retorna uma lista paginada de filmes cadastrados, com suporte a filtros, ordenação e paginação."
@@ -192,8 +192,8 @@ public class MovieController {
         return ResponseEntity.ok().body(moviePage);
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/{movieId}")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(
             summary = "Buscar filme por ID",
             description = "Retorna os detalhes completos de um filme cadastrado no sistema, incluindo avaliador e informações adicionais."
@@ -236,7 +236,7 @@ public class MovieController {
     }
 
     @GetMapping("/users/{userId}")
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @Operation(
             summary = "Listar filmes por usuário",
             description = "Retorna todos os filmes cadastrados por um usuário específico, identificado pelo seu ID."
@@ -259,7 +259,7 @@ public class MovieController {
     }
 
     @GetMapping("/awaiting-review")
-    @RequireRole(roles = {ADMIN, USER})
+    @RequireMinimumRole(role = USER)
     @Operation(
             summary = "Listar filmes aguardando avaliação",
             description = "Retorna uma lista paginada de filmes que ainda não receberam avaliação."

@@ -47,7 +47,7 @@ public class AdminController {
     private final VoteTypeService voteTypeService;
     private final GroupConverter groupConverter;
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @GetMapping("/groups")
     @Operation(summary = "Listar grupos para administração",
             description = "Retorna todos os grupos cadastrados no sistema para visão administrativa global.")
@@ -55,7 +55,7 @@ public class AdminController {
         return ResponseEntity.ok(groupConverter.toResponseList(groupService.getAllForAdmin()));
     }
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @PostMapping("/users/{userId}/reset-password")
     @Operation(
             summary = "Resetar senha de usuário",
@@ -77,7 +77,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @PostMapping("/users/{userId}/activation")
     @Operation(
             summary = "Ativar/Desativar usuário",
@@ -99,7 +99,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @PostMapping("/users/{userId}/admin")
     @Operation(
             summary = "Conceder/Remover privilégios de administrador",
@@ -124,7 +124,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @PostMapping("/vote-types/{typeVoteId}/activation")
     @Operation(
             summary = "Ativar/Desativar tipo de voto",
@@ -146,7 +146,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @PostMapping("/users/{userId}/ban")
     @Operation(summary = "Banir usuario no sistema",
             description = "Permite banimento temporario ou definitivo de usuario no contexto global do sistema.")
@@ -158,7 +158,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @DeleteMapping("/users/{userId}/ban")
     @Operation(summary = "Remover banimento de usuario no sistema",
             description = "Remove banimento global ativo de um usuario.")
@@ -167,7 +167,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @PostMapping("/groups/{groupId}/ban")
     @Operation(summary = "Banir grupo no sistema",
             description = "Permite banimento temporario ou definitivo de um grupo no contexto global do sistema.")
@@ -179,7 +179,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {SUPER_ADMIN})
+    @RequireMinimumRole(role = SUPER_ADMIN)
     @DeleteMapping("/groups/{groupId}/ban")
     @Operation(summary = "Remover banimento de grupo no sistema",
             description = "Remove banimento global ativo de um grupo.")

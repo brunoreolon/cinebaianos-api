@@ -9,7 +9,7 @@ import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupPermissionsR
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckOwner;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireMinimumRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
 import com.brunoreolon.cinebaianosapi.domain.model.CustomUserDetails;
@@ -43,7 +43,6 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 
-import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.SUPER_ADMIN;
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.USER;
 
 @AllArgsConstructor
@@ -119,7 +118,7 @@ public class GroupMemberController {
         return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/{groupId}/permissions/me")
     @Operation(summary = "Consultar permissões do usuário logado no grupo",
             description = "Retorna permissões calculadas do usuário autenticado para o grupo informado.")

@@ -5,13 +5,9 @@ import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVotesResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserMovieVoteResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
-import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteTypeId;
-import com.brunoreolon.cinebaianosapi.api.model.vote.request.VoteRequest;
-import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteDetailResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.BusinessPermissionService;
 import com.brunoreolon.cinebaianosapi.domain.model.MovieVotes;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteService;
@@ -23,9 +19,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,8 +40,8 @@ public class VoteController {
     private final BusinessPermissionService permissionService;
     private final VoteConverter voteConverter;
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/received")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos recebidos", description = "Retorna a lista de votos recebidos pelos usuários, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de votos recebidos retornada com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -60,8 +54,8 @@ public class VoteController {
         return ResponseEntity.ok().body(votesReceived);
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/given")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos dados", description = "Retorna a lista de votos dados pelos usuários, podendo filtrar por tipo de voto.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de votos dados retornada com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
@@ -74,8 +68,8 @@ public class VoteController {
         return ResponseEntity.ok().body(votesGiven);
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/users/{userId}/movies-votes")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos de filmes de um usuário", description = "Retorna a lista de votos que um usuário deu em filmes.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Votos do usuário retornados com sucesso", content = @Content(schema = @Schema(implementation = UserMovieVoteResponse.class))),
@@ -147,8 +141,8 @@ public class VoteController {
 //        return ResponseEntity.noContent().build();
 //    }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("{movieId}/votes")
-    @RequireRole(roles = {ADMIN, USER})
     @Operation(summary = "Votos recebidos por filme", description = "Retorna a contagem de votos recebidos por um filme específico.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Contagem de votos retornada com sucesso", content = @Content(schema = @Schema(implementation = MovieVotesResponse.class))),
@@ -163,4 +157,5 @@ public class VoteController {
 
         return ResponseEntity.ok().body(movieVotesResponse);
     }
+
 }

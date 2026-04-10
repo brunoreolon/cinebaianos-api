@@ -8,7 +8,7 @@ import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupInviteRespon
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireMinimumRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.domain.model.CustomUserDetails;
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.SUPER_ADMIN;
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.USER;
 
 @AllArgsConstructor
@@ -70,7 +69,7 @@ public class GroupInviteController {
         return ResponseEntity.ok(response);
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/invites/received")
     @Operation(summary = "Listar convites recebidos")
     public ResponseEntity<List<GroupInviteResponse>> getReceivedInvites(
@@ -92,7 +91,7 @@ public class GroupInviteController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @PostMapping("/invites/accept")
     @Operation(summary = "Aceitar convite por token")
     public ResponseEntity<GroupMemberResponse> acceptInvite(
@@ -102,7 +101,7 @@ public class GroupInviteController {
         return ResponseEntity.ok(groupConverter.toMemberResponse(member));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @DeleteMapping("/invites/{inviteId}/decline")
     @Operation(summary = "Recusar convite recebido")
     public ResponseEntity<Void> declineInvite(

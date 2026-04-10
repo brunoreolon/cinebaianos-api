@@ -65,6 +65,17 @@ public class AuthorizationService {
     }
 
     /**
+     * Retorna true se o usuário atual possui a role mínima exigida (ou superior)
+     */
+    public boolean hasMinimalRole(UserRole role) {
+        User loggedUser = userContextService.getLoggedUser().orElse(null);
+        if (loggedUser == null) return false;
+
+        return loggedUser.getRoles().stream()
+                .anyMatch(ur -> ur.atLeast(role));
+    }
+
+    /**
      * Retorna true se o usuário atual é dono do recurso
      */
     public boolean isOwner(OwnableService service, Object resourceKey) {

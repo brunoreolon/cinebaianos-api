@@ -9,7 +9,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfi
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckOwner;
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.RequireMinimumRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
@@ -46,7 +46,7 @@ public class GroupController {
     private final GroupMemberService groupMemberService;
     private final GroupConverter groupConverter;
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @PostMapping
     @Operation(summary = "Criar novo grupo",
             description = "Cria um novo grupo. O usuário autenticado será definido como o owner do grupo.")
@@ -67,7 +67,7 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.CREATED).body(groupConverter.toResponse(newGroup));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping("/availability")
     @Operation(summary = "Validar disponibilidade de tag e slug",
             description = "Verifica se a tag e/ou slug informados podem ser usados por um novo grupo.")
@@ -119,7 +119,7 @@ public class GroupController {
         return ResponseEntity.ok(groupConverter.toResponse(groupUpdated));
     }
 
-    @RequireRole(roles = {USER, SUPER_ADMIN})
+    @RequireMinimumRole(role = USER)
     @GetMapping
     @Operation(summary = "Listar todos os grupos",
             description = "Retorna uma lista de todos os grupos públicos disponíveis.")
