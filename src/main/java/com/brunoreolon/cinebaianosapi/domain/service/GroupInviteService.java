@@ -7,8 +7,13 @@ import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.GroupConflictException;
 import com.brunoreolon.cinebaianosapi.domain.model.*;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupInviteRepository;
+import com.brunoreolon.cinebaianosapi.domain.repository.GroupMemberBanRepository;
+import com.brunoreolon.cinebaianosapi.domain.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,12 +30,33 @@ public class GroupInviteService {
     private final GroupService groupService;
     private final GroupMemberService groupMemberService;
     private final UserRegistratioService userRegistratioService;
+    private final GroupMemberBanRepository groupMemberBanRepository;
+    private final UserRepository userRepository;
     private final ApplicationEventPublisher publisher;
+
+    @Transactional(readOnly = true)
+    public Slice<User> searchInviteCandidates(Long groupId, String query, Pageable pageable) {
+        groupService.getById(groupId);
+
+        String normalizedQuery = query == null ? "" : query.trim();
+        if (normalizedQuery.length() < 2) {
+            return new SliceImpl<>(List.of(), pageable, false);
+        }
+
+        return userRepository.searchInviteCandidates(
+                groupId,
+                normalizedQuery,
+                GroupInviteStatus.PENDING,
+                LocalDateTime.now(),
+                pageable
+        );
+    }
 
     @Transactional
     public GroupInvite createInvite(Long groupId, Long createdById, Long invitedUserId, Integer maxUses, LocalDateTime expiresAt) {
         Group group = groupService.getById(groupId);
         User createdBy = userRegistratioService.get(createdById);
+        LocalDateTime now = LocalDateTime.now();
 
         User invitedUser = null;
         GroupInviteType inviteType = GroupInviteType.GENERIC;
@@ -38,16 +64,7 @@ public class GroupInviteService {
         if (invitedUserId != null) {
             invitedUser = userRegistratioService.get(invitedUserId);
             inviteType = GroupInviteType.DIRECT;
-
-            if (groupMemberService.isMember(groupId, invitedUserId)) {
-                throw new GroupConflictException("group.member.already.exists.message", new Object[]{groupId, invitedUserId});
-            }
-
-            boolean hasPendingDirectInvite = groupInviteRepository
-                    .existsByGroupIdAndInvitedUserIdAndStatus(groupId, invitedUserId, GroupInviteStatus.PENDING);
-            if (hasPendingDirectInvite) {
-                throw new GroupConflictException("group.invite.pending.already.exists.message", new Object[]{groupId, invitedUserId});
-            }
+            validateDirectInviteCandidate(groupId, invitedUser, now);
         }
 
         int inviteMaxUses;
@@ -196,6 +213,56 @@ public class GroupInviteService {
         publisher.publishEvent(new GroupInviteAcceptedEvent(invite, acceptedBy));
 
         return member;
+    }
+
+    private void validateDirectInviteCandidate(Long groupId, User invitedUser, LocalDateTime now) {
+        Long invitedUserId = invitedUser.getId();
+
+        if (Boolean.TRUE.equals(invitedUser.getIsBot())) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.invite.user.bot.not.allowed.message",
+                    new Object[]{invitedUserId},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (Boolean.FALSE.equals(invitedUser.getActive())) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.invite.user.inactive.message",
+                    new Object[]{invitedUserId},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (invitedUser.isBanned()) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.invite.user.banned.message",
+                    new Object[]{invitedUserId},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if (groupMemberService.isMember(groupId, invitedUserId)) {
+            throw new GroupConflictException("group.member.already.exists.message", new Object[]{groupId, invitedUserId});
+        }
+
+        if (groupMemberBanRepository.existsActiveBan(groupId, invitedUserId, now)) {
+            throw new BusinessException(
+                    "action.not.allowed.title",
+                    "group.invite.user.group.banned.message",
+                    new Object[]{invitedUserId, groupId},
+                    HttpStatus.UNPROCESSABLE_ENTITY
+            );
+        }
+
+        boolean hasPendingDirectInvite = groupInviteRepository
+                .existsActivePendingDirectInvite(groupId, invitedUserId, GroupInviteStatus.PENDING, now);
+        if (hasPendingDirectInvite) {
+            throw new GroupConflictException("group.invite.pending.already.exists.message", new Object[]{groupId, invitedUserId});
+        }
     }
 
     private GroupInvite getInviteByGroup(Long inviteId, Long groupId) {

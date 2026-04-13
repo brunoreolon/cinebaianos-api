@@ -33,4 +33,18 @@ public interface GroupInviteRepository extends JpaRepository<GroupInvite, Long> 
 
     boolean existsByGroupIdAndInvitedUserIdAndStatus(Long groupId, Long invitedUserId, GroupInviteStatus status);
 
+    @Query("""
+            select (count(i) > 0)
+            from GroupInvite i
+            where i.group.id = :groupId
+              and i.invitedUser.id = :userId
+              and i.status = :status
+              and (i.expiresAt is null or i.expiresAt > :now)
+              and i.usesCount < i.maxUses
+            """)
+    boolean existsActivePendingDirectInvite(@Param("groupId") Long groupId,
+                                            @Param("userId") Long userId,
+                                            @Param("status") GroupInviteStatus status,
+                                            @Param("now") LocalDateTime now);
+
 }

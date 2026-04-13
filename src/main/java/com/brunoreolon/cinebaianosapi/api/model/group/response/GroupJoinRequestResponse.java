@@ -13,9 +13,12 @@ public class GroupJoinRequestResponse {
     private Long id;
     private Long groupId;
     private Long userId;
+    private String userName;
+    private String userAvatar;
     private GroupJoinRequestStatus status;
     private LocalDateTime createdAt;
     private Long reviewedByUserId;
+    private String reviewedByUserName;
     private LocalDateTime reviewedAt;
 
 }
