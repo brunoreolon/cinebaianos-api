@@ -23,5 +23,8 @@ public class GroupInviteResponse {
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
     private Long createdByUserId;
+    private String createdByUserName;
     private Long invitedUserId;
+    private String invitedUserName;
+    private String invitedUserAvatar;
 }

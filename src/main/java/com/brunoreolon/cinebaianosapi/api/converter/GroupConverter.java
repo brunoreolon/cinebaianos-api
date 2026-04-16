@@ -25,6 +25,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @Component
@@ -83,9 +84,16 @@ public class GroupConverter {
         return response;
     }
 
+    public GroupResponse toResponse(Group group, Integer totalMembers) {
+        GroupResponse response = toResponse(group);
+        response.setTotalMembers(totalMembers != null ? totalMembers : 0);
+
+        return response;
+    }
+
     public List<GroupResponse> toResponseList(List<Group> groups) {
         return groups.stream()
-                .map(this::toResponse)
+                .map(group -> toResponse(group, group.getMembers().size()))
                 .toList();
     }
 

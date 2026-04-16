@@ -24,4 +24,3 @@ public class GroupMemberResponse {
     private LocalDateTime leftAt;
 
 }
-

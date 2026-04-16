@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.api.converter.GroupConverter;
 import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.AcceptGroupInviteRequest;
 import com.brunoreolon.cinebaianosapi.api.model.group.request.GroupInviteCreateRequest;
+import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupInviteCandidateSliceResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupInviteResponse;
 import com.brunoreolon.cinebaianosapi.api.model.group.response.GroupMemberResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
@@ -15,6 +16,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMem
 import com.brunoreolon.cinebaianosapi.domain.model.CustomUserDetails;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupInvite;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
+import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupInviteService;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +29,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -92,6 +97,32 @@ public class GroupInviteController {
                 .map(groupAccessConverter::toInviteResponse)
                 .toList();
         return ResponseEntity.ok(response);
+    }
+
+    @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.ADMIN)
+    @GetMapping("/{groupId}/invite-candidates")
+    @Operation(summary = "Buscar candidatos a convite do grupo", description = "Retorna usuários elegíveis para convite direto no grupo, filtrando por nome ou e-mail com paginação leve.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Candidatos retornados com sucesso", content = @Content(schema = @Schema(implementation = GroupInviteCandidateSliceResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuário não possui permissão para buscar candidatos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Grupo não encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<GroupInviteCandidateSliceResponse> searchInviteCandidates(
+            @Parameter(description = "ID do grupo", example = "1")
+            @PathVariable @GroupKey Long groupId,
+            @Parameter(description = "Trecho do nome ou e-mail do usuário", example = "bruno")
+            @RequestParam(value = "q", required = false, defaultValue = "") String query,
+            @Parameter(description = "Página da busca", example = "0")
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @Parameter(description = "Quantidade máxima de resultados", example = "10")
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
+        int sanitizedPage = Math.max(page, 0);
+        int sanitizedSize = Math.min(Math.max(size, 1), 20);
+        Pageable pageable = PageRequest.of(sanitizedPage, sanitizedSize);
+
+        Slice<User> candidates = groupInviteService.searchInviteCandidates(groupId, query, pageable);
+        return ResponseEntity.ok(groupAccessConverter.toInviteCandidateSliceResponse(candidates));
     }
 
     @RequireMinimumRole(role = USER)

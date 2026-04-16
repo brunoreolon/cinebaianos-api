@@ -34,5 +34,6 @@ public class GroupResponse {
     private int movieNewDays;
     private int inviteMaxUses;
     private LocalDateTime createdAt;
+    private int totalMembers;
 
 }
