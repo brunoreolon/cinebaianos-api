@@ -3,6 +3,7 @@ package com.brunoreolon.cinebaianosapi.domain.repository;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -27,7 +28,7 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     Optional<GroupMember> findByMemberIdAndActiveTrueAndSelectedTrue(Long memberId);
 
     // Contar membros ativos
-    Long countByGroupIdAndActiveTrue(Long groupId);
+    Integer countByGroupIdAndActiveTrue(Long groupId);
 
     // Verificar se usuário é admin/owner
     boolean existsByGroupIdAndMemberIdAndRoleIn(Long groupId, Long memberId, Collection<GroupMemberRole> roles);

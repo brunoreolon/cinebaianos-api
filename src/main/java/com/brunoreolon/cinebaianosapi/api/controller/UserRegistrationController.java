@@ -34,7 +34,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.brunoreolon.cinebaianosapi.api.model.ValidationGroups.*;
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
@@ -154,7 +156,7 @@ public class UserRegistrationController {
         Optional<Group> group = groupMemberService.getDefaultGroup(userDetails.getUser().getId());
 
         return group
-                .map(value -> ResponseEntity.ok(groupConverter.toResponse(value)))
+                .map(value -> ResponseEntity.ok(groupConverter.toResponse(value, value.getMembers().size())))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
