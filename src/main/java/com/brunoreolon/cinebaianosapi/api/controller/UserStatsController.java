@@ -4,6 +4,7 @@ import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.ResourceKey;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.service.UserRegistratioService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
@@ -74,7 +75,7 @@ public class UserStatsController {
 
     @GetMapping("/{userId}/summary")
     @RequireMinimumRole(role = USER)
-    @Operation(summary = "Resumo do usuário", description = "Retorna um resumo completo de estatísticas do usuário, incluindo votos e métricas gerais.")
+    @Operation(summary = "Resumo do usuário", description = "Retorna um resumo completo de estatísticas do usuário, incluindo votos e métricas gerais. Pode ser filtrado por grupo.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Resumo do usuário retornado com sucesso", content = @Content(schema = @Schema(implementation = UserSummaryResponse.class))),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
@@ -82,9 +83,10 @@ public class UserStatsController {
     })
     public ResponseEntity<UserSummaryResponse> getUserSummary(
             @Parameter(description = "ID do usuário", example = "987654321098765432")
-            @PathVariable Long userId) {
-        UserSummaryResponse userSummaryStats = userService.getUserSummary(userId);
-
+            @PathVariable Long userId,
+            @Parameter(description = "ID do grupo (opcional)", example = "1")
+            @RequestParam(name = "groupId", required = false) Long groupId) {
+        UserSummaryResponse userSummaryStats = userService.getUserSummary(userId, groupId);
         return ResponseEntity.ok().body(userSummaryStats);
     }
 

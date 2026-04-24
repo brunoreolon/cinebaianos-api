@@ -62,4 +62,14 @@ public interface VoteRepository extends JpaRepository<Vote, VoteId> {
     boolean existsByGroupMovieAndVoterId(GroupMovie groupMovie, Long voterId);
 
     Optional<Vote> findByGroupMovieAndVoterId(GroupMovie groupMovie, Long voterId);
+
+    @Query("""
+        SELECT COUNT(v)
+        FROM Vote v
+        WHERE v.vote = :voteType
+          AND v.groupMovie.movie.chooser = :user
+          AND v.groupMovie.group.id = :groupId
+    """)
+    Long countAllByVoteTypeAndReceiverAndGroup(@Param("voteType") VoteType voteType, @Param("user") User user, @Param("groupId") Long groupId);
+
 }

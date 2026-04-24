@@ -90,4 +90,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
             """)
     int clearExpiredBans(@Param("now") LocalDateTime now);
 
+    @Query("""
+        SELECT u FROM GroupMember gm
+        JOIN gm.member u
+        WHERE gm.group.id = :groupId AND gm.active = true
+    """)
+    List<User> findAllByGroupId(@Param("groupId") Long groupId);
+
 }

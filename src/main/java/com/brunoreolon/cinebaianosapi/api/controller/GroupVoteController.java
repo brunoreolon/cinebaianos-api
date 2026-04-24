@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.api.model.ApiErrorResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.id.VoteTypeId;
 import com.brunoreolon.cinebaianosapi.api.model.vote.request.GroupVoteRequest;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteDetailResponse;
+import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.CheckGroupMember;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
@@ -12,6 +13,7 @@ import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Res
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.BusinessPermissionService;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
+import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,6 +29,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/groups/{groupId}/votes")
 @AllArgsConstructor
@@ -37,6 +41,7 @@ public class GroupVoteController {
     private final VoteService voteService;
     private final BusinessPermissionService permissionService;
     private final VoteConverter voteConverter;
+    private final UserService userService;
 
     @CheckGroupMember(service = GroupMemberService.class, allowBot = true)
     @PostMapping
@@ -120,6 +125,22 @@ public class GroupVoteController {
         permissionService.checkCanRemoveVoteFor(voterId);
         voteService.deleteByGroup(voterId, groupId, movieId);
         return ResponseEntity.noContent().build();
+    }
+
+    @CheckGroupMember(service = GroupMemberService.class)
+    @GetMapping("/received")
+    @Operation(summary = "Votos recebidos no grupo", description = "Retorna a lista de votos recebidos pelos usuários do grupo, podendo filtrar por tipo de voto.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista de votos recebidos retornada com sucesso", content = @Content(schema = @Schema(implementation = UserVoteStatsResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<List<UserVoteStatsResponse>> getVotesReceivedByGroup(
+            @Parameter(description = "ID do grupo", example = "1")
+            @PathVariable @GroupKey Long groupId,
+            @Parameter(description = "ID do tipo de voto (opcional)", example = "1")
+            @RequestParam(name = "vote", required = false) Long voteType) {
+        List<UserVoteStatsResponse> votesReceived = userService.getVotesReceived(voteType, groupId);
+        return ResponseEntity.ok().body(votesReceived);
     }
 
 }

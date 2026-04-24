@@ -224,4 +224,8 @@ public class VoteService implements OwnableService<Vote, VoteId> {
         return keyValues.as(VoteId.class);
     }
 
+    public Long countVotesReceivedByTypeForUserAndGroup(VoteType voteType, User user, Long groupId) {
+        return voteRepository.countAllByVoteTypeAndReceiverAndGroup(voteType, user, groupId);
+    }
+
 }

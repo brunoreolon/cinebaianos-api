@@ -6,9 +6,11 @@ import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieVotesRespons
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserMovieVoteResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.GroupKey;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.service.BusinessPermissionService;
 import com.brunoreolon.cinebaianosapi.domain.model.MovieVotes;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
+import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
 import com.brunoreolon.cinebaianosapi.domain.service.UserService;
 import com.brunoreolon.cinebaianosapi.domain.service.VoteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,7 +42,7 @@ public class VoteController {
     private final BusinessPermissionService permissionService;
     private final VoteConverter voteConverter;
 
-    @RequireMinimumRole(role = USER)
+    @CheckGroupMember(service = GroupMemberService.class)
     @GetMapping("/received")
     @Operation(summary = "Votos recebidos", description = "Retorna a lista de votos recebidos pelos usuários, podendo filtrar por tipo de voto.")
     @ApiResponses({
@@ -50,7 +52,7 @@ public class VoteController {
     public ResponseEntity<List<UserVoteStatsResponse>> getVotesReceived(
             @Parameter(description = "ID do tipo de voto (opcional)", example = "1")
             @RequestParam(name = "vote", required = false) Long voteType) {
-        List<UserVoteStatsResponse> votesReceived = userService.getVotesReceived(voteType);
+        List<UserVoteStatsResponse> votesReceived = userService.getVotesReceived(voteType, null);
         return ResponseEntity.ok().body(votesReceived);
     }
 

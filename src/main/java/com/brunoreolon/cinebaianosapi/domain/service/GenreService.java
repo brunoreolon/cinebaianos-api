@@ -4,10 +4,12 @@ import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryRes
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.GenreVoteBreakdownResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.domain.model.Genre;
+import com.brunoreolon.cinebaianosapi.domain.model.GroupMovie;
 import com.brunoreolon.cinebaianosapi.domain.model.VoteType;
 import com.brunoreolon.cinebaianosapi.domain.repository.GenreCountProjection;
 import com.brunoreolon.cinebaianosapi.domain.repository.GenreVoteTypeCountProjection;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
+import com.brunoreolon.cinebaianosapi.domain.repository.GroupMovieRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,7 @@ public class GenreService {
 
     private final VoteTypeRegistrationService voteTypeRegistrationService;
     private final MovieRepository movieRepository;
+    private final GroupMovieRepository groupMovieRepository;
 
     public Map<String, Integer> getGenreRankings() {
         List<GenreCountProjection> projections = movieRepository.findGenreCountsProjections();
@@ -107,4 +110,11 @@ public class GenreService {
         return movieRepository.findAllGenres();
     }
 
+    public Map<String, Integer> getGenreRankingsByGroup(Long groupId) {
+        List<GroupMovie> groupMovies = groupMovieRepository.findByGroupId(groupId);
+        return groupMovies.stream()
+                .flatMap(gm -> gm.getMovie().getGenres().stream())
+                .filter(g -> g.getName() != null)
+                .collect(Collectors.groupingBy(Genre::getName, Collectors.summingInt(e -> 1)));
+    }
 }

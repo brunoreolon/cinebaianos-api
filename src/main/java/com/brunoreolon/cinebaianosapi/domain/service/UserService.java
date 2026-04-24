@@ -188,7 +188,7 @@ public class UserService {
         }
     }
 
-    public com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse getUserSummary(Long userId) {
+    public com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse getUserSummary(Long userId, Long groupId) {
         User user = userRegistratioService.get(userId);
 
         UserDetailResponse userDetail = new UserDetailResponse(
@@ -206,18 +206,16 @@ public class UserService {
                 user.isBanned()
         );
 
-        UserSummaryProjection summary = null;
-//        UserSummaryProjection summary = userStatsRepository.findUserSummaryById(userId);
+        UserSummaryProjection summary = userStatsRepository.findUserSummaryByIdAndGroup(userId, groupId);
 
         return new com.brunoreolon.cinebaianosapi.api.model.user.stats.UserSummaryResponse(
                 userDetail,
-                null
-//                new UserStats(
-//                        summary.getTotalMoviesAdded(),
-//                        summary.getTotalVotesGiven(),
-//                        summary.getTotalVotesReceived(),
-//                        summary.getMoviesPendingVote()
-//                )
+                new UserStats(
+                        summary.getTotalMoviesAdded(),
+                        summary.getTotalVotesGiven(),
+                        summary.getTotalVotesReceived(),
+                        summary.getMoviesPendingVote()
+                )
         );
     }
 
@@ -276,6 +274,53 @@ public class UserService {
         }
 
         user.unban();
+    }
+
+    public List<UserVoteStatsResponse> getVotesReceived(Long voteTypeId, Long groupId) {
+        if (groupId == null) {
+            return getVotesReceived(voteTypeId);
+        }
+        // Busca apenas usuários do grupo
+        List<User> groupUsers = userRepository.findAllByGroupId(groupId);
+        return groupUsers.stream()
+                .filter(u -> !u.getIsBot() && !u.isBanned() && u.getActive() == true)
+                .map(user -> getVotesReceivedByUserAndGroup(user, voteTypeId, groupId))
+                .toList();
+    }
+
+    // Novo método para votos recebidos por usuário e grupo
+    public UserVoteStatsResponse getVotesReceivedByUserAndGroup(User user, Long voteType, Long groupId) {
+        List<VoteType> votesToConsider = getVotesToConsider(voteType);
+        return new UserVoteStatsResponse(
+                new UserDetailResponse(
+                        user.getId(),
+                        user.getDiscordId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getAvatar(),
+                        user.getBiography(),
+                        user.getCreatedAt(),
+                        user.isAdmin(),
+                        user.hasRole(UserRole.SUPER_ADMIN),
+                        user.getIsBot(),
+                        user.getActive(),
+                        user.isBanned()
+                ),
+                getVoteReceivedSummaryForUserAndGroup(user, votesToConsider, groupId)
+        );
+    }
+
+    // Novo método para sumarizar votos recebidos por usuário/tipo/grupo
+    private List<VoteStatsResponse> getVoteReceivedSummaryForUserAndGroup(User user, List<VoteType> types, Long groupId) {
+        return types.stream()
+                .map(voteTypes -> {
+                    Long totalVotes = voteService.countVotesReceivedByTypeForUserAndGroup(voteTypes, user, groupId);
+                    VoteTypeSummaryResponse voteTypeSummaryResponse = new VoteTypeSummaryResponse(
+                            voteTypes.getId(), voteTypes.getDescription(), voteTypes.getColor(), voteTypes.getEmoji()
+                    );
+                    return new VoteStatsResponse(voteTypeSummaryResponse, totalVotes);
+                })
+                .toList();
     }
 
 }

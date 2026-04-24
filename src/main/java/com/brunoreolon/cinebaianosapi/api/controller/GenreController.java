@@ -40,14 +40,19 @@ public class GenreController {
     @GetMapping("/rankings")
     @Operation(
             summary = "Ranking de gêneros",
-            description = "Retorna a lista de gêneros ordenada pelo total de filmes cadastrados em cada gênero."
+            description = "Retorna a lista de gêneros ordenada pelo total de filmes cadastrados em cada gênero. Pode ser filtrado por grupo."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Ranking retornado com sucesso", content = @Content(schema = @Schema(implementation = GenreStatsResponse.class))),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
-    public ResponseEntity<List<GenreStatsResponse>> getGenreRankings() {
-        Map<String, Integer> genreRankings = genreService.getGenreRankings();
+    public ResponseEntity<List<GenreStatsResponse>> getGenreRankings(
+            @Parameter(description = "ID do grupo para filtrar (opcional)", example = "1")
+            @RequestParam(name = "groupId", required = false) Long groupId
+    ) {
+        Map<String, Integer> genreRankings = (groupId == null)
+                ? genreService.getGenreRankings()
+                : genreService.getGenreRankingsByGroup(groupId);
         return ResponseEntity.ok().body(genreConverter.toResponseList(genreRankings));
     }
 
