@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.api.model.group.response;
 
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMembershipStatus;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,8 @@ public class GroupMemberResponse {
     private Boolean active;
     private Boolean selected;
     private Boolean banned;
+    private GroupMembershipStatus membershipStatus;
+    private LocalDateTime banExpiresAt;
     private LocalDateTime joinedAt;
     private LocalDateTime leftAt;
 

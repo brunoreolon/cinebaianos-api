@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.ResourceKeyValues;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMembershipStatus;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.GroupAuthorizationService;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
@@ -259,6 +260,37 @@ public class GroupMemberService implements GroupAuthorizationService, OwnableSer
     @Override
     public boolean isBanned(Long groupId, Long userId) {
         return groupMemberBanRepository.existsActiveBan(groupId, userId, LocalDateTime.now());
+    }
+
+    public GroupMembershipStatus getMembershipStatus(Long groupId, Long userId) {
+        boolean banned = isBanned(groupId, userId);
+        Optional<GroupMember> membership = getMember(groupId, userId);
+
+        if (membership.isEmpty()) {
+            return banned ? GroupMembershipStatus.BANNED_PERMANENT : GroupMembershipStatus.NOT_MEMBER;
+        }
+
+        GroupMember groupMember = membership.get();
+        if (Boolean.TRUE.equals(groupMember.getActive())) {
+            return banned ? GroupMembershipStatus.BANNED_TEMPORARY : GroupMembershipStatus.ACTIVE;
+        }
+
+        // Membro inativo com banimento ativo deve ser tratado como banimento permanente.
+        if (banned) {
+            return GroupMembershipStatus.BANNED_PERMANENT;
+        }
+
+        if (groupMember.getLeftAt() != null) {
+            return GroupMembershipStatus.LEFT;
+        }
+
+        return GroupMembershipStatus.BANNED_PERMANENT;
+    }
+
+    public LocalDateTime getActiveBanExpiresAt(Long groupId, Long userId) {
+        return groupMemberBanRepository.findLatestActiveBan(groupId, userId, LocalDateTime.now())
+                .map(GroupMemberBan::getExpiresAt)
+                .orElse(null);
     }
 
     public List<GroupMemberBan> getActiveBans(Long groupId) {

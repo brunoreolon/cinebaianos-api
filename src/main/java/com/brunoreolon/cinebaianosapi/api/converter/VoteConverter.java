@@ -70,7 +70,10 @@ public class VoteConverter {
                     VoteSummaryResponse vote = modelMapper.map(v.getVote(), VoteSummaryResponse.class);
                     vote.setVotedAt(v.getCreatedAt());
 
-                    return new UsersVotesSummaryResponse(voter, vote);
+                    UsersVotesSummaryResponse response = new UsersVotesSummaryResponse();
+                    response.setVoter(voter);
+                    response.setVote(vote);
+                    return response;
                 })
                 .toList();
 

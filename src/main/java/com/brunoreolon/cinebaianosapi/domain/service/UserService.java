@@ -5,6 +5,7 @@ import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserStats;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteTypeSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.stats.UserVoteStatsResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMembershipStatus;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByAdminEvent;
 import com.brunoreolon.cinebaianosapi.domain.event.PasswordResetByRecoverEvent;
@@ -59,7 +60,7 @@ public class UserService {
     public UserVoteStatsResponse getVotesReceivedByUser(User user, Long voteType) {
         List<VoteType> votesToConsider = getVotesToConsider(voteType);
 
-        return new UserVoteStatsResponse(
+        return buildUserVoteStatsResponse(
                 new UserDetailResponse(
                         user.getId(),
                         user.getDiscordId(),
@@ -88,7 +89,7 @@ public class UserService {
     public UserVoteStatsResponse getVotesGivenByUser(User user, Long voteType) {
         List<VoteType> votesToConsider = getVotesToConsider(voteType);
 
-        return new UserVoteStatsResponse(
+        return buildUserVoteStatsResponse(
                 new UserDetailResponse(
                         user.getId(),
                         user.getDiscordId(),
@@ -108,8 +109,10 @@ public class UserService {
     }
 
     public List<UserVoteStatsResponse> getVotesReceivedByGroup(Long groupId, Long voteTypeId) {
-        // Busca todos os membros ativos do grupo
-        var members = groupMemberService.getActiveMembers(groupId);
+        // Ranking do grupo deve considerar apenas membros ativos e sem banimento ativo.
+        var members = groupMemberService.getActiveMembers(groupId).stream()
+                .filter(member -> !groupMemberService.isBanned(groupId, member.getMember().getId()))
+                .toList();
         // Busca todos os tipos de voto disponíveis para o grupo
         var voteTypes = (voteTypeId != null)
                 ? List.of(voteTypeRegistrationService.get(voteTypeId))
@@ -117,7 +120,7 @@ public class UserService {
         return members.stream()
                 .map(member -> {
                     var user = member.getMember();
-                    return new UserVoteStatsResponse(
+                    return buildUserVoteStatsResponse(
                             new UserDetailResponse(
                                     user.getId(),
                                     user.getDiscordId(),
@@ -132,6 +135,7 @@ public class UserService {
                                     user.getActive(),
                                     user.isBanned()
                             ),
+                            groupMemberService.getMembershipStatus(groupId, user.getId()),
                             voteTypes.stream().map(voteType -> {
                                 Long totalVotes = voteService.getVotesByGroup(groupId).stream()
                                         .filter(v -> v.getVote().getId().equals(voteType.getId()) &&
@@ -145,6 +149,16 @@ public class UserService {
                     );
                 })
                 .toList();
+    }
+
+    private UserVoteStatsResponse buildUserVoteStatsResponse(UserDetailResponse user, List<VoteStatsResponse> votes) {
+        return new UserVoteStatsResponse(user, GroupMembershipStatus.NOT_MEMBER, votes);
+    }
+
+    private UserVoteStatsResponse buildUserVoteStatsResponse(UserDetailResponse user,
+                                                             GroupMembershipStatus membershipStatus,
+                                                             List<VoteStatsResponse> votes) {
+        return new UserVoteStatsResponse(user, membershipStatus, votes);
     }
 
     private List<VoteType> getVotesToConsider(Long voteTypeId) {

@@ -12,6 +12,7 @@ import com.brunoreolon.cinebaianosapi.api.model.movie.response.MovieWithChooserR
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteSummaryResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMembershipStatus;
 import com.brunoreolon.cinebaianosapi.domain.model.Group;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMember;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMemberBan;
@@ -20,12 +21,12 @@ import com.brunoreolon.cinebaianosapi.domain.model.GroupPermissions;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
 import com.brunoreolon.cinebaianosapi.util.PosterPathUtil;
+import com.brunoreolon.cinebaianosapi.domain.service.GroupMemberService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 
 @AllArgsConstructor
 @Component
@@ -33,6 +34,7 @@ public class GroupConverter {
 
     private final ModelMapper modelMapper;
     private final PosterPathUtil pathUtil;
+    private final GroupMemberService groupMemberService;
 
     public GroupDetailResponse toGroupWithMoviesResponse(Group group) {
         GroupDetailResponse groupResponse = modelMapper.map(group, GroupDetailResponse.class);
@@ -63,6 +65,9 @@ public class GroupConverter {
                 .map(genre -> modelMapper.map(genre, com.brunoreolon.cinebaianosapi.api.model.genre.GenreResponse.class))
                 .toList());
         movieResponse.setChooser(modelMapper.map(groupMovie.getChooser(), com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse.class));
+        GroupMembershipStatus chooserStatus = groupMemberService.getMembershipStatus(groupMovie.getGroup().getId(), groupMovie.getChooser().getId());
+        movieResponse.setChooserMembershipStatus(chooserStatus);
+        movieResponse.setChooserBanExpiresAt(groupMemberService.getActiveBanExpiresAt(groupMovie.getGroup().getId(), groupMovie.getChooser().getId()));
         movieResponse.setVotes(groupMovie.getVotes().stream()
                 .map(this::toUsersVotesSummaryResponse)
                 .toList());
@@ -103,6 +108,10 @@ public class GroupConverter {
         response.setRole(groupMember.getRole());
         response.setActive(groupMember.getActive());
         response.setSelected(groupMember.getSelected());
+        GroupMembershipStatus membershipStatus = groupMemberService.getMembershipStatus(groupMember.getGroup().getId(), groupMember.getMember().getId());
+        response.setMembershipStatus(membershipStatus);
+        response.setBanned(membershipStatus == GroupMembershipStatus.BANNED_TEMPORARY || membershipStatus == GroupMembershipStatus.BANNED_PERMANENT);
+        response.setBanExpiresAt(groupMemberService.getActiveBanExpiresAt(groupMember.getGroup().getId(), groupMember.getMember().getId()));
         response.setJoinedAt(groupMember.getJoinedAt());
         response.setLeftAt(groupMember.getLeftAt());
         return response;
@@ -163,7 +172,11 @@ public class GroupConverter {
         );
 
         UsersVotesSummaryResponse response = new UsersVotesSummaryResponse();
+        Long groupId = vote.getGroupMovie().getGroup().getId();
+        Long voterId = vote.getVoter().getId();
         response.setVoter(modelMapper.map(vote.getVoter(), com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse.class));
+        response.setVoterMembershipStatus(groupMemberService.getMembershipStatus(groupId, voterId));
+        response.setVoterBanExpiresAt(groupMemberService.getActiveBanExpiresAt(groupId, voterId));
         response.setVote(voteSummary);
         return response;
     }
