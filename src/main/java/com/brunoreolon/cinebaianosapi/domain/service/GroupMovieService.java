@@ -1,16 +1,16 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
 import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
-import com.brunoreolon.cinebaianosapi.domain.exception.GroupMovieAlreadyExistsException;
-import com.brunoreolon.cinebaianosapi.domain.exception.GroupMovieNotFoundException;
-import com.brunoreolon.cinebaianosapi.domain.exception.GroupMovieInvalidOperationException;
+import com.brunoreolon.cinebaianosapi.domain.exception.*;
 import com.brunoreolon.cinebaianosapi.domain.model.GroupMovie;
 import com.brunoreolon.cinebaianosapi.domain.model.Group;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.repository.GroupMovieRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
+import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,7 +89,14 @@ public class GroupMovieService {
             }
         }
 
-        groupMovieRepository.delete(groupMovie);
+        try {
+            groupMovieRepository.delete(groupMovie);
+            groupMovieRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new EntityInUseException("movie.in.use.message",
+                    new Object[]{groupMovie.getMovie().getTitle(), groupId},
+                    ApiErrorCode.MOVIE_IN_USE);
+        }
     }
 
     /**

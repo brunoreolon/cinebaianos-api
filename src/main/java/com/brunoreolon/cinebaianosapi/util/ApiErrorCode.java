@@ -40,6 +40,7 @@ public enum ApiErrorCode {
     MOVIE_NOT_FOUND("movie_not_found"),
     MOVIE_ALREADY_REGISTERED("movie_already_registered"),
     MULTIPLE_MOVIES_FOUND("multiple_movies_found"),
+    MOVIE_IN_USE("movie_in_use"),
 
     // Votes
     INVALID_VOTE("invalid_vote"),
