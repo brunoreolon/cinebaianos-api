@@ -8,7 +8,6 @@ import com.brunoreolon.cinebaianosapi.client.TmdbProperties;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientResultsResponse;
 import com.brunoreolon.cinebaianosapi.core.security.authentication.SecurityConfig;
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
 import com.brunoreolon.cinebaianosapi.domain.service.TmdbService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.CheckSecurity.*;
+import static com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole.*;
 
 @RestController
 @RequestMapping("/api/tmdb")
@@ -37,14 +37,14 @@ public class TmdbController {
     private final TmdbConverter tmdbConverter;
     private final TmdbProperties tmdbProperties;
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/search/movies-details")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Buscar filmes com os detalhes pelo título",
             description = "Realiza uma busca de filmes no TMDb usando o título e, opcionalmente, o ano de lançamento."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Filmes encontrados com sucesso", content = @Content(schema = @Schema(implementation = TmdbMovieResponse.class))),
+            @ApiResponse(responseCode = "200", description = "Filmes encontrados com sucesso", content = @Content(schema = @Schema(implementation = TmdbMovieDetailsResponse.class))),
             @ApiResponse(responseCode = "401", description = "Usuário não autenticado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Nenhum filme encontrado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
@@ -52,7 +52,7 @@ public class TmdbController {
             @Parameter(description = "Título do filme a ser buscado", required = true, example = "Matrix")
             @RequestParam(name = "title") String title,
 
-            @Parameter(description = "Ano de lançamento do filme", required = false, example = "1999")
+            @Parameter(description = "Ano de lançamento do filme", example = "1999")
             @RequestParam(name = "year", required = false) String year,
 
             @Parameter(description = "Idioma da busca (opcional, padrão do sistema será usado se não informado)", example = "pt-BR")
@@ -68,8 +68,8 @@ public class TmdbController {
         return ResponseEntity.ok().body(movieDetailsResponseList);
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/search/movies")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Buscar filmes pelo título",
             description = "Realiza uma busca de filmes no TMDb usando o título e, opcionalmente, o ano de lançamento."
@@ -83,7 +83,7 @@ public class TmdbController {
             @Parameter(description = "Título do filme a ser buscado", required = true, example = "Matrix")
             @RequestParam(name = "title") String title,
 
-            @Parameter(description = "Ano de lançamento do filme", required = false, example = "1999")
+            @Parameter(description = "Ano de lançamento do filme", example = "1999")
             @RequestParam(name = "year", required = false) String year,
 
             @Parameter(description = "Idioma da busca (opcional, padrão do sistema será usado se não informado)", example = "pt-BR")
@@ -97,8 +97,8 @@ public class TmdbController {
         return ResponseEntity.ok().body(tmdbConverter.toMovieResponseList(response.getResults()));
     }
 
+    @RequireMinimumRole(role = USER)
     @GetMapping("/movies/{movieId}")
-    @RequireRole(roles = {Role.ADMIN, Role.USER})
     @Operation(
             summary = "Buscar detalhes de filme pelo ID",
             description = "Retorna informações detalhadas de um filme do TMDb a partir do seu ID."
@@ -122,4 +122,5 @@ public class TmdbController {
         ClientMovieDetailsResponse movieDetails = tmdbService.getMovieDetails(movieId, language);
         return ResponseEntity.ok().body(tmdbConverter.toMovieDetailsResponse(movieDetails));
     }
+
 }

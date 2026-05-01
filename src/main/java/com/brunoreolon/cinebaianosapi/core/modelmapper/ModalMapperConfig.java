@@ -1,8 +1,11 @@
 package com.brunoreolon.cinebaianosapi.core.modelmapper;
 
+import com.brunoreolon.cinebaianosapi.api.model.user.request.UserRequest;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
+import com.brunoreolon.cinebaianosapi.api.model.user.response.UserSummaryResponse;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.VoteSummaryResponse;
 import com.brunoreolon.cinebaianosapi.client.model.ClientMovieDetailsResponse;
+import com.brunoreolon.cinebaianosapi.domain.model.Group;
 import com.brunoreolon.cinebaianosapi.domain.model.Movie;
 import com.brunoreolon.cinebaianosapi.domain.model.User;
 import com.brunoreolon.cinebaianosapi.domain.model.Vote;
@@ -39,7 +42,7 @@ public class ModalMapperConfig {
 
         modelMapper.createTypeMap(User.class, UserDetailResponse.class)
                 .addMappings(mapper -> {
-                    mapper.map(User::getCreated, UserDetailResponse::setJoined);
+                    mapper.map(User::getCreatedAt, UserDetailResponse::setJoined);
                     mapper.map(User::getAvatar, UserDetailResponse::setAvatar);
                     mapper.map(User::getBiography, UserDetailResponse::setBiography);
                 });
@@ -50,8 +53,22 @@ public class ModalMapperConfig {
                     mapper.map(src -> src.getVote().getDescription(), VoteSummaryResponse::setDescription);
                     mapper.map(src -> src.getVote().getColor(), VoteSummaryResponse::setColor);
                     mapper.map(src -> src.getVote().getEmoji(), VoteSummaryResponse::setEmoji);
-                    mapper.map(Vote::getCreated, VoteSummaryResponse::setVotedAt);
+                    mapper.map(Vote::getCreatedAt, VoteSummaryResponse::setVotedAt);
                 });
+
+        modelMapper.typeMap(UserRequest.class, User.class)
+                .addMappings(mapper -> mapper.skip(User::setId));
+
+        modelMapper.typeMap(User.class, UserSummaryResponse.class)
+                .addMappings(mapper -> {
+                    mapper.map(User::getId, UserSummaryResponse::setId);
+                    mapper.map(User::getAvatar, UserSummaryResponse::setAvatar);
+                });
+
+        modelMapper.typeMap(Group.class, Group.class).addMappings(mapper -> {
+            mapper.skip(Group::setActive);
+            mapper.skip(Group::setMembers);
+        });
 
         return modelMapper;
     }

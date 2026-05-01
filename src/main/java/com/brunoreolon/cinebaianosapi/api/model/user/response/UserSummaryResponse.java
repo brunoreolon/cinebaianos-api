@@ -11,7 +11,8 @@ import lombok.Setter;
 @Setter
 public class UserSummaryResponse {
 
-    private String discordId;
+    private Long id;
     private String name;
+    private String avatar;
 
 }

@@ -17,13 +17,12 @@ public class MovieDetailResponse {
 
     private Long id;
     private String title;
-//    private String genre;
     private String year;
     private String tmdbId;
     private LocalDateTime dateAdded;
+    private String posterPath;
     private String synopsis;
     private String director;
     private List<GenreResponse> genres;
-    private String posterPath;
 
 }

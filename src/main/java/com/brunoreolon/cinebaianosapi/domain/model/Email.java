@@ -2,11 +2,11 @@ package com.brunoreolon.cinebaianosapi.domain.model;
 
 import lombok.*;
 
-@Getter
-@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Getter
+@Setter
 public class Email {
 
     private String to;

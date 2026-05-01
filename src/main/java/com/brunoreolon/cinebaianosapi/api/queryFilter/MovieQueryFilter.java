@@ -35,16 +35,16 @@ public class MovieQueryFilter {
     private String chooserName;
 
     @Schema(
-            description = "Discord ID do usuário que escolheu o filme",
-            example = "123456789012345678"
+            description = "ID do usuário que escolheu o filme",
+            example = "1"
     )
-    private String chooserDiscordId;
+    private Long chooserId;
 
     @Schema(
-            description = "Discord ID do usuário para filtrar filmes que ainda não foram votados por ele",
-            example = "987654321098765432"
+            description = "ID do usuário para filtrar filmes que ainda não foram votados por ele",
+            example = "1"
     )
-    private String discordId;
+    private Long userId;
 
     @Schema(
             description = "Identificador do tipo de voto aplicado ao filme",
@@ -65,8 +65,8 @@ public class MovieQueryFilter {
                 .and(MovieSpecification.withTitle(title))
                 .and(MovieSpecification.withDateAdded(dateAdded))
                 .and(MovieSpecification.withChooserName(chooserName))
-                .and(MovieSpecification.withChooserDiscordID(chooserDiscordId))
-                .and(MovieSpecification.notVotedBy(discordId))
+                .and(MovieSpecification.withChooserId(chooserId))
+                .and(MovieSpecification.notVotedBy(userId))
                 .and(MovieSpecification.withVote(voteTypeId))
                 .and(MovieSpecification.withGenre(genreId));
     }

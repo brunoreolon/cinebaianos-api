@@ -14,9 +14,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.resend.Resend;
 
+@RequiredArgsConstructor
 @Service
 @Profile("prod")
-@RequiredArgsConstructor
 public class ResendNotificationService implements NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(ResendNotificationService.class);
@@ -44,5 +44,5 @@ public class ResendNotificationService implements NotificationService {
             logger.error("Erro inesperado ao enviar e-mail", e);
         }
     }
-}
 
+}

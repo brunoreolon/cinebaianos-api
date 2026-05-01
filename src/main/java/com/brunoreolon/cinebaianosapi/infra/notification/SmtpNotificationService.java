@@ -12,9 +12,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+@RequiredArgsConstructor
 @Service
 @Profile("dev")
-@RequiredArgsConstructor
 public class SmtpNotificationService implements NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(SmtpNotificationService.class);
@@ -39,4 +39,5 @@ public class SmtpNotificationService implements NotificationService {
             logger.error("Falha ao enviar e-mail para {}: {}", email.getTo(), e.getMessage(), e);
         }
     }
+
 }

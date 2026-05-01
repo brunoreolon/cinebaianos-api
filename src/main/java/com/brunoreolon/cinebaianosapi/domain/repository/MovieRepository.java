@@ -14,14 +14,11 @@ import java.util.Optional;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecificationExecutor<Movie> {
 
-    Optional<Movie> findByTmdbId(String tmdbId);
+    Optional<Movie> findByTmdbId(Long tmdbId);
 
     @Query("""
                 SELECT m FROM Movie m 
                 JOIN FETCH m.genres 
-                LEFT JOIN FETCH m.votes v 
-                LEFT JOIN FETCH v.vote 
-                LEFT JOIN FETCH v.voter
                 WHERE m.id = :id
             """)
     Optional<Movie> findByIdWithGenres(@Param("id") Long id);
@@ -36,15 +33,15 @@ public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecific
             """)
     List<GenreCountProjection> findGenreCountsProjections();
 
-    @Query("""
-                SELECT g.name AS genre, v.vote.name AS voteType, COUNT(v) AS total
-                FROM Vote v
-                JOIN v.movie m
-                JOIN m.genres g
-                WHERE (:voteTypeId IS NULL OR v.vote.id = :voteTypeId)
-                GROUP BY g.name, v.vote.name
-            """)
-    List<GenreVoteTypeCountProjection> findGenreVoteTypeCountProjection(@Param("voteTypeId") Long voteTypeId);
+//    @Query("""
+//                SELECT g.name AS genre, v.vote.name AS voteType, COUNT(v) AS total
+//                FROM Vote v
+//                JOIN v.movie m
+//                JOIN m.genres g
+//                WHERE (:voteTypeId IS NULL OR v.vote.id = :voteTypeId)
+//                GROUP BY g.name, v.vote.name
+//            """)
+//    List<GenreVoteTypeCountProjection> findGenreVoteTypeCountProjection(@Param("voteTypeId") Long voteTypeId);
 
     @Query("""
                 SELECT DISTINCT g.name
@@ -61,8 +58,8 @@ public interface MovieRepository extends JpaRepository<Movie, Long>, JpaSpecific
                 SELECT g.name
                 FROM Movie m
                 JOIN m.genres g
-                WHERE m.chooser.discordId = :discordId
+                WHERE m.chooser.id = :userId
             """)
-    List<String> findGenresByChooserDiscordId(@Param("discordId") String discordId);
+    List<String> findGenresByChooserId(@Param("userId") Long userId);
 
 }

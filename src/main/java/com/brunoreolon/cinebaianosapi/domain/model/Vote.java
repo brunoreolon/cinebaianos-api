@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.model;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.Ownable;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.Ownable;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -10,45 +10,45 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
-@Builder
-public class Vote implements Ownable {
+@Entity
+@Table(name = "group_votes")
+public class Vote implements Ownable<Long> {
 
-    @EmbeddedId
-    @Valid
-    private VoteId voteId;
+    @EqualsAndHashCode.Include
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @MapsId("movieId")
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "movie_id")
-    private Movie movie;
+    @JoinColumn(name = "group_movie_id")
+    private GroupMovie groupMovie;
 
-    @MapsId("voterId")
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "voter_id")
-    @NotNull
     private User voter;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
-    @NotNull
     private VoteType vote;
 
     @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime created;
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updated;
+    private LocalDateTime updatedAt;
 
     @Override
-    public String getOwnerId() {
-        return getVoter().getDiscordId();
+    public Long getOwnerId() {
+        return getVoter().getId();
     }
 
 }

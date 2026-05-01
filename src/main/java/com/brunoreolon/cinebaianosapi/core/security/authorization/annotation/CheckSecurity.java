@@ -6,7 +6,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import com.brunoreolon.cinebaianosapi.domain.model.Role;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.GroupAuthorizationService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMemberRole;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.UserRole;
 
 /**
  * Annotations para controle de segurança nos endpoints.
@@ -14,17 +17,17 @@ import com.brunoreolon.cinebaianosapi.domain.model.Role;
 public @interface CheckSecurity {
 
     /**
-     * Verifica se o usuário possui qualquer uma das roles especificadas.
+     * Verifica se o usuário possui a funçao mínima requerida no sistema.
      * Também pode permitir bots do discord se allowBot = true.
      *
      * Exemplo de uso:
-     * @RequireRole(roles = {Role.ADMIN, Role.USER}, allowBot = true)
+     * @RequireMinimumRole(role = USER, allowBot = true)
      */
     @Retention(RUNTIME)
     @Target(METHOD)
-    @interface RequireRole {
-        Role[] roles();                   // Roles permitidas
-        boolean allowBot() default false; // Permitir execução por bot do discord
+    @interface RequireMinimumRole {
+        UserRole role();                   // Função mínima requerida no sistema
+        boolean allowBot() default false;  // Permitir execução por bot do discord
     }
 
     /**
@@ -40,6 +43,37 @@ public @interface CheckSecurity {
         Class<? extends OwnableService<?, ?>> service(); // Serviço que fornece o recurso
         boolean allowAdmin() default false;              // Permitir admin
         boolean allowBot() default false;                // Permitir bot do discord
+    }
+
+    /**
+     * Verifica se o usuário logado é membro do grupo especificado.
+     * Pode permitir administradores e bots do discord opcionalmente.
+     *
+     * Exemplo de uso:
+     * @CheckGroupMember(service = GroupMemberService.class, allowAdmin = true)
+     */
+    @Retention(RUNTIME)
+    @Target(METHOD)
+    @interface CheckGroupMember {
+        Class<? extends GroupAuthorizationService> service(); // Serviço que fornece verificações de grupo
+        boolean allowAdmin() default false; // Permitir admin
+        boolean allowBot() default false;   // Permitir bot do discord
+    }
+
+    /**
+     * Verifica se o usuário logado tem a função mínima especificada no grupo.
+     * Pode permitir administradores e bots do discord opcionalmente.
+     *
+     * Exemplo de uso:
+     * @CheckGroupRole(service = GroupMemberService.class, role = GroupMemberRole.OWNER, allowAdmin = true)
+     */
+    @Retention(RUNTIME)
+    @Target(METHOD)
+    @interface CheckGroupRole {
+        Class<? extends GroupAuthorizationService> service(); // Serviço que fornece verificações de grupo
+        GroupMemberRole role();             // Função mínima requerida no grupo
+        boolean allowAdmin() default false; // Permitir admin
+        boolean allowBot() default false;   // Permitir bot do discord
     }
 
 }

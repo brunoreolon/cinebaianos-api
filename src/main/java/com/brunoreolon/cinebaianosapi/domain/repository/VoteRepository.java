@@ -14,7 +14,8 @@ public interface VoteRepository extends JpaRepository<Vote, VoteId> {
 
     @Query("""
                 SELECT v FROM Vote v
-                JOIN FETCH v.movie
+                JOIN FETCH v.groupMovie gm
+                JOIN FETCH gm.movie
                 JOIN FETCH v.voter
                 WHERE v.id = :id
             """)
@@ -24,7 +25,7 @@ public interface VoteRepository extends JpaRepository<Vote, VoteId> {
                 SELECT COUNT(v)
                 FROM Vote v
                 WHERE v.vote = :voteType
-                AND v.movie.chooser = :user
+                AND v.groupMovie.movie.chooser = :user
             """)
     Long countAllByVoteTypeAndReceiver(@Param("voteType") VoteType voteType, @Param("user") User user);
 
@@ -39,20 +40,26 @@ public interface VoteRepository extends JpaRepository<Vote, VoteId> {
     @Query("""
                 SELECT v
                 FROM Vote v
-                JOIN FETCH v.movie
+                JOIN FETCH v.groupMovie gm
+                JOIN FETCH gm.movie
                 JOIN FETCH v.voter
                 JOIN FETCH v.vote
-                WHERE v.voter.discordId = :discordId
+                WHERE v.voter.id = :userId
             """)
-    List<Vote> findByVoterWithMovie(@Param("discordId") String discordId);
+    List<Vote> findByVoterWithMovie(@Param("userId") Long userId);
 
     @Query("""
                 SELECT v
                 FROM Vote v
                 JOIN FETCH v.voter u
                 JOIN FETCH v.vote vt
-                JOIN FETCH v.movie m
+                JOIN FETCH v.groupMovie gm
+                JOIN FETCH gm.movie m
                 WHERE m.id = :movieId
             """)
     List<Vote> findByMovieId(@Param("movieId") Long movieId);
+
+    boolean existsByGroupMovieAndVoterId(GroupMovie groupMovie, Long voterId);
+
+    Optional<Vote> findByGroupMovieAndVoterId(GroupMovie groupMovie, Long voterId);
 }

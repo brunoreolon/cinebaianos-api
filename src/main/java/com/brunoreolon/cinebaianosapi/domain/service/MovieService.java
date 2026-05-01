@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.domain.service;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieAlreadyRegisteredException;
 import com.brunoreolon.cinebaianosapi.domain.exception.MovieNotFoundException;
@@ -9,6 +9,7 @@ import com.brunoreolon.cinebaianosapi.domain.repository.GenreRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -20,7 +21,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
 public class MovieService implements OwnableService<Movie, Long> {
 
     private final MovieRepository movieRepository;
@@ -28,8 +28,15 @@ public class MovieService implements OwnableService<Movie, Long> {
     private final UserRegistratioService userRegistratioService;
     private final VoteService voteService;
 
+    public MovieService(MovieRepository movieRepository, GenreRepository genreRepository, UserRegistratioService userRegistratioService, @Lazy VoteService voteService) {
+        this.movieRepository = movieRepository;
+        this.genreRepository = genreRepository;
+        this.userRegistratioService = userRegistratioService;
+        this.voteService = voteService;
+    }
+
     @Transactional
-    public Movie save(Movie movie, String chooserID, Long vote) {
+    public Movie save(Movie movie, Long chooserId, Long vote) {
         boolean tmdbIdAlreadyExists = movieRepository.findByTmdbId(movie.getTmdbId())
                 .filter(m -> !m.equals(movie))
                 .isPresent();
@@ -37,7 +44,7 @@ public class MovieService implements OwnableService<Movie, Long> {
         if (tmdbIdAlreadyExists)
             throw new MovieAlreadyRegisteredException("movie.already.registered.message", new Object[]{movie.getTmdbId()});
 
-        User chooser = userRegistratioService.get(chooserID);
+        User chooser = userRegistratioService.get(chooserId);
 
         if (chooser.getIsBot())
             throw new BusinessException(
@@ -53,17 +60,17 @@ public class MovieService implements OwnableService<Movie, Long> {
             movie.setSynopsis("Filme não possui sinopse");
 
         if (movie.getDirector() == null || movie.getDirector().isEmpty())
-            movie.setSynopsis("Diretor não encontrado");
+            movie.setDirector("Diretor não encontrado");
 
         if (movie.getDuration() == null)
             movie.setDuration(0);
 
         Movie newMovie = movieRepository.save(movie);
 
-        if (vote != null) {
-            Vote newVote = voteService.register(chooser, movie, vote);
-            newMovie.getVotes().add(newVote);
-        }
+//        if (vote != null) {
+//            Vote newVote = voteService.register(chooser, movie, vote);
+//            newMovie.getVotes().add(newVote);
+//        }
 
         return newMovie;
     }
@@ -90,8 +97,8 @@ public class MovieService implements OwnableService<Movie, Long> {
 
     @Override
     public Movie get(Long movieId) {
-        return movieRepository.findByIdWithGenres(movieId)
-                .orElseThrow(() -> new MovieNotFoundException("movie.not.found.message", new Object[]{movieId}));
+        return null;//movieRepository.findByIdWithGenres(movieId)
+                //.orElseThrow(() -> new MovieNotFoundException("movie.not.found.message", new Object[]{movieId}));
     }
 
 }

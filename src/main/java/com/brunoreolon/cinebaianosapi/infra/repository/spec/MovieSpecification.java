@@ -31,13 +31,13 @@ public class MovieSpecification {
         };
     }
 
-    public static Specification<Movie> notVotedBy(String discordId) {
+    public static Specification<Movie> notVotedBy(Long userId) {
         return (root, query, builder) -> {
             Subquery<Vote> subquery = query.subquery(Vote.class);
             Root<Vote> voteRoot = subquery.from(Vote.class);
             subquery.select(voteRoot);
             subquery.where(
-                    builder.equal(voteRoot.get("id").get("voterId"), discordId),
+                    builder.equal(voteRoot.get("id").get("voterId"), userId),
                     builder.equal(voteRoot.get("id").get("movieId"), root.get("id"))
             );
 
@@ -77,12 +77,12 @@ public class MovieSpecification {
         };
     }
 
-    public static Specification<Movie> withChooserDiscordID(String discordId) {
-        if (discordId == null || discordId.isBlank()) return null;
+    public static Specification<Movie> withChooserId(Long userId) {
+        if (userId == null) return null;
 
         return (root, query, builder) -> {
             Join<Movie, User> chooser = root.join("chooser", JoinType.INNER);
-            return builder.equal(chooser.get("discordId"), discordId);
+            return builder.equal(chooser.get("id"), userId);
         };
     }
 

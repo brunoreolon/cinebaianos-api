@@ -1,5 +1,6 @@
 package com.brunoreolon.cinebaianosapi.api.exceptionhandler;
 
+import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.AuthorizationGroupNotFoundException;
 import com.brunoreolon.cinebaianosapi.core.security.authorization.exception.OwnershipAccessDeniedException;
 import com.brunoreolon.cinebaianosapi.domain.exception.BusinessException;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
@@ -18,6 +19,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -42,11 +44,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
-    private Map<String, Object> translateInvalidFields(Map<String, Object> fields) {
+    private Map<String, Object> translateInvalidFields(Map<String, List<String>> fields) {
         return fields.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        entry -> msg(entry.getValue().toString(), null)
+                        entry -> entry.getValue().stream()
+                                .map(msg -> this.msg(msg, null))
+                                .toList()
                 ));
     }
 
@@ -105,6 +109,21 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = getProblemDetail(
                 msg(ex.getTitleKey(), null),
                 msg(ex.getMessageKey(), null),
+                ex.getStatus(),
+                ex.getErrorCode(),
+                null
+        );
+
+        return ResponseEntity.status(ex.getStatus()).body(problemDetail);
+    }
+
+    @ExceptionHandler(AuthorizationGroupNotFoundException.class)
+    public ResponseEntity<Object> handleAuthorizationGroupNotFoundException(AuthorizationGroupNotFoundException ex) {
+        logger.warn("AuthorizationGroupNotFoundException exception occurred: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = getProblemDetail(
+                msg(ex.getTitleKey(), null),
+                msg(ex.getMessageKey(), ex.getArgs()),
                 ex.getStatus(),
                 ex.getErrorCode(),
                 null

@@ -1,6 +1,6 @@
 package com.brunoreolon.cinebaianosapi.core.security.authorization.service;
 
-import com.brunoreolon.cinebaianosapi.core.security.authorization.annotation.OwnableService;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces.OwnableService;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -26,9 +26,6 @@ public class OwnableServiceRegistry {
                 .filter(e -> type.isAssignableFrom(e.getKey()))
                 .map(Map.Entry::getValue)
                 .findFirst()
-//                .orElseThrow(() -> new IllegalStateException(
-//                        "OwnableService não encontrado para " + type.getName()
-//                ));
                 .orElseThrow(() -> new IllegalStateException("ownable.service.not.found"));
     }
 

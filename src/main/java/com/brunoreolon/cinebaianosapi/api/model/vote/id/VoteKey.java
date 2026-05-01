@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class VoteKey {
 
-    private String discordId;
+    private String userId;
     private Long movieId;
 
 }

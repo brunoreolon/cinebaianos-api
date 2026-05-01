@@ -36,8 +36,8 @@ public class GenreService {
                 ));
     }
 
-    public Map<String, Integer> getGenreRankingsByUser(String discordId) {
-        List<String> genres = movieRepository.findGenresByChooserDiscordId(discordId);
+    public Map<String, Integer> getGenreRankingsByUser(Long userId) {
+        List<String> genres = movieRepository.findGenresByChooserId(userId);
 
         return genres.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.summingInt(e -> 1)));
@@ -45,17 +45,18 @@ public class GenreService {
 
     public List<GenreVoteBreakdownResponse> getGenreVoteBreakdown(Long voteTypeId) {
         // busca todos os votos agregados do repository
-        List<GenreVoteTypeCountProjection> votes = movieRepository.findGenreVoteTypeCountProjection(voteTypeId);
-
-        // cria um Map<Genre, Map<VoteType, total>> para acesso rápido
-        Map<String, Map<String, Long>> votesMap = getStringMapMap(votes);
-
-        // busca todos os gêneros e tipos de voto
-        List<String> allGenres = movieRepository.findAllNameGenres();
-        List<VoteType> allVoteTypes = getVoteTypes(voteTypeId);
-
-        // mapeia cada gênero para o DTO
-        return getGenreVoteBreakdownResponses(allGenres, allVoteTypes, votesMap);
+//        List<GenreVoteTypeCountProjection> votes = movieRepository.findGenreVoteTypeCountProjection(voteTypeId);
+//
+//        // cria um Map<Genre, Map<VoteType, total>> para acesso rápido
+//        Map<String, Map<String, Long>> votesMap = getStringMapMap(votes);
+//
+//        // busca todos os gêneros e tipos de voto
+//        List<String> allGenres = movieRepository.findAllNameGenres();
+//        List<VoteType> allVoteTypes = getVoteTypes(voteTypeId);
+//
+//        // mapeia cada gênero para o DTO
+//        return getGenreVoteBreakdownResponses(allGenres, allVoteTypes, votesMap);
+        return null;
     }
 
     private List<GenreVoteBreakdownResponse> getGenreVoteBreakdownResponses(List<String> allGenres, List<VoteType> allVoteTypes, Map<String, Map<String, Long>> votesMap) {

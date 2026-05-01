@@ -1,4 +1,4 @@
-package com.brunoreolon.cinebaianosapi.core.security.authorization.annotation;
+package com.brunoreolon.cinebaianosapi.core.security.authorization.interfaces;
 
 /**
  * Marca uma entidade como pertencente a um dono (ownership).
