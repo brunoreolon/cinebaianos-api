@@ -62,6 +62,7 @@ public class GroupMovieService {
                 .group(group)
                 .movie(savedMovie)
                 .chooser(user)
+                .votes(List.of())
                 .build();
 
         return groupMovieRepository.save(groupMovie);
