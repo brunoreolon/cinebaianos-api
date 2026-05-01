@@ -9,6 +9,7 @@ import com.brunoreolon.cinebaianosapi.domain.repository.GenreRepository;
 import com.brunoreolon.cinebaianosapi.domain.repository.MovieRepository;
 import com.brunoreolon.cinebaianosapi.util.ApiErrorCode;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -20,13 +21,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
 public class MovieService implements OwnableService<Movie, Long> {
 
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
     private final UserRegistratioService userRegistratioService;
     private final VoteService voteService;
+
+    public MovieService(MovieRepository movieRepository, GenreRepository genreRepository, UserRegistratioService userRegistratioService, @Lazy VoteService voteService) {
+        this.movieRepository = movieRepository;
+        this.genreRepository = genreRepository;
+        this.userRegistratioService = userRegistratioService;
+        this.voteService = voteService;
+    }
 
     @Transactional
     public Movie save(Movie movie, Long chooserId, Long vote) {

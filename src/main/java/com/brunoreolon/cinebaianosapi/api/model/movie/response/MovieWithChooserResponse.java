@@ -2,6 +2,7 @@ package com.brunoreolon.cinebaianosapi.api.model.movie.response;
 
 import com.brunoreolon.cinebaianosapi.api.model.genre.GenreResponse;
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMembershipStatus;
 import com.brunoreolon.cinebaianosapi.api.model.vote.response.UsersVotesSummaryResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,6 +28,8 @@ public class MovieWithChooserResponse {
     private String director;
     private List<GenreResponse> genres;
     private UserDetailResponse chooser;
+    private GroupMembershipStatus chooserMembershipStatus;
+    private LocalDateTime chooserBanExpiresAt;
     private List<UsersVotesSummaryResponse> votes;
 
 }

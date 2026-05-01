@@ -25,27 +25,27 @@ public class VoteService implements OwnableService<Vote, VoteId> {
 
     private final MovieService movieService;
     private final VoteTypeRegistrationService voteTypeRegistrationService;
-    private final VoteRepository voteRepository;
     private final GroupService groupService;
-    private final GroupMemberRepository groupMemberRepository;
-    private final GroupMovieRepository groupMovieRepository;
+    private final GroupMovieService groupMovieService;
+    private final VoteRepository voteRepository;
+    private final GroupMemberService groupMemberService;
 
     public VoteService(@Lazy MovieService movieService, VoteTypeRegistrationService voteTypeRegistrationService,
                        VoteRepository voteRepository, @Lazy GroupService groupService,
-                       GroupMemberRepository groupMemberRepository, GroupMovieRepository groupMovieRepository) {
+                       GroupMemberService groupMemberService, GroupMovieService groupMovieService) {
         this.movieService = movieService;
         this.voteTypeRegistrationService = voteTypeRegistrationService;
         this.voteRepository = voteRepository;
         this.groupService = groupService;
-        this.groupMemberRepository = groupMemberRepository;
-        this.groupMovieRepository = groupMovieRepository;
+        this.groupMemberService = groupMemberService;
+        this.groupMovieService = groupMovieService;
     }
 
     @Transactional
     public Vote registerByGroup(Long userId, Long groupId, Long movieId, Long voteId) {
         Group group = groupService.get(groupId);
         VoteType voteType = getVoteType(voteId);
-        GroupMember voter = getGroupMember(userId, group);
+        GroupMember voter = groupMemberService.getMemberOrThrow(group.getId(), userId);
 
         validateVoteTypeIsValidForGroup(group, voteType);
         validateGlobalVoteTypeAllowedForGroup(voteId, group, voteType);
@@ -115,16 +115,6 @@ public class VoteService implements OwnableService<Vote, VoteId> {
         voteRepository.delete(vote);
     }
 
-    private GroupMember getGroupMember(Long userId, Group group) {
-        return groupMemberRepository.findByGroupIdAndMemberId(group.getId(), userId)
-                .orElseThrow(() -> new BusinessException(
-                        "group.member.not.found.title",
-                        "group.member.not.found.message",
-                        new Object[]{userId, group.getId()},
-                        HttpStatus.BAD_REQUEST
-                ));
-    }
-
     private void validateGlobalVoteTypeAllowedForGroup(Long voteId, Group group, VoteType voteType) {
         Boolean allowGlobalVotes = group.getAllowGlobalVotes();
 
@@ -168,13 +158,7 @@ public class VoteService implements OwnableService<Vote, VoteId> {
     }
 
     private GroupMovie getGroupMovie(Long movieId, Group group) {
-        return groupMovieRepository.findByGroupIdAndMovieId(group.getId(), movieId)
-                .orElseThrow(() -> new BusinessException(
-                        "group.movie.not.found.title",
-                        "group.movie.not.found.message",
-                        new Object[]{group.getId(), movieId},
-                        HttpStatus.NOT_FOUND
-                ));
+        return groupMovieService.getGroupMovie(group.getId(), movieId);
     }
 
     private VoteType getVoteType(Long voteId) {
@@ -222,6 +206,11 @@ public class VoteService implements OwnableService<Vote, VoteId> {
     @Override
     public VoteId buildId(ResourceKeyValues keyValues) {
         return keyValues.as(VoteId.class);
+    }
+
+    public List<Vote> getVotesByGroup(Long groupId) {
+        List<GroupMovie> groupMovies = groupMovieService.getGroupMovies(groupId);
+        return groupMovies.stream().flatMap(gm -> gm.getVotes().stream()).toList();
     }
 
 }

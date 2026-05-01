@@ -1,6 +1,7 @@
 package com.brunoreolon.cinebaianosapi.api.model.user.stats;
 
 import com.brunoreolon.cinebaianosapi.api.model.user.response.UserDetailResponse;
+import com.brunoreolon.cinebaianosapi.core.security.authorization.enums.GroupMembershipStatus;
 import com.brunoreolon.cinebaianosapi.api.model.vote.stats.VoteStatsResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,7 @@ import java.util.List;
 public class UserVoteStatsResponse {
 
     private UserDetailResponse user;
+    private GroupMembershipStatus membershipStatus;
     private List<VoteStatsResponse> votes;
 
 }
