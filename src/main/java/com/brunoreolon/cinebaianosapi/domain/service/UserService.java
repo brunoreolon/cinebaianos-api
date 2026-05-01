@@ -32,6 +32,7 @@ public class UserService {
 
     private final UserRegistratioService userRegistratioService;
     private final VoteTypeRegistrationService voteTypeRegistrationService;
+    private final GroupMemberService groupMemberService;
     private final PasswordEncoder passwordEncoder;
     private final VoteService voteService;
     private final UserStatsRepository userStatsRepository;
@@ -104,6 +105,46 @@ public class UserService {
                 ),
                 getVoteGivenSummaryForUser(user, votesToConsider)
         );
+    }
+
+    public List<UserVoteStatsResponse> getVotesReceivedByGroup(Long groupId, Long voteTypeId) {
+        // Busca todos os membros ativos do grupo
+        var members = groupMemberService.getActiveMembers(groupId);
+        // Busca todos os tipos de voto disponíveis para o grupo
+        var voteTypes = (voteTypeId != null)
+                ? List.of(voteTypeRegistrationService.get(voteTypeId))
+                : voteTypeRegistrationService.getAvailableByGroupForVoting(groupId);
+        return members.stream()
+                .map(member -> {
+                    var user = member.getMember();
+                    return new UserVoteStatsResponse(
+                            new UserDetailResponse(
+                                    user.getId(),
+                                    user.getDiscordId(),
+                                    user.getName(),
+                                    user.getEmail(),
+                                    user.getAvatar(),
+                                    user.getBiography(),
+                                    user.getCreatedAt(),
+                                    user.isAdmin(),
+                                    user.hasRole(UserRole.SUPER_ADMIN),
+                                    user.getIsBot(),
+                                    user.getActive(),
+                                    user.isBanned()
+                            ),
+                            voteTypes.stream().map(voteType -> {
+                                Long totalVotes = voteService.getVotesByGroup(groupId).stream()
+                                        .filter(v -> v.getVote().getId().equals(voteType.getId()) &&
+                                                v.getGroupMovie().getChooser().getId().equals(user.getId()))
+                                        .count();
+                                VoteTypeSummaryResponse voteTypeSummaryResponse = new VoteTypeSummaryResponse(
+                                        voteType.getId(), voteType.getDescription(), voteType.getColor(), voteType.getEmoji()
+                                );
+                                return new VoteStatsResponse(voteTypeSummaryResponse, totalVotes);
+                            }).toList()
+                    );
+                })
+                .toList();
     }
 
     private List<VoteType> getVotesToConsider(Long voteTypeId) {
